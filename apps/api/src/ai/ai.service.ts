@@ -88,7 +88,7 @@ export class AiService {
       body: JSON.stringify({
         systemInstruction: { parts: [{ text: system }] },
         contents: turns.map(t => ({ role: t.role === 'assistant' ? 'model' : 'user', parts: [{ text: t.content }] })),
-        generationConfig: { maxOutputTokens: 600, temperature: 0.3 },
+        generationConfig: { maxOutputTokens: 2000, temperature: 0.3 },
       }),
       signal: AbortSignal.timeout(25_000),
     });
@@ -119,8 +119,9 @@ export class AiService {
     let reply = '';
     try {
       reply = provider === 'gemini' ? await this.callGemini(system, turns) : await this.callClaude(system, turns);
-    } catch {
+    } catch (e: any) {
       // Details go to the server log only, never to the student.
+      if (e?.message !== 'provider') this.log.error(`AI call failed: ${e?.name ?? 'Error'}: ${String(e?.message ?? e).slice(0, 200)}`);
       throw new ServiceUnavailableException('The assistant is unavailable right now. Please try again, or use Support chat.');
     }
     if (!reply) throw new ServiceUnavailableException('No answer came back. Please try again.');
