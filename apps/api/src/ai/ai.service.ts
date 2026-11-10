@@ -79,8 +79,26 @@ export class AiService {
     return g ? 'gemini' : c ? 'anthropic' : null;
   }
 
+  // Tries the main model, then a lighter fallback if the main one is overloaded or too slow (same approach as the Tuva shop).
   private async callGemini(system: string, turns: Turn[]): Promise<string> {
-    const model = (process.env.AI_MODEL || 'gemini-3.8-flash').trim();
+    const main = (process.env.AI_MODEL || 'gemini-3.8-flash').trim();
+    const fallback = (process.env.AI_FALLBACK_MODEL ?? 'gemini-3.5-flash-lite').trim();
+    const models = fallback && fallback !== main ? [main, fallback] : [main];
+    let lastError: unknown = new Error('provider');
+    for (let i = 0; i < models.length; i++) {
+      try {
+        return await this.geminiOnce(models[i], system, turns, i === 0 && models.length > 1 ? 20_000 : 30_000);
+      } catch (e: any) {
+        lastError = e;
+        const retryable = e?.name === 'TimeoutError' || e?.name === 'AbortError' || [429, 500, 502, 503, 504].includes(e?.status);
+        if (!retryable || i === models.length - 1) break;
+        this.log.warn(`Gemini model "${models[i]}" failed (${e?.status ?? e?.name}); trying "${models[i + 1]}".`);
+      }
+    }
+    throw lastError;
+  }
+
+  private async geminiOnce(model: string, system: string, turns: Turn[], timeoutMs: number): Promise<string> {
     const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
       method: 'POST',
       // The key goes in a header, never in the address, so it cannot end up in logs.
@@ -94,9 +112,12 @@ export class AiService {
           ...(process.env.AI_THINKING_LEVEL?.trim() ? { thinkingConfig: { thinkingLevel: process.env.AI_THINKING_LEVEL.trim() } } : {}),
         },
       }),
-      signal: AbortSignal.timeout(50_000),
+      signal: AbortSignal.timeout(timeoutMs),
     });
-    if (!res.ok) { this.log.error(`Gemini API returned ${res.status} for model "${model}": ${(await res.text().catch(() => '')).slice(0, 300)}`); throw new Error('provider'); }
+    if (!res.ok) {
+      this.log.error(`Gemini API returned ${res.status} for model "${model}": ${(await res.text().catch(() => '')).slice(0, 300)}`);
+      throw Object.assign(new Error('provider'), { status: res.status });
+    }
     const data: any = await res.json().catch(() => null);
     return (data?.candidates?.[0]?.content?.parts ?? []).map((p: any) => p?.text ?? '').join('').trim();
   }
