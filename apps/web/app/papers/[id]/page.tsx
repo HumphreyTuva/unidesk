@@ -7,7 +7,7 @@ import { api, ApiError } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import PaymentSheet from '@/components/PaymentSheet';
 
-type Paper = { id: string; unitCode: string; title: string; year: number; sitting: string | null; school: string | null; hasPreview: boolean; pageCount: number };
+type Paper = { id: string; unitCode: string; title: string; year: number; sitting: string | null; school: string | null; hasPreview: boolean; pageCount: number; readablePages: number };
 
 export default function PaperPage() {
   const { id } = useParams<{ id: string }>();
@@ -21,9 +21,8 @@ export default function PaperPage() {
   // Set only when the server answers 402. Until then nothing on this page mentions payment.
   const [price, setPrice] = useState<number | null>(null);
 
-  useEffect(() => {
-    api<Paper>(`/papers/${id}`).then(setPaper).catch(() => setMissing(true));
-  }, [id]);
+  const load = () => api<Paper>(`/papers/${id}`).then(setPaper).catch(() => setMissing(true));
+  useEffect(() => { load(); }, [id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const download = async () => {
     setMessage('');
@@ -33,6 +32,7 @@ export default function PaperPage() {
       // Ask first, so a refusal shows a friendly message instead of a raw error page.
       await api(`/papers/${id}/access`);
       window.location.href = `/api/v1/papers/${id}/download`;
+      setTimeout(load, 2000); // downloading unlocks the whole paper, so show the rest
     } catch (e) {
       const err = e as ApiError;
       if (err.status === 402) {
@@ -69,13 +69,20 @@ export default function PaperPage() {
       {paper.pageCount > 0 ? (
         // The whole paper, page by page. These are images; the PDF itself is only handed out by Download below.
         <div className="mt-5 flex flex-col gap-3" onContextMenu={e => e.preventDefault()}>
-          {Array.from({ length: paper.pageCount }, (_, i) => (
+          {Array.from({ length: paper.readablePages }, (_, i) => (
             <figure key={i} className="overflow-hidden rounded-[18px] border-[1.5px] border-line bg-white">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={`/api/v1/papers/${paper.id}/pages/${i + 1}`} alt={`${paper.unitCode} ${paper.year}, page ${i + 1} of ${paper.pageCount}`} loading={i < 2 ? 'eager' : 'lazy'} draggable={false} className="w-full select-none" />
               <figcaption className="border-t border-line px-3 py-1.5 text-center text-[12px] text-muted">Page {i + 1} of {paper.pageCount}</figcaption>
             </figure>
           ))}
+          {paper.readablePages < paper.pageCount && (
+            <div className="rounded-[18px] border-[1.5px] border-dashed border-edge bg-white p-5 text-center">
+              <p className="text-[15px] font-bold">{paper.pageCount - paper.readablePages} more page{paper.pageCount - paper.readablePages === 1 ? '' : 's'}</p>
+              <p className="mt-1 text-[13px] text-muted">The rest of this paper opens when you download it.</p>
+              <button type="button" onClick={download} disabled={busy} className="mt-3 inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-brand px-6 font-bold text-white disabled:opacity-70"><Download size={18} aria-hidden /> Download to read it all</button>
+            </div>
+          )}
         </div>
       ) : (
       <div className="mt-5 overflow-hidden rounded-[22px] border-[1.5px] border-line bg-white">
@@ -110,7 +117,7 @@ export default function PaperPage() {
           label={`${paper.unitCode} ${paper.year}`}
           amount={price}
           onClose={() => setPrice(null)}
-          onPaid={() => { window.location.href = `/api/v1/papers/${paper.id}/download`; }}
+          onPaid={() => { window.location.href = `/api/v1/papers/${paper.id}/download`; setTimeout(load, 2000); }}
         />
       )}
     </main>

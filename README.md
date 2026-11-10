@@ -113,6 +113,13 @@ npm run dev:web                                 # http://localhost:3000
 - **Feedback on every action:** buttons show spinners while working, errors appear in red next to the action, and successes show a short green confirmation above the bottom bar (joined a club, published a timetable, payment received, saved). Every tap has a small press animation (turned off for people who set "reduce motion"). A banner appears at the top when the phone goes offline.
 - Not yet tested on real devices: check it on a small Android phone, an iPhone and a laptop before launch.
 
+## Reading papers in the app
+
+- Students read a paper page by page inside the app (page images made in the admin's browser when the paper is uploaded, up to 30 pages). The PDF itself stays private and is only given out by Download.
+- **Admin → Payments → Reading papers in the app** chooses what students can read before downloading: **the whole paper**, **the first pages only** (you choose how many, 1 to 10), or **page 1 only**. Change it any time; it takes effect straight away.
+- This setting only applies when payments are on. While payments are off, every page is readable and nothing mentions payment. When it applies, locked pages say "opens when you download it", and the price only appears when the student presses Download.
+- A student who has unlocked a paper reads all of it. Papers uploaded before this feature have no page images (only the page-1 preview) until they are uploaded again.
+
 ## Status
 
 Done: monorepo, full database schema (with a `university` on every content table), auth, web shell, Home, Login, Account, admin guard, install button, icons, past papers with requests and admin upload, payments, **guide (call-off letter, offices, quick links)**, **timetables (class and exam)**, **support chat**, **AI assistant**, **Campus (clubs and paid marketplace)**.

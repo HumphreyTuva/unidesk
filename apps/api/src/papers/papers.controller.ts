@@ -1,13 +1,21 @@
 import { Body, Controller, Get, Param, Post, Query, Req, Res, UseGuards } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import { Throttle } from '@nestjs/throttler';
 import type { Response } from 'express';
-import { JwtGuard } from '../auth/guards';
+import { COOKIE, JwtGuard } from '../auth/guards';
 import { PapersService } from './papers.service';
 import { CreateRequestDto, ListPapersQuery } from './dto';
 
 @Controller()
 export class PapersController {
-  constructor(private papers: PapersService) {}
+  constructor(private papers: PapersService, private jwt: JwtService) {}
+
+  // Reading is open to everyone, but a signed-in student who has unlocked a paper reads all of it. No sign-in is not an error here.
+  private async who(req: any): Promise<string | undefined> {
+    const token = req.cookies?.[COOKIE];
+    if (!token) return undefined;
+    try { return (await this.jwt.verifyAsync<{ sub: string }>(token)).sub; } catch { return undefined; }
+  }
 
   // Browsing and previews are open to everyone. Downloading and requesting need an account.
   @Get('papers')
@@ -16,15 +24,15 @@ export class PapersController {
   }
 
   @Get('papers/:id')
-  detail(@Param('id') id: string) {
-    return this.papers.detail(id);
+  async detail(@Req() req: any, @Param('id') id: string) {
+    return this.papers.detail(id, await this.who(req));
   }
 
   @Get('papers/:id/pages/:n')
-  async page(@Param('id') id: string, @Param('n') n: string, @Res() res: Response) {
-    const f = await this.papers.page(id, parseInt(n, 10));
+  async page(@Req() req: any, @Param('id') id: string, @Param('n') n: string, @Res() res: Response) {
+    const f = await this.papers.page(id, parseInt(n, 10), await this.who(req));
     res.setHeader('Content-Type', 'image/jpeg');
-    res.setHeader('Cache-Control', 'public, max-age=3600');
+    res.setHeader('Cache-Control', 'private, max-age=300'); // private: what one student may read is not what another may
     f.stream.pipe(res);
   }
 

@@ -5,7 +5,7 @@ import { ArrowLeft, Loader2 } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useRequireAdmin } from '@/lib/useRequireAdmin';
 
-type Settings = { paymentsEnabled: boolean; paperPrice: number; listingFee: number; listingDays: number; mpesaMode: 'live' | 'mock' };
+type Settings = { paymentsEnabled: boolean; paperPrice: number; listingFee: number; listingDays: number; readingMode: 'full' | 'first' | 'preview'; freePages: number; mpesaMode: 'live' | 'mock' };
 type Item = { id: string; status: 'PENDING' | 'SUCCESS' | 'FAILED'; amount: number; phone: string; receipt: string | null; reason: string | null; what: string; createdAt: string };
 type Recent = { totals: { amount: number; count: number; todayAmount: number; todayCount: number }; items: Item[] };
 
@@ -30,7 +30,7 @@ export default function AdminPayments() {
 
   if (!ok) return null;
 
-  const save = async (patch: Partial<{ paymentsEnabled: boolean; paperPrice: number }>) => {
+  const save = async (patch: Partial<{ paymentsEnabled: boolean; paperPrice: number; readingMode: 'full' | 'first' | 'preview'; freePages: number }>) => {
     setBusy(true); setError(''); setSaved('');
     try {
       const r = await api<Settings>('/admin/settings', 'PUT', patch);
@@ -86,6 +86,26 @@ export default function AdminPayments() {
             </div>
             {saved && <p role="status" className="text-[13px] font-medium text-[#14532D]">{saved}</p>}
           </div>
+        </section>
+      )}
+
+      {s && (
+        <section className="mt-4 rounded-[20px] border-[1.5px] border-line bg-white p-4">
+          <p className="text-[15px] font-extrabold">Reading papers in the app</p>
+          <p className="text-[13px] text-muted">What students can read before downloading. This only applies once payments are on. While payments are off, students can read every page.</p>
+          <div role="radiogroup" aria-label="Reading mode" className="mt-3 flex flex-col gap-2">
+            {([['full', 'The whole paper', 'Every page. Downloading gets them the PDF.'], ['first', 'The first pages only', 'The rest opens when they download.'], ['preview', 'Page 1 only', 'A single-page preview, the rest opens on download.']] as const).map(([k, title, sub]) => (
+              <button key={k} type="button" role="radio" aria-checked={s.readingMode === k} disabled={busy} onClick={() => save({ readingMode: k })} className={`rounded-2xl border-[1.5px] p-3 text-left ${s.readingMode === k ? 'border-brand bg-brand-soft' : 'border-edge bg-white'}`}>
+                <span className="block text-[15px] font-bold">{title}</span><span className="block text-[13px] text-muted">{sub}</span>
+              </button>
+            ))}
+          </div>
+          {s.readingMode === 'first' && (
+            <div className="mt-3 flex items-center gap-3">
+              <label htmlFor="fp" className="text-[13px] font-bold">Free pages</label>
+              <input id="fp" type="number" min={1} max={10} defaultValue={s.freePages} onBlur={e => { const n = Number(e.target.value); if (n >= 1 && n <= 10 && n !== s.freePages) save({ freePages: n }); }} className="h-11 w-24 rounded-xl border-[1.5px] border-edge bg-[#F8FAFE] px-3 text-[15px]" />
+            </div>
+          )}
         </section>
       )}
 

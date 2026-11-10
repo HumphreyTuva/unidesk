@@ -1,6 +1,6 @@
 import { BadRequestException, Body, Controller, Get, Put, UseGuards } from '@nestjs/common';
 import { Type } from 'class-transformer';
-import { IsBoolean, IsInt, IsOptional, Max, Min } from 'class-validator';
+import { IsBoolean, IsIn, IsInt, IsOptional, Max, Min } from 'class-validator';
 import { JwtGuard, Roles } from '../auth/guards';
 import { SettingsService } from '../settings/settings.service';
 import { MpesaService } from './mpesa.service';
@@ -11,6 +11,8 @@ class UpdateSettingsDto {
   @IsOptional() @Type(() => Number) @IsInt() @Min(1) @Max(5000) paperPrice?: number;
   @IsOptional() @Type(() => Number) @IsInt() @Min(1) @Max(50000) listingFee?: number;
   @IsOptional() @Type(() => Number) @IsInt() @Min(1) @Max(365) listingDays?: number;
+  @IsOptional() @IsIn(['full', 'first', 'preview']) readingMode?: 'full' | 'first' | 'preview';
+  @IsOptional() @Type(() => Number) @IsInt() @Min(1) @Max(10) freePages?: number;
 }
 
 @Controller('admin')
@@ -37,6 +39,8 @@ export class AdminPaymentsController {
     if (dto.paperPrice !== undefined) await this.settings.set('paper_price', String(dto.paperPrice));
     if (dto.listingFee !== undefined) await this.settings.set('listing_fee', String(dto.listingFee));
     if (dto.listingDays !== undefined) await this.settings.set('listing_days', String(dto.listingDays));
+    if (dto.readingMode !== undefined) await this.settings.set('reading_mode', dto.readingMode);
+    if (dto.freePages !== undefined) await this.settings.set('free_pages', String(dto.freePages));
     return { ...(await this.settings.all()), mpesaMode: this.mpesa.mode };
   }
 

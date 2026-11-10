@@ -49,8 +49,20 @@ export class PapersService {
     return p;
   }
 
-  async detail(id: string) {
-    return this.card(await this.published(id));
+  // How many pages this visitor may read. While payments are off everything is readable and nothing hints at payment.
+  // When payments are on, the admin's reading setting applies, and a student who has unlocked the paper reads all of it.
+  private async readablePages(paper: { id: string; pageCount: number }, userId?: string) {
+    if (paper.pageCount === 0) return 0;
+    if (!(await this.settings.paymentsEnabled())) return paper.pageCount;
+    const r = await this.settings.reading();
+    if (r.mode === 'full') return paper.pageCount;
+    if (userId && (await this.db.paperAccess.findUnique({ where: { userId_paperId: { userId, paperId: paper.id } } }))) return paper.pageCount;
+    return Math.min(paper.pageCount, r.mode === 'first' ? r.freePages : 1);
+  }
+
+  async detail(id: string, userId?: string) {
+    const p = await this.published(id);
+    return { ...this.card(p), readablePages: await this.readablePages(p, userId) };
   }
 
   async preview(id: string) {
@@ -60,9 +72,10 @@ export class PapersService {
   }
 
   // Reading in the app is open to everyone: these are plain images of each page. The PDF itself is never exposed here.
-  async page(id: string, n: number) {
+  async page(id: string, n: number, userId?: string) {
     const p = await this.published(id);
     if (!Number.isInteger(n) || n < 1 || n > p.pageCount) throw new NotFoundException();
+    if (n > (await this.readablePages(p, userId))) throw new HttpException({ code: 'LOCKED', message: 'This page opens when you download the paper.' }, 403);
     return this.storage.get(`pages/${p.id}/${n}.jpg`);
   }
 
