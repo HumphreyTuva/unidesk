@@ -3,6 +3,7 @@
     "module": "commonjs",
     "target": "ES2021",
     "outDir": "./dist",
+    "rootDir": "./src",
     "declaration": false,
     "removeComments": true,
     "emitDecoratorMetadata": true,
@@ -15,5 +16,5 @@
     "strict": true,
     "strictPropertyInitialization": false
   },
-  "include": ["src/**/*", "prisma/**/*"]
+  "include": ["src/**/*"]
 }
