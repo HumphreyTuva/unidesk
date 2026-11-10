@@ -88,9 +88,13 @@ export class AiService {
       body: JSON.stringify({
         systemInstruction: { parts: [{ text: system }] },
         contents: turns.map(t => ({ role: t.role === 'assistant' ? 'model' : 'user', parts: [{ text: t.content }] })),
-        generationConfig: { maxOutputTokens: 2000, temperature: 0.3 },
+        generationConfig: {
+          maxOutputTokens: 2000, temperature: 0.3,
+          // Optional: set AI_THINKING_LEVEL=low (or minimal) on Render to make newer models answer faster.
+          ...(process.env.AI_THINKING_LEVEL?.trim() ? { thinkingConfig: { thinkingLevel: process.env.AI_THINKING_LEVEL.trim() } } : {}),
+        },
       }),
-      signal: AbortSignal.timeout(25_000),
+      signal: AbortSignal.timeout(50_000),
     });
     if (!res.ok) { this.log.error(`Gemini API returned ${res.status} for model "${model}": ${(await res.text().catch(() => '')).slice(0, 300)}`); throw new Error('provider'); }
     const data: any = await res.json().catch(() => null);
