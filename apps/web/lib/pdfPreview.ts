@@ -3,7 +3,7 @@
 export async function makePreview(file: File, maxWidth = 640): Promise<Blob | null> {
   try {
     const pdfjs = await import('pdfjs-dist');
-    pdfjs.GlobalWorkerOptions.workerSrc = new URL('pdfjs-dist/build/pdf.worker.min.mjs', import.meta.url).toString();
+    pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
     const doc = await pdfjs.getDocument({ data: await file.arrayBuffer() }).promise;
     const page = await doc.getPage(1);
     const base = page.getViewport({ scale: 1 });

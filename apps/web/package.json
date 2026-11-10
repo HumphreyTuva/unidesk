@@ -5,7 +5,9 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "prebuild": "node ../../scripts/copy-pdf-worker.mjs",
+    "predev": "node ../../scripts/copy-pdf-worker.mjs"
   },
   "dependencies": {
     "framer-motion": "^11.2.0",
