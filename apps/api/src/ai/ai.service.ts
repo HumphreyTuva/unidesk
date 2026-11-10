@@ -80,7 +80,7 @@ export class AiService {
   }
 
   private async callGemini(system: string, turns: Turn[]): Promise<string> {
-    const model = (process.env.AI_MODEL || 'gemini-2.5-flash').trim();
+    const model = (process.env.AI_MODEL || 'gemini-3.8-flash').trim();
     const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
       method: 'POST',
       // The key goes in a header, never in the address, so it cannot end up in logs.

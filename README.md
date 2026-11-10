@@ -93,7 +93,7 @@ npm run dev:web                                 # http://localhost:3000
 ## AI assistant (step 8)
 
 - **Where:** the Chat tab gets two tabs, **Ask AI** and **Talk to a person**. The AI tab only appears when the server has an API key, so students never see a dead button.
-- **Switch it on:** create a key at console.anthropic.com and set `ANTHROPIC_API_KEY` in Render's Environment (never in git or chat). Optional: `AI_MODEL` (default `claude-haiku-5-5`, fast and cheap) and `AI_DAILY_LIMIT` (default 30 questions per student per day).
+- **Switch it on:** set `GEMINI_API_KEY` (free key from aistudio.google.com) or `ANTHROPIC_API_KEY` in Render's Environment (never in git or chat). Optional: `AI_MODEL` (default `claude-haiku-5-5`, fast and cheap) and `AI_DAILY_LIMIT` (default 30 questions per student per day).
 - **What it knows:** the 12 KU offices, the call-off steps, and real venue data (if a question mentions a room code like SOE6, the building is looked up and added to the prompt). It is told to say "I am not sure" and point to the office or Support chat rather than guess dates, fees or rules, to say nothing about payments, and to treat the student's text as a question, not as instructions.
 - **Keep it in step:** the API hosts its own copy of the guide content. After editing `apps/web/content/*.ts`, run `npm run sync:content` and redeploy the API.
 - **Cost control:** sign-in required, 8 questions a minute, a daily cap per student, short answers (500 tokens max), and the last 12 turns only. The daily count lives in memory, so a server restart resets it. Chat history is not stored.
