@@ -71,34 +71,61 @@ export class AiService {
       rooms.map(r => `- ${r.code} is in ${r.building.name}${r.building.zone ? ` (${r.building.zone})` : ''}${r.building.landmark ? `. Hint: ${r.building.landmark}` : ''}`).join('\n');
   }
 
+  // Gemini is used when GEMINI_API_KEY is set (or AI_PROVIDER=gemini); otherwise Claude, when ANTHROPIC_API_KEY is set.
+  private provider(): 'gemini' | 'anthropic' | null {
+    const g = !!process.env.GEMINI_API_KEY?.trim(), c = !!process.env.ANTHROPIC_API_KEY?.trim();
+    if (process.env.AI_PROVIDER === 'anthropic' && c) return 'anthropic';
+    if (process.env.AI_PROVIDER === 'gemini' && g) return 'gemini';
+    return g ? 'gemini' : c ? 'anthropic' : null;
+  }
+
+  private async callGemini(system: string, turns: Turn[]): Promise<string> {
+    const model = (process.env.AI_MODEL || 'gemini-2.5-flash').trim();
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
+      method: 'POST',
+      // The key goes in a header, never in the address, so it cannot end up in logs.
+      headers: { 'x-goog-api-key': process.env.GEMINI_API_KEY!.trim(), 'content-type': 'application/json' },
+      body: JSON.stringify({
+        systemInstruction: { parts: [{ text: system }] },
+        contents: turns.map(t => ({ role: t.role === 'assistant' ? 'model' : 'user', parts: [{ text: t.content }] })),
+        generationConfig: { maxOutputTokens: 600, temperature: 0.3 },
+      }),
+      signal: AbortSignal.timeout(25_000),
+    });
+    if (!res.ok) { this.log.error(`Gemini API returned ${res.status} for model "${model}": ${(await res.text().catch(() => '')).slice(0, 300)}`); throw new Error('provider'); }
+    const data: any = await res.json().catch(() => null);
+    return (data?.candidates?.[0]?.content?.parts ?? []).map((p: any) => p?.text ?? '').join('').trim();
+  }
+
+  private async callClaude(system: string, turns: Turn[]): Promise<string> {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'x-api-key': process.env.ANTHROPIC_API_KEY!.trim(), 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
+      body: JSON.stringify({ model: process.env.AI_MODEL || 'claude-haiku-5-5', max_tokens: 500, system, messages: turns }),
+      signal: AbortSignal.timeout(25_000),
+    });
+    if (!res.ok) { this.log.error(`Anthropic API returned ${res.status}: ${(await res.text().catch(() => '')).slice(0, 300)}`); throw new Error('provider'); }
+    const data: any = await res.json().catch(() => null);
+    return Array.isArray(data?.content) ? data.content.filter((c: any) => c.type === 'text').map((c: any) => c.text).join('\n').trim() : '';
+  }
+
   async ask(userId: string, raw: unknown) {
-    const key = process.env.ANTHROPIC_API_KEY;
-    if (!key) throw new ServiceUnavailableException('The assistant is not switched on yet. Support chat can help meanwhile.');
+    const provider = this.provider();
+    if (!provider) throw new ServiceUnavailableException('The assistant is not switched on yet. Support chat can help meanwhile.');
     const turns = this.parse(raw);
     this.take(userId);
-    const facts = await this.venueFacts(turns[turns.length - 1].content);
+    const system = SYSTEM + (await this.venueFacts(turns[turns.length - 1].content));
 
-    let res: Response;
+    let reply = '';
     try {
-      res = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: { 'x-api-key': key, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
-        body: JSON.stringify({ model: process.env.AI_MODEL || 'claude-haiku-5-5', max_tokens: 500, system: SYSTEM + facts, messages: turns }),
-        signal: AbortSignal.timeout(25_000),
-      });
+      reply = provider === 'gemini' ? await this.callGemini(system, turns) : await this.callClaude(system, turns);
     } catch {
-      throw new ServiceUnavailableException('The assistant took too long. Please try again.');
-    }
-    if (!res.ok) {
-      // Details go to the server log only, never to the student (they could include account information).
-      this.log.error(`Anthropic API returned ${res.status}: ${(await res.text().catch(() => '')).slice(0, 300)}`);
+      // Details go to the server log only, never to the student.
       throw new ServiceUnavailableException('The assistant is unavailable right now. Please try again, or use Support chat.');
     }
-    const data: any = await res.json().catch(() => null);
-    const reply = Array.isArray(data?.content) ? data.content.filter((c: any) => c.type === 'text').map((c: any) => c.text).join('\n').trim() : '';
     if (!reply) throw new ServiceUnavailableException('No answer came back. Please try again.');
     return { reply };
   }
 
-  enabled() { return !!process.env.ANTHROPIC_API_KEY; }
+  enabled() { return this.provider() !== null; }
 }
