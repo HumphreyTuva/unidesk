@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { ArrowLeft, Check, FileUp, Loader2 } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useRequireAdmin } from '@/lib/useRequireAdmin';
-import { guessUnitCode, makePreview } from '@/lib/pdfPreview';
+import { guessUnitCode, makePages, makePreview } from '@/lib/pdfPreview';
 
 const field = 'h-[50px] w-full rounded-2xl border-[1.5px] border-edge bg-[#F8FAFE] px-4 text-[15px] text-ink placeholder:text-[#6B7794]';
 const thisYear = new Date().getFullYear();
@@ -43,13 +43,15 @@ export default function UploadPaper() {
       form.append('file', file);
       const preview = await makePreview(file); // null if it cannot be made; the paper still uploads
       if (preview) form.append('preview', preview, 'preview.jpg');
+      const pages = await makePages(file); // every page as an image, so students can read it in the app
+      pages.forEach((b, i) => form.append('pages', b, `${i + 1}.jpg`));
       form.append('unitCode', unitCode);
       form.append('title', title);
       form.append('year', year);
       if (sitting) form.append('sitting', sitting);
       if (school) form.append('school', school);
       await api('/admin/papers', 'POST', form);
-      setDone(`${unitCode.toUpperCase()} ${year} uploaded${preview ? '' : ' (without a preview)'}.`);
+      setDone(`${unitCode.toUpperCase()} ${year} uploaded with ${pages.length} readable page${pages.length === 1 ? '' : 's'}${pages.length ? '' : ' (pages could not be made, so students only see the first-page preview)'}.`);
       // Keep the year, sitting and school for the next upload; clear the rest.
       setFile(null);
       setUnitCode('');

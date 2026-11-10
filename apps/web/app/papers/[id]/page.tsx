@@ -7,7 +7,7 @@ import { api, ApiError } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import PaymentSheet from '@/components/PaymentSheet';
 
-type Paper = { id: string; unitCode: string; title: string; year: number; sitting: string | null; school: string | null; hasPreview: boolean };
+type Paper = { id: string; unitCode: string; title: string; year: number; sitting: string | null; school: string | null; hasPreview: boolean; pageCount: number };
 
 export default function PaperPage() {
   const { id } = useParams<{ id: string }>();
@@ -66,6 +66,18 @@ export default function PaperPage() {
       <p className="mt-1 text-[15px] text-muted">{paper.title}</p>
       <p className="mt-1 text-[13px] text-muted">{[paper.sitting, paper.school].filter(Boolean).join(' · ')}</p>
 
+      {paper.pageCount > 0 ? (
+        // The whole paper, page by page. These are images; the PDF itself is only handed out by Download below.
+        <div className="mt-5 flex flex-col gap-3" onContextMenu={e => e.preventDefault()}>
+          {Array.from({ length: paper.pageCount }, (_, i) => (
+            <figure key={i} className="overflow-hidden rounded-[18px] border-[1.5px] border-line bg-white">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={`/api/v1/papers/${paper.id}/pages/${i + 1}`} alt={`${paper.unitCode} ${paper.year}, page ${i + 1} of ${paper.pageCount}`} loading={i < 2 ? 'eager' : 'lazy'} draggable={false} className="w-full select-none" />
+              <figcaption className="border-t border-line px-3 py-1.5 text-center text-[12px] text-muted">Page {i + 1} of {paper.pageCount}</figcaption>
+            </figure>
+          ))}
+        </div>
+      ) : (
       <div className="mt-5 overflow-hidden rounded-[22px] border-[1.5px] border-line bg-white">
         {paper.hasPreview && previewOk ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -77,6 +89,7 @@ export default function PaperPage() {
           </div>
         )}
       </div>
+      )}
 
       {message && <p role="alert" className="mt-4 rounded-xl bg-amber-soft px-3.5 py-3 text-sm font-medium text-amber-ink">{message}</p>}
 

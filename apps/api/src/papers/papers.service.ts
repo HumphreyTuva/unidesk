@@ -20,8 +20,8 @@ export class PapersService {
   ) {}
 
   // What students see. Nothing here ever mentions price or payment.
-  private card(p: { id: string; unitCode: string; title: string; year: number; sitting: string | null; school: string | null; previewKey: string | null }) {
-    return { id: p.id, unitCode: p.unitCode, title: p.title, year: p.year, sitting: p.sitting, school: p.school, hasPreview: !!p.previewKey };
+  private card(p: { id: string; unitCode: string; title: string; year: number; sitting: string | null; school: string | null; previewKey: string | null; pageCount: number }) {
+    return { id: p.id, unitCode: p.unitCode, title: p.title, year: p.year, sitting: p.sitting, school: p.school, hasPreview: !!p.previewKey, pageCount: p.pageCount };
   }
 
   async list(q: ListPapersQuery) {
@@ -57,6 +57,13 @@ export class PapersService {
     const p = await this.published(id);
     if (!p.previewKey) throw new NotFoundException();
     return this.storage.get(p.previewKey);
+  }
+
+  // Reading in the app is open to everyone: these are plain images of each page. The PDF itself is never exposed here.
+  async page(id: string, n: number) {
+    const p = await this.published(id);
+    if (!Number.isInteger(n) || n < 1 || n > p.pageCount) throw new NotFoundException();
+    return this.storage.get(`pages/${p.id}/${n}.jpg`);
   }
 
   // The one place that decides whether a student may download.
@@ -100,21 +107,25 @@ export class PapersService {
   }
 
   // ---- admin ----
-  async upload(dto: UploadPaperDto, file?: { buffer: Buffer }, preview?: { buffer: Buffer }) {
+  async upload(dto: UploadPaperDto, file?: { buffer: Buffer }, preview?: { buffer: Buffer }, pages: { buffer: Buffer }[] = []) {
     const unitCode = normalizeUnitCode(dto.unitCode);
     if (!UNIT_CODE_RE.test(unitCode)) throw new BadRequestException('Unit code should look like ICS2201');
     if (!file || !isPdf(file.buffer)) throw new BadRequestException('Upload the paper as a PDF file');
     if (preview && !isJpeg(preview.buffer)) throw new BadRequestException('The preview must be a JPEG image');
+
+    if (pages.length > 30) throw new BadRequestException('Up to 30 pages can be shown in the app.');
+    if (pages.some(pg => !isJpeg(pg.buffer))) throw new BadRequestException('Page images must be JPEG.');
 
     const id = randomUUID();
     const fileKey = `papers/${id}.pdf`;
     const previewKey = preview ? `previews/${id}.jpg` : null;
     await this.storage.put(fileKey, file.buffer, 'application/pdf');
     if (preview && previewKey) await this.storage.put(previewKey, preview.buffer, 'image/jpeg');
+    for (const [i, pg] of pages.entries()) await this.storage.put(`pages/${id}/${i + 1}.jpg`, pg.buffer, 'image/jpeg');
 
     const universityId = await this.uni.defaultId();
     const paper = await this.db.paper.create({
-      data: { id, universityId, unitCode, title: dto.title.trim(), year: dto.year, sitting: dto.sitting?.trim() || null, school: dto.school?.trim() || null, fileKey, previewKey },
+      data: { id, universityId, unitCode, title: dto.title.trim(), year: dto.year, sitting: dto.sitting?.trim() || null, school: dto.school?.trim() || null, fileKey, previewKey, pageCount: pages.length },
     });
 
     // Anyone who asked for this unit gets their request marked as fulfilled.

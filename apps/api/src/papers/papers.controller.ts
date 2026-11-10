@@ -20,6 +20,14 @@ export class PapersController {
     return this.papers.detail(id);
   }
 
+  @Get('papers/:id/pages/:n')
+  async page(@Param('id') id: string, @Param('n') n: string, @Res() res: Response) {
+    const f = await this.papers.page(id, parseInt(n, 10));
+    res.setHeader('Content-Type', 'image/jpeg');
+    res.setHeader('Cache-Control', 'public, max-age=3600');
+    f.stream.pipe(res);
+  }
+
   @Get('papers/:id/preview')
   async preview(@Param('id') id: string, @Res() res: Response) {
     const f = await this.papers.preview(id);

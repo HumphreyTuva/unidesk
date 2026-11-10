@@ -116,6 +116,7 @@ model Paper {
   school       String?
   fileKey      String // full PDF in storage (never public)
   previewKey   String? // low-resolution preview shown before download
+  pageCount    Int        @default(0) // page images (pages/<id>/<n>.jpg) so students can read the paper in the app
   published    Boolean    @default(true)
   downloads    Int        @default(0)
   createdAt    DateTime   @default(now())
