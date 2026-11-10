@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, ServiceUnavailableException } from '@nestjs/common';
 import { mkdir, readFile, stat, writeFile } from 'fs/promises';
 import { createReadStream } from 'fs';
 import { dirname, join, resolve } from 'path';
@@ -11,6 +11,14 @@ export type StoredFile = { stream: Readable; size?: number };
 //   STORAGE_DRIVER=s3: Cloudflare R2 or any S3-compatible bucket (S3_ENDPOINT, S3_BUCKET, S3_ACCESS_KEY, S3_SECRET_KEY).
 @Injectable()
 export class StorageService {
+  private log = new Logger('Storage');
+  // Stray spaces or quotes pasted into hosting dashboards are the most common cause of "Access Denied", so they are removed.
+  private env = (k: string) => (process.env[k] ?? '').trim().replace(/^["']|["']$/g, '');
+  // Never log keys. Only the kind of failure, the HTTP status and what we tried to do.
+  private fail(op: string, key: string, e: any): never {
+    this.log.error(`S3 ${op} failed for "${key}": ${e?.name ?? 'Error'} (HTTP ${e?.$metadata?.httpStatusCode ?? '?'}) endpoint=${this.env('S3_ENDPOINT')} bucket=${this.env('S3_BUCKET')} keyIdLength=${this.env('S3_ACCESS_KEY').length} secretLength=${this.env('S3_SECRET_KEY').length}`);
+    throw new ServiceUnavailableException('File storage is not working right now. Please try again, or tell the admin.');
+  }
   private get driver() { return process.env.STORAGE_DRIVER === 's3' ? 's3' : 'local'; }
   private get root() { return resolve(process.cwd(), process.env.UPLOAD_DIR || 'uploads'); }
 
@@ -20,9 +28,13 @@ export class StorageService {
       const { S3Client } = await import('@aws-sdk/client-s3');
       this.s3Cache = new S3Client({
         region: 'auto',
-        endpoint: process.env.S3_ENDPOINT,
-        credentials: { accessKeyId: process.env.S3_ACCESS_KEY || '', secretAccessKey: process.env.S3_SECRET_KEY || '' },
-      });
+        endpoint: this.env('S3_ENDPOINT'),
+        forcePathStyle: true, // https://<account>.r2.cloudflarestorage.com/<bucket>/<key>, as Cloudflare documents
+        credentials: { accessKeyId: this.env('S3_ACCESS_KEY'), secretAccessKey: this.env('S3_SECRET_KEY') },
+        // Newer AWS SDKs add checksum headers by default that some S3-compatible stores reject. Only send them when required.
+        requestChecksumCalculation: 'WHEN_REQUIRED',
+        responseChecksumValidation: 'WHEN_REQUIRED',
+      } as any);
     }
     return this.s3Cache;
   }
@@ -37,7 +49,9 @@ export class StorageService {
   async put(key: string, body: Buffer, contentType: string) {
     if (this.driver === 's3') {
       const { PutObjectCommand } = await import('@aws-sdk/client-s3');
-      await (await this.s3()).send(new PutObjectCommand({ Bucket: process.env.S3_BUCKET, Key: key, Body: body, ContentType: contentType }));
+      try {
+        await (await this.s3()).send(new PutObjectCommand({ Bucket: this.env('S3_BUCKET'), Key: key, Body: body, ContentType: contentType }));
+      } catch (e) { this.fail('put', key, e); }
       return;
     }
     const path = this.localPath(key);
@@ -49,10 +63,11 @@ export class StorageService {
     if (this.driver === 's3') {
       const { GetObjectCommand } = await import('@aws-sdk/client-s3');
       try {
-        const r = await (await this.s3()).send(new GetObjectCommand({ Bucket: process.env.S3_BUCKET, Key: key }));
+        const r = await (await this.s3()).send(new GetObjectCommand({ Bucket: this.env('S3_BUCKET'), Key: key }));
         return { stream: r.Body as Readable, size: r.ContentLength };
-      } catch {
-        throw new NotFoundException();
+      } catch (e: any) {
+        if (e?.name === 'NoSuchKey' || e?.$metadata?.httpStatusCode === 404) throw new NotFoundException();
+        this.fail('get', key, e);
       }
     }
     const path = this.localPath(key);
