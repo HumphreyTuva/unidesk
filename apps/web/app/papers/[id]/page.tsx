@@ -10,10 +10,22 @@ import PaymentSheet from '@/components/PaymentSheet';
 type Paper = { id: string; unitCode: string; title: string; year: number; sitting: string | null; school: string | null; hasPreview: boolean; pageCount: number; readablePages: number };
 
 // Full-screen zoom: the page at about twice the width, scrolled by finger or mouse. Opens on tap, so small print is readable.
+// A double tap = two taps close together in time and place. Single taps are ignored, so scrolling and selecting never zoom by accident.
+// A keyboard press (no position) counts at once, so the page stays usable without a mouse or touch.
+type Tap = { t: number; x: number; y: number };
+const isDoubleTap = (last: { current: Tap }, e: React.MouseEvent) => {
+  if (e.detail === 0) return true;
+  const now = Date.now(), l = last.current;
+  if (now - l.t < 350 && Math.hypot(e.clientX - l.x, e.clientY - l.y) < 40) { last.current = { t: 0, x: 0, y: 0 }; return true; }
+  last.current = { t: now, x: e.clientX, y: e.clientY };
+  return false;
+};
+
 type ZoomAt = { n: number; fx: number; fy: number }; // page, and where on it (0..1) the reader tapped
 function Zoom({ paper, start, onClose }: { paper: Paper; start: ZoomAt; onClose: () => void }) {
   const [n, setN] = useState(start.n);
   const box = useRef<HTMLDivElement>(null);
+  const lastTap = useRef<Tap>({ t: 0, x: 0, y: 0 });
   const focus = useRef({ fx: start.fx, fy: start.fy }); // only the first page opens on the tapped spot; later pages start at the top
   useEffect(() => {
     const key = (e: KeyboardEvent) => {
@@ -38,12 +50,12 @@ function Zoom({ paper, start, onClose }: { paper: Paper; start: ZoomAt; onClose:
   return (
     <div className="fixed inset-0 z-[60] flex flex-col bg-black/95" role="dialog" aria-modal="true" aria-label={`${paper.unitCode} page ${n}`}>
       <div className="flex h-14 shrink-0 items-center justify-between px-3 pt-[env(safe-area-inset-top)] text-white">
-        <span className="px-2 text-[14px] font-semibold">{paper.unitCode} · Page {n} of {paper.pageCount}<span className="ml-2 hidden text-[12px] font-medium text-white/70 sm:inline">Tap the page to zoom out</span></span>
+        <span className="px-2 text-[14px] font-semibold">{paper.unitCode} · Page {n} of {paper.pageCount}<span className="ml-2 hidden text-[12px] font-medium text-white/70 sm:inline">Double-tap the page to zoom out</span></span>
         <button type="button" onClick={onClose} aria-label="Close" className="flex h-11 w-11 items-center justify-center rounded-full bg-white/15"><X size={22} aria-hidden /></button>
       </div>
       <div ref={box} className="min-h-0 flex-1 overflow-auto bg-white" onContextMenu={e => e.preventDefault()}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img key={n} src={`/api/v1/papers/${paper.id}/pages/${n}`} alt={`Page ${n}. Tap to zoom out`} onLoad={settle} onClick={onClose} draggable={false} style={{ width: 'max(200%, 900px)', maxWidth: 'none' }} className="block cursor-zoom-out select-none" />
+        <img key={n} src={`/api/v1/papers/${paper.id}/pages/${n}`} alt={`Page ${n}. Double-tap to zoom out`} onLoad={settle} onClick={e => { if (isDoubleTap(lastTap, e)) onClose(); }} draggable={false} style={{ width: 'max(200%, 900px)', maxWidth: 'none', touchAction: 'manipulation' }} className="block cursor-zoom-out select-none" />
       </div>
       <div className="flex shrink-0 items-center justify-center gap-4 pb-[calc(10px+env(safe-area-inset-bottom))] pt-2.5 text-white">
         <button type="button" onClick={() => setN(v => Math.max(1, v - 1))} disabled={n <= 1} aria-label="Previous page" className="flex h-11 w-11 items-center justify-center rounded-full bg-white/15 disabled:opacity-30"><ChevronLeft size={22} aria-hidden /></button>
@@ -66,6 +78,7 @@ export default function PaperPage() {
   // Set only when the server answers 402. Until then nothing on this page mentions payment.
   const [price, setPrice] = useState<number | null>(null);
   const [zoom, setZoom] = useState<ZoomAt | null>(null);
+  const lastTap = useRef<Tap>({ t: 0, x: 0, y: 0 });
 
   const load = () => api<Paper>(`/papers/${id}`).then(setPaper).catch(() => setMissing(true));
   useEffect(() => { load(); }, [id]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -116,11 +129,12 @@ export default function PaperPage() {
         // The whole paper, page by page. These are images; the PDF itself is only handed out by Download below.
         // On a phone the pages run edge to edge (the screen is the page); on a desktop they sit in a wide centred column.
         <div className="-mx-5 mt-4 flex flex-col gap-2 bg-[#E9EDF5] py-2 lg:mx-auto lg:max-w-[860px] lg:gap-4 lg:rounded-[22px] lg:p-5" onContextMenu={e => e.preventDefault()}>
-          <p className="px-5 pb-0.5 text-center text-[12px] text-muted lg:px-0">Tap any spot on a page to zoom in there</p>
+          <p className="px-5 pb-0.5 text-center text-[12px] text-muted lg:px-0">Double-tap a page to zoom in there</p>
           {Array.from({ length: paper.readablePages }, (_, i) => (
             <figure key={i} className="relative bg-white shadow-sm lg:overflow-hidden lg:rounded-xl">
-              <button type="button" aria-label={`Zoom page ${i + 1}`} className="block w-full cursor-zoom-in" onClick={e => {
-                // Zoom in on the spot that was tapped. A keyboard press has no position, so it opens near the top.
+              <button type="button" aria-label={`Zoom page ${i + 1}`} className="block w-full cursor-zoom-in" style={{ touchAction: 'manipulation' }} onClick={e => {
+                if (!isDoubleTap(lastTap, e)) return;
+                // Zoom in on the spot that was double-tapped. A keyboard press has no position, so it opens near the top.
                 const r = e.currentTarget.getBoundingClientRect();
                 const fx = e.detail === 0 ? 0.5 : (e.clientX - r.left) / r.width;
                 const fy = e.detail === 0 ? 0.15 : (e.clientY - r.top) / r.height;
