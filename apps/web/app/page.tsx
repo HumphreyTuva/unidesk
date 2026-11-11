@@ -100,6 +100,10 @@ export default function Home() {
         <div className="mt-3 lg:max-w-[820px]"><FaqList items={FAQ.filter(f => /call off|Finance|find a Kenyatta|lecture hall/i.test(f.q))} /></div>
       </section>
 
+      <p className="mt-6 text-[13px] leading-relaxed text-muted">
+        UniDesk is a study hub and student help center for Kenyatta University: KU past papers you can read online, class and exam timetables, directions to lecture halls, KU offices and room numbers, and guidance on procedures like calling off a semester.
+      </p>
+
       <div className="mt-5">
         <InstallButton />
       </div>

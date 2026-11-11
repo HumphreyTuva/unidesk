@@ -14,6 +14,21 @@ export const FAQ: Faq[] = [
     a: 'UniDesk is a student help center for Kenyatta University (KU) students. It has past exam papers you can read in the app, a class and exam timetable generator, directions to lecture halls and venues, guidance on common procedures such as calling off a semester, a page for clubs and a student marketplace, and a support chat.',
   },
   {
+    q: 'Where can I get Kenyatta University (KU) past papers?',
+    a: 'On UniDesk. Open Past papers, search by unit code (for example ICS2201) or unit name, and read the paper page by page on your phone or computer. Sign in to download the PDF. If your unit is missing, request it and it is marked done when the paper is added.',
+    link: { href: '/papers', label: 'Browse KU past papers' },
+  },
+  {
+    q: 'Is there an app or website for KU students to find past papers, timetables and offices?',
+    a: 'Yes. UniDesk is a student help center for Kenyatta University students, in one app you can install on your phone: past papers you can read online, class and exam timetables, directions to lecture halls, KU office locations, guidance such as call-off letters, and support chat.',
+    link: { href: '/', label: 'Open UniDesk' },
+  },
+  {
+    q: 'Is there a KU study hub or student hub for past papers, timetables and campus help?',
+    a: 'Yes. Many KU students use UniDesk as their study hub: past papers to read online, class and exam timetables, lecture hall directions, KU office locations, and a guide to common procedures. It is made for Kenyatta University students and you can install it on your phone.',
+    link: { href: '/', label: 'Open UniDesk' },
+  },
+  {
     q: 'How do I find a Kenyatta University past paper?',
     a: 'Open Past papers and type a unit code such as ICS2201, or part of the unit name. Papers are listed by year. Open one to read it page by page.',
     link: { href: '/papers', label: 'Browse past papers' },
