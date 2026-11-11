@@ -1,5 +1,5 @@
 import { Injectable, Logger, NotFoundException, ServiceUnavailableException } from '@nestjs/common';
-import { mkdir, readFile, stat, writeFile } from 'fs/promises';
+import { mkdir, readFile, stat, unlink, writeFile } from 'fs/promises';
 import { createReadStream } from 'fs';
 import { dirname, join, resolve } from 'path';
 import type { Readable } from 'stream';
@@ -57,6 +57,21 @@ export class StorageService {
     const path = this.localPath(key);
     await mkdir(dirname(path), { recursive: true });
     await writeFile(path, body);
+  }
+
+  // Deleting something that is already gone is not an error.
+  async remove(key: string) {
+    if (this.driver === 's3') {
+      const { DeleteObjectCommand } = await import('@aws-sdk/client-s3');
+      try {
+        await (await this.s3()).send(new DeleteObjectCommand({ Bucket: this.env('S3_BUCKET'), Key: key }));
+      } catch (e: any) {
+        if (e?.name === 'NoSuchKey' || e?.$metadata?.httpStatusCode === 404) return;
+        this.fail('delete', key, e);
+      }
+      return;
+    }
+    try { await unlink(this.localPath(key)); } catch { /* already gone */ }
   }
 
   async get(key: string): Promise<StoredFile> {

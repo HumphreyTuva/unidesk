@@ -1,8 +1,8 @@
-import { Body, Controller, Get, Param, Post, UploadedFiles, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put, Query, UploadedFiles, UseGuards, UseInterceptors } from '@nestjs/common';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { JwtGuard, Roles } from '../auth/guards';
 import { PapersService } from './papers.service';
-import { UploadPaperDto } from './dto';
+import { AdminListQuery, UpdatePaperDto, UploadPaperDto } from './dto';
 
 type Upload = { buffer: Buffer };
 
@@ -17,6 +17,28 @@ export class AdminPapersController {
   @UseInterceptors(FileFieldsInterceptor([{ name: 'file', maxCount: 1 }, { name: 'preview', maxCount: 1 }, { name: 'pages', maxCount: 30 }], { limits: { fileSize: 20 * 1024 * 1024 } }))
   upload(@Body() dto: UploadPaperDto, @UploadedFiles() files: { file?: Upload[]; preview?: Upload[]; pages?: Upload[] }) {
     return this.papers.upload(dto, files?.file?.[0], files?.preview?.[0], files?.pages ?? []);
+  }
+
+  @Get('papers') @Roles('ADMIN')
+  list(@Query() q: AdminListQuery) {
+    return this.papers.adminList(q.q);
+  }
+
+  @Put('papers/:id') @Roles('ADMIN')
+  update(@Param('id') id: string, @Body() dto: UpdatePaperDto) {
+    return this.papers.adminUpdate(id, dto);
+  }
+
+  // Replace the PDF and/or the page images of an existing paper.
+  @Post('papers/:id/files') @Roles('ADMIN')
+  @UseInterceptors(FileFieldsInterceptor([{ name: 'file', maxCount: 1 }, { name: 'preview', maxCount: 1 }, { name: 'pages', maxCount: 30 }], { limits: { fileSize: 20 * 1024 * 1024 } }))
+  replace(@Param('id') id: string, @UploadedFiles() files: { file?: Upload[]; preview?: Upload[]; pages?: Upload[] }) {
+    return this.papers.adminReplaceFiles(id, files?.file?.[0], files?.preview?.[0], files?.pages ?? []);
+  }
+
+  @Delete('papers/:id') @Roles('ADMIN')
+  remove(@Param('id') id: string) {
+    return this.papers.adminDelete(id);
   }
 
   @Get('paper-requests') @Roles('ADMIN', 'SUPPORT')

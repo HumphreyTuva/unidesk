@@ -1,5 +1,5 @@
 import { Type } from 'class-transformer';
-import { IsIn, IsInt, IsOptional, IsString, Max, MaxLength, Min, MinLength } from 'class-validator';
+import { IsBoolean, IsIn, IsInt, IsOptional, IsString, Max, MaxLength, Min, MinLength } from 'class-validator';
 
 export class ListPapersQuery {
   @IsOptional() @IsString() @MaxLength(60) q?: string;
@@ -16,6 +16,19 @@ export class UploadPaperDto {
   @IsOptional() @IsString() @MaxLength(60) sitting?: string;
   @IsOptional() @IsString() @MaxLength(80) school?: string;
   @IsOptional() @IsString() @MaxLength(40) requestId?: string;
+}
+
+export class UpdatePaperDto {
+  @IsOptional() @IsString() @MinLength(4) @MaxLength(14) unitCode?: string;
+  @IsOptional() @IsString() @MinLength(3) @MaxLength(150) title?: string;
+  @IsOptional() @Type(() => Number) @IsInt() @Min(1990) @Max(2100) year?: number;
+  @IsOptional() @IsString() @MaxLength(60) sitting?: string;
+  @IsOptional() @IsString() @MaxLength(80) school?: string;
+  @IsOptional() @IsBoolean() published?: boolean;
+}
+
+export class AdminListQuery {
+  @IsOptional() @IsString() @MaxLength(60) q?: string;
 }
 
 export class CreateRequestDto {

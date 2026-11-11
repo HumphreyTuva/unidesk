@@ -134,3 +134,9 @@ Not yet checked by running: this first version was written without being install
 
 3. Guidance, offices, venues, timetables (class and exam), live chat, AI assistant.
 4. Campus: clubs and marketplace (paid listings).
+
+## Managing papers and the reader
+
+- **Admin → Manage papers** lists every paper (hidden ones too). Edit the unit code, title, year, sitting or school; Hide or Show it to students; Replace the PDF (this also rebuilds the readable pages); or Delete it. A paper students have paid for cannot be deleted (the money history stays), so Hide it instead.
+- The reader crops the blank margins around the text when a paper is uploaded, so text is larger on phones. Papers uploaded earlier keep their old pages until you use **Replace PDF** on them.
+- Students can tap a page to zoom in, and pages run edge to edge on a phone.

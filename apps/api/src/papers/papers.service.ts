@@ -5,7 +5,7 @@ import { StorageService } from '../storage/storage.service';
 import { SettingsService } from '../settings/settings.service';
 import { UniversityService } from '../common/university.service';
 import { UNIT_CODE_RE, normalizeUnitCode } from '../common/unit-code';
-import { ListPapersQuery, UploadPaperDto } from './dto';
+import { ListPapersQuery, UpdatePaperDto, UploadPaperDto } from './dto';
 
 const isPdf = (b: Buffer) => b.length > 5 && b.subarray(0, 5).toString('latin1') === '%PDF-';
 const isJpeg = (b: Buffer) => b.length > 3 && b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff;
@@ -144,6 +144,77 @@ export class PapersService {
     // Anyone who asked for this unit gets their request marked as fulfilled.
     await this.db.paperRequest.updateMany({ where: { universityId, unitCode, status: 'OPEN' }, data: { status: 'FULFILLED', paperId: paper.id } });
     return this.card(paper);
+  }
+
+  // Everything in the library, hidden papers included, for the Manage papers screen.
+  async adminList(q?: string) {
+    const term = q?.trim();
+    const where: any = { universityId: await this.uni.defaultId() };
+    if (term) where.OR = [{ unitCode: { contains: normalizeUnitCode(term) } }, { title: { contains: term, mode: 'insensitive' } }];
+    const rows = await this.db.paper.findMany({ where, orderBy: [{ createdAt: 'desc' }], take: 200 });
+    return rows.map(p => ({ id: p.id, unitCode: p.unitCode, title: p.title, year: p.year, sitting: p.sitting, school: p.school, published: p.published, pageCount: p.pageCount, downloads: p.downloads, hasPreview: !!p.previewKey, createdAt: p.createdAt }));
+  }
+
+  async adminUpdate(id: string, dto: UpdatePaperDto) {
+    const p = await this.db.paper.findUnique({ where: { id } });
+    if (!p) throw new NotFoundException('Paper not found');
+    const data: any = {};
+    if (dto.unitCode !== undefined) {
+      const unitCode = normalizeUnitCode(dto.unitCode);
+      if (!UNIT_CODE_RE.test(unitCode)) throw new BadRequestException('Unit code should look like ICS2201');
+      data.unitCode = unitCode;
+    }
+    if (dto.title !== undefined) data.title = dto.title.trim();
+    if (dto.year !== undefined) data.year = dto.year;
+    if (dto.sitting !== undefined) data.sitting = dto.sitting.trim() || null;
+    if (dto.school !== undefined) data.school = dto.school.trim() || null;
+    if (dto.published !== undefined) data.published = dto.published;
+    const updated = await this.db.paper.update({ where: { id }, data });
+    return { id: updated.id, unitCode: updated.unitCode, title: updated.title, year: updated.year, sitting: updated.sitting, school: updated.school, published: updated.published };
+  }
+
+  // Swap in a corrected PDF, and/or fresh page images (for example after the reader was improved). Anything not sent is kept.
+  async adminReplaceFiles(id: string, file?: { buffer: Buffer }, preview?: { buffer: Buffer }, pages: { buffer: Buffer }[] = []) {
+    const p = await this.db.paper.findUnique({ where: { id } });
+    if (!p) throw new NotFoundException('Paper not found');
+    if (file && !isPdf(file.buffer)) throw new BadRequestException('Upload the paper as a PDF file');
+    if (preview && !isJpeg(preview.buffer)) throw new BadRequestException('The preview must be a JPEG image');
+    if (pages.length > 30) throw new BadRequestException('Up to 30 pages can be shown in the app.');
+    if (pages.some(pg => !isJpeg(pg.buffer))) throw new BadRequestException('Page images must be JPEG.');
+    if (!file && !preview && !pages.length) throw new BadRequestException('Nothing to replace. Choose the PDF.');
+
+    const data: any = {};
+    if (file) await this.storage.put(p.fileKey, file.buffer, 'application/pdf');
+    if (preview) {
+      const previewKey = p.previewKey ?? `previews/${p.id}.jpg`;
+      await this.storage.put(previewKey, preview.buffer, 'image/jpeg');
+      data.previewKey = previewKey;
+    }
+    if (pages.length) {
+      for (const [i, pg] of pages.entries()) await this.storage.put(`pages/${p.id}/${i + 1}.jpg`, pg.buffer, 'image/jpeg');
+      // The new PDF may be shorter: remove page images that no longer exist.
+      for (let n = pages.length + 1; n <= p.pageCount; n++) await this.storage.remove(`pages/${p.id}/${n}.jpg`);
+      data.pageCount = pages.length;
+    }
+    if (Object.keys(data).length) await this.db.paper.update({ where: { id }, data });
+    return { ok: true, pageCount: data.pageCount ?? p.pageCount };
+  }
+
+  // Deleting is permanent. A paper that has payment records is kept (the money history must stay), so the admin hides it instead.
+  async adminDelete(id: string) {
+    const p = await this.db.paper.findUnique({ where: { id } });
+    if (!p) throw new NotFoundException('Paper not found');
+    if (await this.db.payment.count({ where: { paperId: id } })) {
+      throw new HttpException({ code: 'HAS_PAYMENTS', message: 'Students have paid for this paper, so it cannot be deleted. Hide it instead.' }, 409);
+    }
+    await this.db.paperAccess.deleteMany({ where: { paperId: id } });
+    await this.db.paperRequest.updateMany({ where: { paperId: id }, data: { paperId: null } });
+    await this.db.paper.delete({ where: { id } });
+    // Files last: if one fails the paper is already gone from the app and stray files are harmless.
+    await this.storage.remove(p.fileKey);
+    if (p.previewKey) await this.storage.remove(p.previewKey);
+    for (let n = 1; n <= p.pageCount; n++) await this.storage.remove(`pages/${p.id}/${n}.jpg`);
+    return { ok: true };
   }
 
   async openRequests() {

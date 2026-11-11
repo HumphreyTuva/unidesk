@@ -66,7 +66,10 @@ export default function UploadPaper() {
   return (
     <main className="px-5 pt-[calc(16px+env(safe-area-inset-top))] pb-8">
       <Link href="/admin" aria-label="Back to admin" className="-ml-2 flex h-11 w-11 items-center justify-center rounded-full"><ArrowLeft size={24} aria-hidden /></Link>
-      <h1 className="mt-2 text-2xl font-extrabold">Upload a paper</h1>
+      <div className="mt-2 flex items-center justify-between gap-3">
+        <h1 className="text-2xl font-extrabold">Upload a paper</h1>
+        <Link href="/admin/papers/manage" className="inline-flex h-10 items-center rounded-xl border-[1.5px] border-edge bg-white px-4 text-[13px] font-bold">Manage papers</Link>
+      </div>
 
       <form onSubmit={submit} className="mt-5 flex flex-col gap-3.5">
         <label className="flex min-h-[96px] cursor-pointer flex-col items-center justify-center gap-1.5 rounded-[18px] border-2 border-dashed border-edge bg-white p-4 text-center">
