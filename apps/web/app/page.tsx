@@ -2,6 +2,8 @@ import Link from 'next/link';
 import { CalendarDays, ChevronRight, ClipboardList, FileText, MapPin, Plus, Search, Sparkles } from 'lucide-react';
 import HomeHeader from '@/components/HomeHeader';
 import InstallButton from '@/components/InstallButton';
+import FaqList from '@/components/FaqList';
+import { FAQ } from '@/content/faq';
 
 const ACTIONS = [
   { href: '/papers?request=1', label: 'Request', Icon: Plus, tone: 'bg-brand-soft text-brand' },
@@ -19,6 +21,7 @@ export default function Home() {
   return (
     <main className="wide px-5 pt-[calc(24px+env(safe-area-inset-top))]">
       <HomeHeader />
+      <h1 className="sr-only">UniDesk: Kenyatta University past papers, timetables, venue directions and student guide</h1>
 
       <Link
         href="/papers"
@@ -86,6 +89,15 @@ export default function Home() {
             </Link>
           ))}
         </div>
+      </section>
+
+      {/* Quick answers: real questions with short answers, also marked up for search and AI answer engines on the FAQ page. */}
+      <section className="mt-[22px]" aria-labelledby="quick-answers">
+        <div className="flex items-center justify-between">
+          <h2 id="quick-answers" className="text-[17px] font-extrabold">Quick answers</h2>
+          <Link href="/faq" className="text-sm font-bold text-brand">All questions</Link>
+        </div>
+        <div className="mt-3 lg:max-w-[820px]"><FaqList items={FAQ.filter(f => /call off|Finance|find a Kenyatta|lecture hall/i.test(f.q))} /></div>
       </section>
 
       <div className="mt-5">

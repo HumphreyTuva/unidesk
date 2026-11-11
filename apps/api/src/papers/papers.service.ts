@@ -20,8 +20,8 @@ export class PapersService {
   ) {}
 
   // What students see. Nothing here ever mentions price or payment.
-  private card(p: { id: string; unitCode: string; title: string; year: number; sitting: string | null; school: string | null; previewKey: string | null; pageCount: number }) {
-    return { id: p.id, unitCode: p.unitCode, title: p.title, year: p.year, sitting: p.sitting, school: p.school, hasPreview: !!p.previewKey, pageCount: p.pageCount };
+  private card(p: { id: string; unitCode: string; title: string; year: number; sitting: string | null; school: string | null; previewKey: string | null; pageCount: number; createdAt?: Date }) {
+    return { id: p.id, unitCode: p.unitCode, title: p.title, year: p.year, sitting: p.sitting, school: p.school, hasPreview: !!p.previewKey, pageCount: p.pageCount, addedAt: p.createdAt };
   }
 
   async list(q: ListPapersQuery) {

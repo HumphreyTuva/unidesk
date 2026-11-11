@@ -140,3 +140,20 @@ Not yet checked by running: this first version was written without being install
 - **Admin → Manage papers** lists every paper (hidden ones too). Edit the unit code, title, year, sitting or school; Hide or Show it to students; Replace the PDF (this also rebuilds the readable pages); or Delete it. A paper students have paid for cannot be deleted (the money history stays), so Hide it instead.
 - The reader crops the blank margins around the text when a paper is uploaded, so text is larger on phones. Papers uploaded earlier keep their old pages until you use **Replace PDF** on them.
 - Students can tap a page to zoom in, and pages run edge to edge on a phone.
+
+## Search engines and AI answers (SEO and AEO)
+
+What is built in:
+- **Every public page has its own title, description, canonical address and share picture.** Paper pages are rendered on the server with real 404s, so removed papers leave search results.
+- **One page per unit code** at `/units/ICS2201`, listing every year, plus a page for every paper, venue, guide and the FAQ.
+- **`/sitemap.xml`** is rebuilt hourly from the library, so new papers appear without a deploy. **`/robots.txt`** keeps admin, chat, account and sign-in out of search, and welcomes search and AI crawlers.
+- **Structured data (JSON-LD):** Organization, WebSite with site search, WebApplication, LearningResource per paper, CollectionPage per unit, FAQPage, HowTo (call-off), Place (venues) and breadcrumbs.
+- **For AI assistants:** answer-first sentences on the key pages, a FAQ, and `/llms.txt` plus `/llms-full.txt` (the guide, office list and FAQ as plain text).
+- The `*.vercel.app` address is marked noindex so only `unidesk.co.ke` is indexed.
+
+After deploying:
+1. **Google Search Console** (search.google.com/search-console): add the property `unidesk.co.ke` (Domain), verify with the DNS TXT record (add it in Vercel → Domains → unidesk.co.ke → DNS Records), then **Sitemaps → add `sitemap.xml`**.
+2. **Bing Webmaster Tools** (bing.com/webmasters): import from Search Console, or add the site and submit the same sitemap. Bing also feeds several AI assistants.
+3. Optional: if you prefer a meta-tag check, set `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION` (and `NEXT_PUBLIC_BING_SITE_VERIFICATION`) on Vercel and redeploy.
+4. Check a paper page in Google's **Rich Results Test** and a link preview by sending a paper link on WhatsApp.
+5. The sitemap and unit pages read the paper library through `API_URL` (already set on Vercel). Keep the API awake (see the uptime monitor) so crawlers do not hit a sleeping server.

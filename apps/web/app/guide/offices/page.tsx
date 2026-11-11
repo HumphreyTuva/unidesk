@@ -24,6 +24,7 @@ export default function Offices() {
     <main className="wide px-5 pt-[calc(16px+env(safe-area-inset-top))]">
       <Link href="/guide" aria-label="Back to guide" className="-ml-2 flex h-11 w-11 items-center justify-center rounded-full"><ArrowLeft size={24} aria-hidden /></Link>
       <h1 className="mt-2 text-2xl font-extrabold">Important KU offices</h1>
+      <p className="mt-1 text-[14px] text-muted">Which Kenyatta University office to visit, and the building and room number to find it in.</p>
 
       <label className="relative mt-4 block">
         <span className="sr-only">Search offices</span>

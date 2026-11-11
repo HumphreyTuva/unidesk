@@ -61,6 +61,11 @@ export default function CallOff() {
       <Link href="/guide" aria-label="Back to guide" className="-ml-2 flex h-11 w-11 items-center justify-center rounded-full print:hidden"><ArrowLeft size={24} aria-hidden /></Link>
       <h1 className="mt-2 text-2xl font-extrabold print:hidden">Call off a semester</h1>
 
+      {/* Answer first, in plain words: this is the sentence a search or AI answer would quote. */}
+      <p className="mt-2 text-[15px] leading-relaxed text-ink/80 print:hidden">
+        To call off a semester at Kenyatta University, write a letter to the Registrar (Academic), take it to {CALL_OFF_OFFICE.where} and make sure it is stamped. Processing takes 2 to 3 days, and the reply is sent to your postal address within a week.
+      </p>
+
       <div role="tablist" aria-label="Call off guide" className="mt-4 grid grid-cols-2 rounded-2xl bg-white p-1 print:hidden">
         {([['steps', 'Steps'], ['letter', 'My letter']] as const).map(([k, label]) => (
           <button key={k} role="tab" type="button" aria-selected={tab === k} onClick={() => setTab(k)} className={`h-10 rounded-xl text-sm font-bold ${tab === k ? 'bg-brand text-white' : 'text-muted'}`}>{label}</button>
@@ -71,7 +76,7 @@ export default function CallOff() {
         <div className="print:hidden">
           <ol className="mt-5 flex flex-col gap-3">
             {CALL_OFF_STEPS.map((s, i) => (
-              <li key={s.title} className="flex gap-3.5 rounded-[18px] border-[1.5px] border-line bg-white p-4">
+              <li key={s.title} id={`step-${i + 1}`} className="flex gap-3.5 rounded-[18px] border-[1.5px] border-line bg-white p-4">
                 <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-soft text-sm font-extrabold text-brand">{i + 1}</span>
                 <span>
                   <span className="block text-[15px] font-bold">{s.title}</span>
