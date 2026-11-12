@@ -1,0 +1,39 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root { color-scheme: light; }
+
+html, body { background: #F4F6FB; color: #0E1B33; }
+body { -webkit-tap-highlight-color: transparent; overscroll-behavior-y: none; }
+
+/* Keep content clear of the bottom bar and of phone home indicators. */
+.pb-nav { padding-bottom: calc(88px + env(safe-area-inset-bottom)); }
+
+:focus-visible { outline: 3px solid #F2A900; outline-offset: 2px; }
+
+/* Desktop (1024px and wider): content sits in a comfortable reading column; pages marked `wide` get more room and
+   lists marked `cols-lg` flow into two columns. Phones are not affected by any of this. */
+@media (min-width: 1024px) {
+  .shell-content > main { max-width: 720px; margin-inline: auto; padding: 40px 32px; }
+  .shell-content > main.wide { max-width: 1080px; }
+  .cols-lg { display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; }
+  .pb-nav { padding-bottom: 0; }
+}
+
+/* Printing a letter: show only the element marked .print-area (hides the bottom bar, buttons and everything else). */
+@media print {
+  body * { visibility: hidden; }
+  .print-area, .print-area * { visibility: visible; }
+  .print-area { position: absolute; left: 0; top: 0; width: 100%; border: 0 !important; padding: 0 !important; font-size: 12pt; }
+  html, body { background: #fff !important; }
+}
+
+/* Every tap gives a small press response, so the app feels alive on a phone. */
+button, a { transition: transform .12s ease, opacity .12s ease; }
+button:active:not(:disabled), a:active { transform: scale(0.98); }
+@keyframes toastIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}

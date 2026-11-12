@@ -1,0 +1,332 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+// Neon: DATABASE_URL is the pooled connection string, DIRECT_URL the direct one (used by migrations).
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Role {
+  STUDENT
+  SUPPORT
+  ADMIN
+}
+
+enum RequestStatus {
+  OPEN
+  FULFILLED
+  REJECTED
+}
+
+enum PaymentPurpose {
+  PAPER_DOWNLOAD
+  MARKET_LISTING
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+}
+
+enum ListingStatus {
+  DRAFT
+  PENDING_REVIEW
+  LIVE
+  EXPIRED
+  REJECTED
+}
+
+enum TimetableKind {
+  CLASS
+  EXAM
+}
+
+// Every content table carries a universityId so UniDesk can add other universities later without a migration.
+model University {
+  id        String   @id @default(cuid())
+  slug      String   @unique // e.g. "ku"
+  name      String // e.g. "Kenyatta University"
+  createdAt DateTime @default(now())
+
+  users            User[]
+  papers           Paper[]
+  paperRequests    PaperRequest[]
+  buildings        Building[]
+  clubs            Club[]
+  listings         Listing[]
+  timetableSources TimetableSource[]
+  quickLinks       QuickLink[]
+}
+
+// Permanent shortcuts to official KU pages (student portal, hostel application...). Plain links: no dates, no "open now" wording.
+model QuickLink {
+  id           String     @id @default(cuid())
+  universityId String
+  university   University @relation(fields: [universityId], references: [id])
+  title        String
+  url          String
+  position     Int        @default(0)
+  createdAt    DateTime   @default(now())
+}
+
+model User {
+  id            String     @id @default(cuid())
+  universityId  String
+  university    University @relation(fields: [universityId], references: [id])
+  // Usernames and emails are stored lowercase, so lookups are case-insensitive. usernameDisplay keeps what the person typed.
+  email         String?    @unique
+  username      String?    @unique
+  usernameDisplay String?
+  emailVerified Boolean    @default(false)
+  name          String?
+  passwordHash  String? // null for accounts that only use Google
+  googleId      String?    @unique
+  role          Role       @default(STUDENT)
+  createdAt     DateTime   @default(now())
+  deletedAt     DateTime?
+
+  paperRequests PaperRequest[]
+  paperAccess   PaperAccess[]
+  payments      Payment[]
+  threads       ChatThread[]
+  messages      ChatMessage[]
+  memberships   ClubMember[]
+  listings      Listing[]
+}
+
+// Admin-controlled settings: payments_enabled ("true"/"false"), paper_price (KES), listing_fee (KES), listing_days.
+model Setting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+}
+
+model Paper {
+  id           String     @id @default(cuid())
+  universityId String
+  university   University @relation(fields: [universityId], references: [id])
+  unitCode     String
+  title        String
+  year         Int
+  sitting      String? // e.g. "End of semester", "CAT"
+  school       String?
+  fileKey      String // full PDF in storage (never public)
+  previewKey   String? // low-resolution preview shown before download
+  pageCount    Int        @default(0) // page images (pages/<id>/<n>.jpg) so students can read the paper in the app
+  published    Boolean    @default(true)
+  downloads    Int        @default(0)
+  createdAt    DateTime   @default(now())
+
+  access   PaperAccess[]
+  payments Payment[]
+  requests PaperRequest[]
+
+  @@index([universityId, unitCode])
+}
+
+// A student who has unlocked a paper (paid, or payments were off at the time).
+model PaperAccess {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  paperId   String
+  paper     Paper    @relation(fields: [paperId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@unique([userId, paperId])
+}
+
+model PaperRequest {
+  id           String        @id @default(cuid())
+  universityId String
+  university   University    @relation(fields: [universityId], references: [id])
+  userId       String
+  user         User          @relation(fields: [userId], references: [id])
+  unitCode     String
+  note         String?
+  status       RequestStatus @default(OPEN)
+  paperId      String? // set when the admin uploads the paper
+  paper        Paper?        @relation(fields: [paperId], references: [id])
+  createdAt    DateTime      @default(now())
+}
+
+model Payment {
+  id               String         @id @default(cuid())
+  userId           String
+  user             User           @relation(fields: [userId], references: [id])
+  purpose          PaymentPurpose
+  paperId          String?
+  paper            Paper?         @relation(fields: [paperId], references: [id])
+  listingId        String?
+  listing          Listing?       @relation(fields: [listingId], references: [id])
+  amount           Int
+  phone            String
+  checkoutRequestId String?       @unique
+  mpesaReceipt     String?
+  failureReason    String?
+  status           PaymentStatus  @default(PENDING)
+  createdAt        DateTime       @default(now())
+  completedAt      DateTime?
+
+  @@index([status, createdAt])
+}
+
+model ChatThread {
+  id        String        @id @default(cuid())
+  userId    String
+  user      User          @relation(fields: [userId], references: [id])
+  closed    Boolean       @default(false)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @default(now()) @updatedAt
+  messages  ChatMessage[]
+
+  @@index([closed, updatedAt])
+  @@index([userId, closed])
+}
+
+model ChatMessage {
+  id        String     @id @default(cuid())
+  threadId  String
+  thread    ChatThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  senderId  String
+  sender    User       @relation(fields: [senderId], references: [id])
+  fromStaff Boolean    @default(false)
+  body      String
+  createdAt DateTime   @default(now())
+
+  @@index([threadId, createdAt])
+}
+
+// Venues. A building has a map pin, photo steps, and many room codes (OML1..OML11 etc.).
+model Building {
+  id           String     @id @default(cuid())
+  universityId String
+  university   University @relation(fields: [universityId], references: [id])
+  name         String // e.g. "Ole Moi Yoi"
+  zone         String? // e.g. "Science Complex area"
+  landmark     String? // plain-words hint, e.g. "Opposite the main library"
+  lat          Float?
+  lng          Float?
+  rooms        RoomCode[]
+  steps        WalkthroughStep[]
+
+  @@index([universityId])
+}
+
+model RoomCode {
+  id         String   @id @default(cuid())
+  buildingId String
+  building   Building @relation(fields: [buildingId], references: [id], onDelete: Cascade)
+  code       String // stored uppercase, no spaces, e.g. "OML5"
+
+  @@unique([buildingId, code])
+  @@index([code])
+}
+
+model WalkthroughStep {
+  id         String   @id @default(cuid())
+  buildingId String
+  building   Building @relation(fields: [buildingId], references: [id], onDelete: Cascade)
+  position   Int
+  photoKey   String?
+  caption    String
+}
+
+model Club {
+  id           String       @id @default(cuid())
+  universityId String
+  university   University   @relation(fields: [universityId], references: [id])
+  name         String
+  category     String?
+  description  String?
+  contact      String?
+  meetingTimes String?
+  approved     Boolean      @default(false)
+  createdById  String? // the student who suggested it
+  createdAt    DateTime     @default(now())
+  members      ClubMember[]
+
+  @@index([universityId, approved])
+}
+
+model ClubMember {
+  id       String   @id @default(cuid())
+  clubId   String
+  club     Club     @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  userId   String
+  user     User     @relation(fields: [userId], references: [id])
+  joinedAt DateTime @default(now())
+
+  @@unique([clubId, userId])
+}
+
+model Listing {
+  id           String        @id @default(cuid())
+  universityId String
+  university   University    @relation(fields: [universityId], references: [id])
+  userId       String
+  user         User          @relation(fields: [userId], references: [id])
+  title        String
+  description  String?
+  price        Int?
+  imageKey     String?
+  contactPhone String
+  status       ListingStatus @default(DRAFT)
+  expiresAt    DateTime?
+  rejectReason String?
+  createdAt    DateTime      @default(now())
+  payments     Payment[]
+
+  @@index([universityId, status, expiresAt])
+}
+
+// One uploaded timetable file. Nothing is live until an admin reviews the preview and publishes it.
+model TimetableSource {
+  id           String        @id @default(cuid())
+  universityId String
+  university   University    @relation(fields: [universityId], references: [id])
+  kind         TimetableKind
+  label        String // e.g. "Semester 1, 2026/2027"
+  published    Boolean       @default(false)
+  active       Boolean       @default(false)
+  parseReport  Json? // counts and rows that could not be read
+  createdAt    DateTime      @default(now())
+
+  classSessions ClassSession[]
+  examSessions  ExamSession[]
+}
+
+model ClassSession {
+  id        String          @id @default(cuid())
+  sourceId  String
+  source    TimetableSource @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+  programme String
+  code      String
+  day       String
+  startHour Int
+  endHour   Int
+  venue     String?
+  elearning Boolean         @default(false)
+  rawLabel  String?
+
+  @@index([sourceId, code])
+}
+
+model ExamSession {
+  id       String          @id @default(cuid())
+  sourceId String
+  source   TimetableSource @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+  code     String
+  date     DateTime        @db.Date
+  slot     String // e.g. "8:00 AM - 10:00 AM"
+  startMin Int // minutes after midnight, for sorting and clash checks
+  endMin   Int
+  students Int?
+  venues   String[] // an exam can use several rooms
+
+  @@index([sourceId, code])
+}
