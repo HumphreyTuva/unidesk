@@ -29,6 +29,20 @@ export const FAQ: Faq[] = [
     link: { href: '/', label: 'Open UniDesk' },
   },
   {
+    q: 'Is UniDesk the official Kenyatta University portal?',
+    a: 'No. UniDesk is an independent student help app made for Kenyatta University students. It is not the official KU student portal, so use the official portal for fees, registration and results. UniDesk is not the Kazakhstan platform with a similar name: this one is for KU in Nairobi, Kenya, at unidesk.co.ke.',
+  },
+  {
+    q: 'What is Uni Desk, UniDesk KU or KU StudyHub?',
+    a: 'People write it several ways: UniDesk, Uni Desk, UniDesk KU, KU study hub or KU studyhub. They all point to the same thing at unidesk.co.ke: a study hub for Kenyatta University students with past papers to read online, class and exam timetables, venue directions and a student guide.',
+    link: { href: '/', label: 'Open UniDesk' },
+  },
+  {
+    q: 'Where can I find KU revision papers, exam papers and CAT papers?',
+    a: 'On UniDesk, open Past papers and search by unit code or unit name. Papers are listed by year. If the one you need is missing, sign in and tap Request.',
+    link: { href: '/papers', label: 'Search KU exam papers' },
+  },
+  {
     q: 'How do I find a Kenyatta University past paper?',
     a: 'Open Past papers and type a unit code such as ICS2201, or part of the unit name. Papers are listed by year. Open one to read it page by page.',
     link: { href: '/papers', label: 'Browse past papers' },

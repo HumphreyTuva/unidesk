@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   title: { default: 'UniDesk: KU Past Papers, Timetables and Student Guide', template: '%s | UniDesk' },
   description: DESCRIPTION,
   applicationName: SITE_NAME,
-  keywords: ['Kenyatta University past papers', 'KU past papers', 'KU past papers online', 'KU exam past papers', 'KU student help center', 'KU students app', 'Kenyatta University student app', 'KU exam timetable', 'KU class timetable', 'KU student guide', 'call off semester KU', 'KU offices', 'Kenyatta University venues', 'KU lecture halls'],
+  keywords: ['Kenyatta University past papers', 'KU past papers', 'KU past papers online', 'KU exam past papers', 'KU student help center', 'KU students app', 'Kenyatta University student app', 'KU exam timetable', 'KU class timetable', 'KU student guide', 'call off semester KU', 'KU offices', 'Kenyatta University venues', 'KU lecture halls', 'KU study hub', 'KU studyhub', 'Uni Desk', 'UniDesk KU', 'KU revision papers', 'KU exam papers', 'KU CAT papers', 'Kenyatta University study app'],
   authors: [{ name: SITE_NAME }],
   creator: SITE_NAME,
   category: 'education',
@@ -40,9 +40,9 @@ export const metadata: Metadata = {
 const SITE_JSON_LD = {
   '@context': 'https://schema.org',
   '@graph': [
-    { '@type': 'Organization', '@id': `${SITE_URL}/#org`, name: SITE_NAME, alternateName: ['UniDesk KU Student Help Center', 'UniDesk Kenyatta University'], url: SITE_URL, logo: `${SITE_URL}/icons/icon-512.png`, description: DESCRIPTION },
+    { '@type': 'Organization', '@id': `${SITE_URL}/#org`, name: SITE_NAME, alternateName: ['UniDesk KU Student Help Center', 'UniDesk Kenyatta University', 'Uni Desk', 'UniDesk KU', 'UniDesk Kenya'], url: SITE_URL, logo: `${SITE_URL}/icons/icon-512.png`, description: DESCRIPTION },
     {
-      '@type': 'WebSite', '@id': `${SITE_URL}/#website`, url: SITE_URL, name: SITE_NAME, alternateName: 'UniDesk KU Student Help Center', description: DESCRIPTION, inLanguage: 'en-KE', publisher: { '@id': `${SITE_URL}/#org` },
+      '@type': 'WebSite', '@id': `${SITE_URL}/#website`, url: SITE_URL, name: SITE_NAME, alternateName: ['UniDesk KU Student Help Center', 'Uni Desk', 'UniDesk KU', 'UniDesk Kenya'], description: DESCRIPTION, inLanguage: 'en-KE', publisher: { '@id': `${SITE_URL}/#org` },
       potentialAction: { '@type': 'SearchAction', target: { '@type': 'EntryPoint', urlTemplate: `${SITE_URL}/papers?q={search_term_string}` }, 'query-input': 'required name=search_term_string' },
     },
     {
