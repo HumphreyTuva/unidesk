@@ -101,7 +101,7 @@ export default function Home() {
       </section>
 
       <p className="mt-6 text-[13px] leading-relaxed text-muted">
-        UniDesk (also written Uni Desk, UniDesk KU or KU study hub) is a study hub and student help center for Kenyatta University: KU past papers you can read online, class and exam timetables, directions to lecture halls, KU offices and room numbers, and guidance on procedures like calling off a semester. It is an independent student app, not the official KU portal.
+        UniDesk is a study hub and student help center for Kenyatta University: KU past papers you can read online, class and exam timetables, directions to lecture halls, KU offices and room numbers, and guidance on procedures like calling off a semester. It is an independent student app, not the official KU portal.
       </p>
 
       <div className="mt-5">
