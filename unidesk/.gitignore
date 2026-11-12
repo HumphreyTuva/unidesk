@@ -1,9 +1,0 @@
-node_modules/
-dist/
-.next/
-*.tsbuildinfo
-.env
-.env.local
-apps/api/uploads/
-.DS_Store
-apps/web/public/pdf.worker.min.mjs
