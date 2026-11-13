@@ -6,6 +6,7 @@ import { SettingsService } from '../settings/settings.service';
 import { UniversityService } from '../common/university.service';
 import { UNIT_CODE_RE, normalizeUnitCode } from '../common/unit-code';
 import { MailService } from '../mail/mail.service';
+import { paperReadyEmail } from '../mail/templates';
 import { ListPapersQuery, UpdatePaperDto, UploadPaperDto } from './dto';
 
 const isPdf = (b: Buffer) => b.length > 5 && b.subarray(0, 5).toString('latin1') === '%PDF-';
@@ -151,25 +152,19 @@ export class PapersService {
   }
 
   // One email per student, however many times they asked. Runs in the background and never fails the upload.
-  private async notifyReady(paper: { id: string; unitCode: string; title: string; year: number }, users: { email: string | null; name: string | null; deletedAt: Date | null }[]) {
+  private async notifyReady(paper: { id: string; unitCode: string; title: string; year: number; sitting?: string | null; school?: string | null }, users: { email: string | null; name: string | null; deletedAt: Date | null }[]) {
     try {
       if (!this.mail.enabled()) return;
       const site = (process.env.SITE_URL || 'https://unidesk.co.ke').replace(/\/$/, '');
       const link = `${site}/papers/${paper.id}`;
-      const esc = (t: string) => t.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]!));
       const seen = new Set<string>();
       const mails = users.flatMap(u => {
         const to = u.email?.trim().toLowerCase();
         if (!to || u.deletedAt || seen.has(to)) return [];
         seen.add(to);
         const hi = u.name?.trim().split(/\s+/)[0] || 'there';
-        const what = `${paper.unitCode} ${paper.title} (${paper.year})`;
-        return [{
-          to,
-          subject: `Your past paper is ready: ${paper.unitCode}`,
-          text: `Hi ${hi},\n\nYou asked for ${paper.unitCode} on UniDesk. It is now available: ${what}.\n\nOpen it here: ${link}\n\nUniDesk is an independent student app, not the official KU portal.`,
-          html: `<div style="font-family:Arial,sans-serif;max-width:480px;margin:auto;color:#0F1F4D"><h2 style="margin:0 0 12px">Your past paper is ready</h2><p>Hi ${esc(hi)},</p><p>You asked for <b>${esc(paper.unitCode)}</b> on UniDesk. It is now available: ${esc(what)}.</p><p><a href="${link}" style="display:inline-block;background:#1B3A8A;color:#fff;text-decoration:none;font-weight:bold;padding:12px 20px;border-radius:12px">Open the paper</a></p><p style="font-size:12px;color:#5B6478">UniDesk is an independent student app, not the official KU portal. You got this email because you requested this paper.</p></div>`,
-        }];
+        const { text, html } = paperReadyEmail({ hi, paper, link, site });
+        return [{ to, subject: `Your past paper is ready: ${paper.unitCode}`, text, html }];
       });
       await this.mail.sendMany(mails);
     } catch { /* never block an upload */ }
