@@ -76,6 +76,8 @@ export default function PaperView({ id, initial, related }: { id: string; initia
   const [missing, setMissing] = useState(false);
   const [previewOk, setPreviewOk] = useState(true);
   const [busy, setBusy] = useState(false);
+  const [prep, setPrep] = useState(false); // the PDF is being prepared by the server; the file arrives a moment later
+  const startedDownload = () => { setPrep(true); setTimeout(() => setPrep(false), 6000); };
   const [message, setMessage] = useState('');
   // Set only when the server answers 402. Until then nothing on this page mentions payment.
   const [price, setPrice] = useState<number | null>(null);
@@ -93,6 +95,7 @@ export default function PaperView({ id, initial, related }: { id: string; initia
       // Ask first, so a refusal shows a friendly message instead of a raw error page.
       await api(`/papers/${id}/access`);
       window.location.href = `/api/v1/papers/${id}/download`;
+      startedDownload();
       setTimeout(load, 2000); // downloading unlocks the whole paper, so show the rest
     } catch (e) {
       const err = e as ApiError;
@@ -193,11 +196,11 @@ export default function PaperView({ id, initial, related }: { id: string; initia
       <button
         type="button"
         onClick={download}
-        disabled={busy}
+        disabled={busy || prep}
         className="mx-auto mt-5 flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-brand text-base font-bold text-white disabled:opacity-70 lg:max-w-[860px]"
       >
-        {busy ? <Loader2 size={20} className="animate-spin" aria-hidden /> : <Download size={20} aria-hidden />}
-        Download PDF
+        {busy || prep ? <Loader2 size={20} className="animate-spin" aria-hidden /> : <Download size={20} aria-hidden />}
+        {prep ? 'Preparing your PDF…' : 'Download PDF'}
       </button>
 
       {zoom !== null && <Zoom paper={paper} start={zoom} onClose={() => setZoom(null)} />}
@@ -209,7 +212,7 @@ export default function PaperView({ id, initial, related }: { id: string; initia
           label={`${paper.unitCode} ${paper.year}`}
           amount={price}
           onClose={() => setPrice(null)}
-          onPaid={() => { window.location.href = `/api/v1/papers/${paper.id}/download`; setTimeout(load, 2000); }}
+          onPaid={() => { window.location.href = `/api/v1/papers/${paper.id}/download`; startedDownload(); setTimeout(load, 2000); }}
         />
       )}
     </main>

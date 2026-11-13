@@ -164,3 +164,7 @@ After deploying:
 - When an admin uploads a paper, everyone who asked for that unit is emailed once. Email is optional: with no `RESEND_API_KEY` nothing is sent and the in-app list still works.
 - To switch email on: create a free account at resend.com, add and verify the domain `unidesk.co.ke` (Resend shows DNS records to add in Vercel DNS), create an API key, then set on Render: `RESEND_API_KEY`, `MAIL_FROM` (for example `UniDesk <hello@unidesk.co.ke>`) and `SITE_URL=https://unidesk.co.ke`.
 - Failures are written to the Render log as `Mail ...` lines and never block an upload.
+
+## Downloaded PDFs carry the site address
+
+When a student downloads a paper, the server adds one small grey line, "Downloaded from unidesk.co.ke · KU past papers", at the bottom of every page, linked to the site. The stored original and the in-app reader are not changed. If a PDF is locked, damaged or over 25 MB, the original is sent unchanged, so a download never fails because of this. To change the wording, edit `STAMP_TEXT` in `apps/api/src/papers/stamp.ts`.

@@ -57,8 +57,8 @@ export class PapersController {
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `attachment; filename="${f.filename}"`);
     res.setHeader('Cache-Control', 'private, no-store');
-    if (f.size) res.setHeader('Content-Length', String(f.size));
-    f.stream.pipe(res);
+    res.setHeader('Content-Length', String(f.buffer.length));
+    res.end(f.buffer);
   }
 
   @Post('paper-requests') @UseGuards(JwtGuard) @Throttle({ default: { limit: 10, ttl: 600_000 } })

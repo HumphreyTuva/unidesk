@@ -7,6 +7,7 @@ import { UniversityService } from '../common/university.service';
 import { UNIT_CODE_RE, normalizeUnitCode } from '../common/unit-code';
 import { MailService } from '../mail/mail.service';
 import { paperReadyEmail } from '../mail/templates';
+import { stampPdf } from './stamp';
 import { ListPapersQuery, UpdatePaperDto, UploadPaperDto } from './dto';
 
 const isPdf = (b: Buffer) => b.length > 5 && b.subarray(0, 5).toString('latin1') === '%PDF-';
@@ -93,13 +94,17 @@ export class PapersService {
     throw new HttpException({ code: 'PAYMENT_REQUIRED', message: 'Payment is needed to download this paper.', amount: await this.settings.paperPrice() }, 402);
   }
 
+  // The PDF a student downloads: the stored file with a small unidesk.co.ke line added to every page. The in-app reader is not affected.
   async file(userId: string, paperId: string) {
     const paper = await this.assertCanDownload(userId, paperId);
     const f = await this.storage.get(paper.fileKey);
+    const chunks: Buffer[] = [];
+    for await (const c of f.stream) chunks.push(Buffer.isBuffer(c) ? c : Buffer.from(c));
+    const buffer = await stampPdf(Buffer.concat(chunks), (process.env.SITE_URL || 'https://unidesk.co.ke').replace(/\/$/, ''));
     await this.db.paper.update({ where: { id: paper.id }, data: { downloads: { increment: 1 } } });
     // A paper downloaded while it was free stays theirs if payments are switched on later.
     await this.db.paperAccess.upsert({ where: { userId_paperId: { userId, paperId } }, update: {}, create: { userId, paperId } });
-    return { ...f, filename: `${paper.unitCode}-${paper.year}.pdf` };
+    return { buffer, filename: `${paper.unitCode}-${paper.year}.pdf` };
   }
 
   // ---- requests ----
