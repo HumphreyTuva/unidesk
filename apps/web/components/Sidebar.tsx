@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Settings, User } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
+import { useMyRequests } from '@/lib/useMyRequests';
 import Logo from './Logo';
 import { TABS } from './BottomNav';
 
@@ -10,6 +11,7 @@ import { TABS } from './BottomNav';
 export default function Sidebar() {
   const path = usePathname();
   const { user, ready } = useAuth();
+  const { newCount } = useMyRequests();
   const active = (href: string) => (href === '/' ? path === '/' : path.startsWith(href));
   const link = (on: boolean) => `flex h-12 items-center gap-3 rounded-2xl px-4 text-[15px] font-bold ${on ? 'bg-brand-soft text-brand' : 'text-ink hover:bg-surface'}`;
 
@@ -23,6 +25,7 @@ export default function Sidebar() {
         {TABS.map(({ href, label, Icon }) => (
           <Link key={href} href={href} aria-current={active(href) ? 'page' : undefined} className={link(active(href))}>
             <Icon size={22} aria-hidden /> {label}
+            {href === '/papers' && newCount > 0 && <span className="ml-auto flex h-[22px] min-w-[22px] items-center justify-center rounded-full bg-[#E2574C] px-1.5 text-[12px] font-bold text-white" aria-label={`${newCount} paper${newCount > 1 ? 's' : ''} ready`}>{newCount}</span>}
           </Link>
         ))}
       </nav>

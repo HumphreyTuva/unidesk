@@ -157,3 +157,10 @@ After deploying:
 3. Optional: if you prefer a meta-tag check, set `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION` (and `NEXT_PUBLIC_BING_SITE_VERIFICATION`) on Vercel and redeploy.
 4. Check a paper page in Google's **Rich Results Test** and a link preview by sending a paper link on WhatsApp.
 5. The sitemap and unit pages read the paper library through `API_URL` (already set on Vercel). Keep the API awake (see the uptime monitor) so crawlers do not hit a sleeping server.
+
+## "Your paper is ready" emails and the Your requests list
+
+- Students see their paper requests under **Papers > Your requests** (Waiting or Ready), and a red number on the Papers tab when a paper they asked for is ready.
+- When an admin uploads a paper, everyone who asked for that unit is emailed once. Email is optional: with no `RESEND_API_KEY` nothing is sent and the in-app list still works.
+- To switch email on: create a free account at resend.com, add and verify the domain `unidesk.co.ke` (Resend shows DNS records to add in Vercel DNS), create an API key, then set on Render: `RESEND_API_KEY`, `MAIL_FROM` (for example `UniDesk <hello@unidesk.co.ke>`) and `SITE_URL=https://unidesk.co.ke`.
+- Failures are written to the Render log as `Mail ...` lines and never block an upload.

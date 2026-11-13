@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { ChevronRight, FileText, Loader2, Plus, Search } from 'lucide-react';
 import { api } from '@/lib/api';
 import RequestSheet from '@/components/RequestSheet';
+import MyRequests from '@/components/MyRequests';
 
 type Paper = { id: string; unitCode: string; title: string; year: number; sitting: string | null; school: string | null; hasPreview: boolean };
 type Page = { items: Paper[]; nextCursor: string | null };
@@ -100,6 +101,8 @@ export default function PapersView({ initial }: { initial: Page | null }) {
       {cursor && !loading && (
         <button type="button" onClick={() => load(q, cursor)} className="mt-4 h-12 w-full rounded-2xl border-[1.5px] border-edge bg-white font-bold">Show more</button>
       )}
+
+      <MyRequests />
 
       {/* Always one tap away, so a missing paper never dead-ends */}
       <button
