@@ -108,7 +108,7 @@ export default function CallOff() {
                   <option value="ONE">One</option><option value="TWO">Two</option><option value="THREE">Three</option>
                 </select>
               </Field>
-              <Field id="co-year" label="Academic year"><input id="co-year" value={f.year} onChange={set('year')} inputMode="numeric" pattern="\d{4}/\d{4}" title="Like 2026/2027" placeholder="2026/2027" required className={field} /></Field>
+              <Field id="co-year" label="Academic year"><input id="co-year" value={f.year} onChange={e => { const d = e.target.value.replace(/\D/g, '').slice(0, 8); setF(prev => ({ ...prev, year: d.length > 4 ? `${d.slice(0, 4)}/${d.slice(4)}` : d })); }} inputMode="numeric" maxLength={9} pattern="\d{4}/\d{4}" title="Like 2026/2027" placeholder="2026/2027" required className={field} /></Field>
             </div>
             <Field id="co-reason" label="Reason for calling off">
               <textarea id="co-reason" value={f.reason} onChange={set('reason')} rows={3} maxLength={500} placeholder="Explain clearly, in your own words" required className="w-full rounded-2xl border-[1.5px] border-edge bg-[#F8FAFE] px-4 py-3 text-[15px] text-ink placeholder:text-[#6B7794]" />
