@@ -7,6 +7,15 @@ import { CALL_OFF_OFFICE, CALL_OFF_STEPS } from '@/content/callOff';
 const field = 'h-[50px] w-full rounded-2xl border-[1.5px] border-edge bg-[#F8FAFE] px-4 text-[15px] text-ink placeholder:text-[#6B7794]';
 const today = () => new Date().toLocaleDateString('en-KE', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Africa/Nairobi' });
 
+
+// Academic year helper: typing 2026 fills in 2026/2027. Deleting does not refill, so it can still be edited.
+function formatYear(raw: string, before: string) {
+  const d = raw.replace(/\D/g, '').slice(0, 8);
+  const hadDigits = before.replace(/\D/g, '').length;
+  if (d.length === 4 && hadDigits < 4) return `${d}/${Number(d) + 1}`;
+  return d.length > 4 ? `${d.slice(0, 4)}/${d.slice(4)}` : d;
+}
+
 type Form = { name: string; adm: string; email: string; phone: string; school: string; course: string; semester: string; year: string; reason: string; resume: string };
 const EMPTY: Form = { name: '', adm: '', email: '', phone: '', school: '', course: '', semester: 'ONE', year: '', reason: '', resume: '' };
 
@@ -108,7 +117,7 @@ export default function CallOff() {
                   <option value="ONE">One</option><option value="TWO">Two</option><option value="THREE">Three</option>
                 </select>
               </Field>
-              <Field id="co-year" label="Academic year"><input id="co-year" value={f.year} onChange={e => { const d = e.target.value.replace(/\D/g, '').slice(0, 8); setF(prev => ({ ...prev, year: d.length > 4 ? `${d.slice(0, 4)}/${d.slice(4)}` : d })); }} inputMode="numeric" maxLength={9} pattern="\d{4}/\d{4}" title="Like 2026/2027" placeholder="2026/2027" required className={field} /></Field>
+              <Field id="co-year" label="Academic year"><input id="co-year" value={f.year} onChange={e => setF(prev => ({ ...prev, year: formatYear(e.target.value, prev.year) }))} inputMode="numeric" maxLength={9} pattern="\d{4}/\d{4}" title="Like 2026/2027" placeholder="2026/2027" required className={field} /></Field>
             </div>
             <Field id="co-reason" label="Reason for calling off">
               <textarea id="co-reason" value={f.reason} onChange={set('reason')} rows={3} maxLength={500} placeholder="Explain clearly, in your own words" required className="w-full rounded-2xl border-[1.5px] border-edge bg-[#F8FAFE] px-4 py-3 text-[15px] text-ink placeholder:text-[#6B7794]" />
