@@ -23,6 +23,12 @@ export class PapersController {
     return this.papers.list(q);
   }
 
+  // Papers for the units a student put in the timetable maker. Declared before papers/:id so "mine" is not read as an id.
+  @Get('papers/mine')
+  unitsPapers(@Query('codes') codes?: string) {
+    return this.papers.forUnits((codes ?? '').split(',').slice(0, 30));
+  }
+
   @Get('papers/:id')
   async detail(@Req() req: any, @Param('id') id: string) {
     return this.papers.detail(id, await this.who(req));

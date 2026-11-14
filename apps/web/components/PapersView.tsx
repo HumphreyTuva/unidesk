@@ -5,12 +5,30 @@ import { ChevronRight, FileText, Loader2, Plus, Search } from 'lucide-react';
 import { api } from '@/lib/api';
 import RequestSheet from '@/components/RequestSheet';
 import MyRequests from '@/components/MyRequests';
+import { useAuth } from '@/lib/auth';
 
 type Paper = { id: string; unitCode: string; title: string; year: number; sitting: string | null; school: string | null; hasPreview: boolean };
 type Page = { items: Paper[]; nextCursor: string | null };
 
+function PaperRow({ p, mine }: { p: Paper; mine?: boolean }) {
+  return (
+          <li>
+            <Link href={`/papers/${p.id}`} className="flex min-h-[68px] items-center gap-3.5 rounded-[18px] border-[1.5px] border-line bg-white px-4 py-3">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-soft text-brand"><FileText size={22} aria-hidden /></span>
+              <span className="min-w-0 flex-1">
+                <span className="block text-[15px] font-bold">{p.unitCode} <span className="font-medium text-muted">· {p.year}</span>{mine && <span className="ml-2 rounded-full bg-brand-soft px-2 py-0.5 text-[11px] font-bold text-brand">Your unit</span>}</span>
+                <span className="block truncate text-[13px] text-muted">{p.title}{p.sitting ? ` · ${p.sitting}` : ''}</span>
+              </span>
+              <ChevronRight size={20} className="shrink-0 text-muted" aria-hidden />
+            </Link>
+          </li>
+  );
+}
+
 // `initial` is the first page of papers, fetched on the server so search engines see real links to every paper.
 export default function PapersView({ initial }: { initial: Page | null }) {
+  const { user } = useAuth();
+  const [mine, setMine] = useState<Paper[]>([]);
   const [q, setQ] = useState('');
   const [items, setItems] = useState<Paper[]>(initial?.items ?? []);
   const [cursor, setCursor] = useState<string | null>(initial?.nextCursor ?? null);
@@ -47,6 +65,16 @@ export default function PapersView({ initial }: { initial: Page | null }) {
     return () => clearTimeout(t);
   }, [q, load]);
 
+  // Units the student entered in the timetable maker (class and exam), kept on this phone. Signed-in students see their papers first.
+  useEffect(() => {
+    if (!user) { setMine([]); return; }
+    let codes: string[] = [];
+    try { for (const k of ['class', 'exam']) codes.push(...(JSON.parse(localStorage.getItem(`unidesk_units_${k}`) || '[]') as string[])); } catch {}
+    codes = [...new Set(codes.filter(c => typeof c === 'string'))].slice(0, 30);
+    if (!codes.length) { setMine([]); return; }
+    api<{ items: Paper[] }>(`/papers/mine?codes=${encodeURIComponent(codes.join(','))}`).then(r => setMine(r.items)).catch(() => setMine([]));
+  }, [user]);
+
   // The Home "Request" shortcut opens the sheet straight away.
   useEffect(() => {
     const sp = new URLSearchParams(window.location.search);
@@ -54,6 +82,11 @@ export default function PapersView({ initial }: { initial: Page | null }) {
     const term = sp.get('q'); // /papers?q=ICS2201 (also what the site search box in Google results sends)
     if (term) setQ(term.slice(0, 60));
   }, []);
+
+  // One list: the student's own units first (when not searching), then everything else.
+  const lead = q.trim() ? [] : mine;
+  const mineIds = new Set(lead.map(p => p.id));
+  const shown = [...lead, ...items.filter(p => !mineIds.has(p.id))];
 
   return (
     <main className="wide px-5 pt-[calc(24px+env(safe-area-inset-top))]">
@@ -75,23 +108,14 @@ export default function PapersView({ initial }: { initial: Page | null }) {
       {error && <p role="alert" className="mt-4 rounded-xl bg-[#FDECEC] px-3.5 py-2.5 text-sm font-medium text-[#9B1C1C]">{error}</p>}
 
       <ul className="cols-lg mt-4 flex flex-col gap-2.5">
-        {items.map(p => (
-          <li key={p.id}>
-            <Link href={`/papers/${p.id}`} className="flex min-h-[68px] items-center gap-3.5 rounded-[18px] border-[1.5px] border-line bg-white px-4 py-3">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-soft text-brand"><FileText size={22} aria-hidden /></span>
-              <span className="min-w-0 flex-1">
-                <span className="block text-[15px] font-bold">{p.unitCode} <span className="font-medium text-muted">· {p.year}</span></span>
-                <span className="block truncate text-[13px] text-muted">{p.title}{p.sitting ? ` · ${p.sitting}` : ''}</span>
-              </span>
-              <ChevronRight size={20} className="shrink-0 text-muted" aria-hidden />
-            </Link>
-          </li>
+        {shown.map(p => (
+          <PaperRow key={p.id} p={p} mine={mineIds.has(p.id)} />
         ))}
       </ul>
 
       {loading && <div className="flex justify-center py-6 text-brand"><Loader2 className="animate-spin" aria-label="Loading" /></div>}
 
-      {!loading && !error && items.length === 0 && (
+      {!loading && !error && shown.length === 0 && (
         <div className="mt-6 rounded-[18px] border-[1.5px] border-dashed border-edge bg-white p-6 text-center">
           <p className="text-[15px] font-bold">{q.trim() ? `No paper found for “${q.trim()}”` : 'No papers yet'}</p>
           <p className="mt-1 text-sm text-muted">Tell us which one you need and we will add it.</p>

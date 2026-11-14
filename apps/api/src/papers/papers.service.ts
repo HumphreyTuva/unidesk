@@ -47,6 +47,17 @@ export class PapersService {
     return { items: items.map(p => this.card(p)), nextCursor: more ? items[items.length - 1].id : null };
   }
 
+  async forUnits(raw: string[]) {
+    const codes = [...new Set(raw.map(normalizeUnitCode).filter(c => UNIT_CODE_RE.test(c)))];
+    if (!codes.length) return { items: [] };
+    const rows = await this.db.paper.findMany({
+      where: { universityId: await this.uni.defaultId(), published: true, unitCode: { in: codes } },
+      orderBy: [{ unitCode: 'asc' }, { year: 'desc' }, { id: 'asc' }],
+      take: 120,
+    });
+    return { items: rows.map(p => this.card(p)) };
+  }
+
   private async published(id: string) {
     const p = await this.db.paper.findUnique({ where: { id } });
     if (!p || !p.published) throw new NotFoundException('Paper not found');
