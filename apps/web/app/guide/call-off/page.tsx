@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Check, Copy, MapPin, Printer } from 'lucide-react';
 import { CALL_OFF_OFFICE, CALL_OFF_STEPS } from '@/content/callOff';
+import { REGISTRAR_ADDRESS } from '@/lib/letters';
 
 const field = 'h-[50px] w-full rounded-2xl border-[1.5px] border-edge bg-[#F8FAFE] px-4 text-[15px] text-ink placeholder:text-[#6B7794]';
 const today = () => new Date().toLocaleDateString('en-KE', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Africa/Nairobi' });
@@ -31,8 +32,7 @@ function letterLines(f: Form, date: string): string[] {
     `DATE: ${date}`,
     '',
     'TO:',
-    'THE REGISTRAR (ACADEMIC)',
-    'KENYATTA UNIVERSITY',
+    ...REGISTRAR_ADDRESS,
     '',
     `REF: REQUEST TO CALL OFF SEMESTER ${f.semester} OF ACADEMIC YEAR ${f.year.trim()}`,
     '',
