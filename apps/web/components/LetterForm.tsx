@@ -1,6 +1,7 @@
 'use client';
 import { useMemo, useState } from 'react';
 import { Check, Copy, Printer } from 'lucide-react';
+import { useSavedProfile } from '@/lib/useSavedProfile';
 import { LETTERS, formatYear, today, type FieldDef, type LetterKind } from '@/lib/letters';
 
 const field = 'h-[50px] w-full rounded-2xl border-[1.5px] border-edge bg-[#F8FAFE] px-4 text-[15px] text-ink placeholder:text-[#6B7794]';
@@ -12,9 +13,10 @@ export default function LetterForm({ kind }: { kind: LetterKind }) {
   const [v, setV] = useState<Record<string, string>>(initial);
   const [lines, setLines] = useState<string[] | null>(null);
   const [copied, setCopied] = useState(false);
+  const { save, loggedIn } = useSavedProfile(p => setV(prev => Object.fromEntries(Object.entries(prev).map(([k, x]) => [k, x || (p as Record<string, string>)[k] || '']))));
   const text = lines ? lines.join('\n') : '';
 
-  const make = (e: React.FormEvent) => { e.preventDefault(); setCopied(false); setLines(spec.lines(v, today())); };
+  const make = (e: React.FormEvent) => { e.preventDefault(); save(v); setCopied(false); setLines(spec.lines(v, today())); };
   const copy = async () => {
     try { await navigator.clipboard.writeText(text); setCopied(true); setTimeout(() => setCopied(false), 2000); } catch { window.alert('Could not copy. Press and hold the letter to select it.'); }
   };
@@ -39,7 +41,7 @@ export default function LetterForm({ kind }: { kind: LetterKind }) {
   return (
     <>
       <form onSubmit={make} className="mt-5 flex flex-col gap-3.5 print:hidden">
-        <p className="text-[14px] text-muted">{spec.intro} Nothing you type here is saved or sent anywhere.</p>
+        <p className="text-[14px] text-muted">{spec.intro} {loggedIn ? 'Your details are remembered on this phone so the next letter is pre-filled.' : 'Log in and your details will be remembered for your next letter.'} Nothing is sent anywhere.</p>
         {rows.map((row, i) => (
           <div key={i} className={row.length > 1 ? 'grid grid-cols-2 gap-3' : ''}>
             {row.map(f => f.type === 'check' ? (

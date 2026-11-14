@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { ArrowLeft, Check, Copy, MapPin, Printer } from 'lucide-react';
 import { CALL_OFF_OFFICE, CALL_OFF_STEPS } from '@/content/callOff';
 import { REGISTRAR_ADDRESS } from '@/lib/letters';
+import { useSavedProfile } from '@/lib/useSavedProfile';
 
 const field = 'h-[50px] w-full rounded-2xl border-[1.5px] border-edge bg-[#F8FAFE] px-4 text-[15px] text-ink placeholder:text-[#6B7794]';
 const today = () => new Date().toLocaleDateString('en-KE', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Africa/Nairobi' });
@@ -51,6 +52,7 @@ export default function CallOff() {
   const [tab, setTab] = useState<'steps' | 'letter'>('steps');
   const [f, setF] = useState<Form>(EMPTY);
   const [lines, setLines] = useState<string[] | null>(null);
+  const { save, loggedIn } = useSavedProfile(p => setF(prev => ({ ...prev, ...Object.fromEntries(Object.entries(p).filter(([k]) => !prev[k as keyof Form])) })));
   const [copied, setCopied] = useState(false);
   const set = (k: keyof Form) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => setF(p => ({ ...p, [k]: e.target.value }));
 
@@ -58,6 +60,7 @@ export default function CallOff() {
 
   const make = (e: React.FormEvent) => {
     e.preventDefault();
+    save(f);
     setCopied(false);
     setLines(letterLines(f, today()));
   };
@@ -104,7 +107,7 @@ export default function CallOff() {
       {tab === 'letter' && (
         <>
           <form onSubmit={make} className="mt-5 flex flex-col gap-3.5 print:hidden">
-            <p className="text-[14px] text-muted">Fill this in and we will write the letter in the format the Registrar expects. Nothing you type here is saved or sent anywhere.</p>
+            <p className="text-[14px] text-muted">Fill this in and we will write the letter in the format the Registrar expects. {loggedIn ? 'Your details are remembered on this phone so the next letter is pre-filled.' : 'Log in and your details will be remembered for your next letter.'} Nothing is sent anywhere.</p>
             <Field id="co-name" label="Full name"><input id="co-name" value={f.name} onChange={set('name')} autoComplete="name" required className={field} /></Field>
             <Field id="co-adm" label="Admission number"><input id="co-adm" value={f.adm} onChange={set('adm')} autoCapitalize="characters" required className={field} /></Field>
             <Field id="co-phone" label="Phone number"><input id="co-phone" type="tel" inputMode="tel" value={f.phone} onChange={set('phone')} autoComplete="tel" required className={field} /></Field>

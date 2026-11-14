@@ -1,6 +1,7 @@
 'use client';
 import { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import { api } from './api';
+import { clearSavedProfiles } from './profileStore';
 
 export type User = { id: string; name: string | null; email: string | null; username: string | null; role: 'STUDENT' | 'SUPPORT' | 'ADMIN' };
 type AuthState = { user: User | null; ready: boolean; setUser: (u: User | null) => void; logout: () => Promise<void> };
@@ -18,6 +19,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = useCallback(async () => {
     await api('/auth/logout', 'POST').catch(() => {});
+    clearSavedProfiles();
     setUser(null);
   }, []);
 
