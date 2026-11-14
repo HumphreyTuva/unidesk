@@ -1,6 +1,7 @@
 'use client';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Check, Copy, Printer } from 'lucide-react';
+import { useToast } from '@/lib/toast';
 import { useSavedProfile } from '@/lib/useSavedProfile';
 import { LETTERS, formatYear, today, type FieldDef, type LetterKind } from '@/lib/letters';
 
@@ -13,10 +14,15 @@ export default function LetterForm({ kind }: { kind: LetterKind }) {
   const [v, setV] = useState<Record<string, string>>(initial);
   const [lines, setLines] = useState<string[] | null>(null);
   const [copied, setCopied] = useState(false);
+  const toast = useToast();
+  const letterRef = useRef<HTMLElement>(null);
+  const [made, setMade] = useState(0);
+  // After each "Write my letter", bring the letter into view once it has rendered.
+  useEffect(() => { if (made) letterRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, [made]);
   const { save, loggedIn } = useSavedProfile(p => setV(prev => Object.fromEntries(Object.entries(prev).map(([k, x]) => [k, x || (p as Record<string, string>)[k] || '']))));
   const text = lines ? lines.join('\n') : '';
 
-  const make = (e: React.FormEvent) => { e.preventDefault(); save(v); setCopied(false); setLines(spec.lines(v, today())); };
+  const make = (e: React.FormEvent) => { e.preventDefault(); save(v); setCopied(false); setLines(spec.lines(v, today())); setMade(n => n + 1); toast.ok('Your letter is ready below'); };
   const copy = async () => {
     try { await navigator.clipboard.writeText(text); setCopied(true); setTimeout(() => setCopied(false), 2000); } catch { window.alert('Could not copy. Press and hold the letter to select it.'); }
   };
@@ -61,7 +67,7 @@ export default function LetterForm({ kind }: { kind: LetterKind }) {
       </form>
 
       {lines && (
-        <section className="mt-6" aria-label="Your letter">
+        <section ref={letterRef} className="mt-6 scroll-mt-4" aria-label="Your letter">
           <article className="print-area whitespace-pre-wrap rounded-[18px] border-[1.5px] border-line bg-white p-5 font-serif text-[15px] leading-relaxed text-ink">{text}</article>
           <div className="mt-4 grid grid-cols-2 gap-3 print:hidden">
             <button type="button" onClick={copy} className="flex h-[50px] items-center justify-center gap-2 rounded-2xl border-[1.5px] border-edge bg-white font-bold">

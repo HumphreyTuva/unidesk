@@ -1,9 +1,10 @@
 'use client';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Check, Copy, MapPin, Printer } from 'lucide-react';
 import { CALL_OFF_OFFICE, CALL_OFF_STEPS } from '@/content/callOff';
 import { REGISTRAR_ADDRESS } from '@/lib/letters';
+import { useToast } from '@/lib/toast';
 import { useSavedProfile } from '@/lib/useSavedProfile';
 
 const field = 'h-[50px] w-full rounded-2xl border-[1.5px] border-edge bg-[#F8FAFE] px-4 text-[15px] text-ink placeholder:text-[#6B7794]';
@@ -54,6 +55,11 @@ export default function CallOff() {
   const [lines, setLines] = useState<string[] | null>(null);
   const { save, loggedIn } = useSavedProfile(p => setF(prev => ({ ...prev, ...Object.fromEntries(Object.entries(p).filter(([k]) => !prev[k as keyof Form])) })));
   const [copied, setCopied] = useState(false);
+  const toast = useToast();
+  const letterRef = useRef<HTMLElement>(null);
+  const [made, setMade] = useState(0);
+  // After each "Write my letter", bring the letter into view once it has rendered.
+  useEffect(() => { if (made) letterRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, [made]);
   const set = (k: keyof Form) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => setF(p => ({ ...p, [k]: e.target.value }));
 
   const text = useMemo(() => (lines ? lines.join('\n') : ''), [lines]);
@@ -63,6 +69,8 @@ export default function CallOff() {
     save(f);
     setCopied(false);
     setLines(letterLines(f, today()));
+    setMade(n => n + 1);
+    toast.ok('Your letter is ready below');
   };
   const copy = async () => {
     try { await navigator.clipboard.writeText(text); setCopied(true); setTimeout(() => setCopied(false), 2000); } catch { window.alert('Could not copy. Press and hold the letter to select it.'); }
@@ -130,7 +138,7 @@ export default function CallOff() {
           </form>
 
           {lines && (
-            <section className="mt-6" aria-label="Your letter">
+            <section ref={letterRef} className="mt-6 scroll-mt-4" aria-label="Your letter">
               <article id="letter" className="print-area whitespace-pre-wrap rounded-[18px] border-[1.5px] border-line bg-white p-5 font-serif text-[15px] leading-relaxed text-ink">{text}</article>
               <div className="mt-4 grid grid-cols-2 gap-3 print:hidden">
                 <button type="button" onClick={copy} className="flex h-[50px] items-center justify-center gap-2 rounded-2xl border-[1.5px] border-edge bg-white font-bold">
