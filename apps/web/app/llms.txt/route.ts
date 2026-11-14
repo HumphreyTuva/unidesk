@@ -1,3 +1,4 @@
+import { PROCEDURES } from '@/content/procedures';
 import { SITE_URL } from '@/lib/seo';
 
 export const revalidate = 3600;
@@ -15,6 +16,7 @@ UniDesk is made for Kenyatta University students. It is an independent student a
 - [Past papers](${SITE_URL}/papers): search Kenyatta University past exam papers by unit code or name and read them page by page.
 - [Questions students ask](${SITE_URL}/faq): short answers about past papers, KU offices, call-off letters, timetables and venues.
 - [How to call off a semester at KU](${SITE_URL}/guide/call-off): the steps, the office, and a ready letter.
+${PROCEDURES.map(p => `- [${p.question.replace(/\?$/, '')}](${SITE_URL}/guide/procedures/${p.id}): ${p.summary}`).join('\n')}
 - [Important KU offices](${SITE_URL}/guide/offices): office names with building and room numbers.
 - [Timetable generator](${SITE_URL}/guide/timetable): build a class or exam timetable from your units.
 - [Find a venue](${SITE_URL}/guide/venues): lecture halls and buildings with landmarks, walking routes and photo steps.

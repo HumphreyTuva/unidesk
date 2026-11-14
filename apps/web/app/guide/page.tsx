@@ -1,8 +1,9 @@
 'use client';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Building2, CalendarDays, ChevronRight, ExternalLink, FileText, MapPin } from 'lucide-react';
+import { Building2, CalendarDays, ChevronRight, ClipboardList, ExternalLink, FileText, MapPin } from 'lucide-react';
 import { api } from '@/lib/api';
+import { PROCEDURES } from '@/content/procedures';
 
 type QuickLink = { id: string; title: string; url: string };
 
@@ -37,6 +38,24 @@ export default function Guide() {
           </li>
         ))}
       </ul>
+
+      <section className="mt-7" aria-labelledby="procedures">
+        <h2 id="procedures" className="text-[17px] font-extrabold">Student procedures</h2>
+        <ul className="cols-lg mt-3 flex flex-col gap-2.5">
+          {PROCEDURES.map(p => (
+            <li key={p.id}>
+              <Link href={`/guide/procedures/${p.id}`} className="flex min-h-16 items-center gap-3.5 rounded-[18px] border-[1.5px] border-line bg-white px-4 py-2.5">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-soft text-brand"><ClipboardList size={22} aria-hidden /></span>
+                <span className="min-w-0 flex-1">
+                  <span className="block text-[15px] font-bold">{p.title}</span>
+                  <span className="block text-[13px] text-muted">{p.sub}</span>
+                </span>
+                <ChevronRight size={20} className="text-muted" aria-hidden />
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </section>
 
       {links.length > 0 && (
         <section className="mt-7">

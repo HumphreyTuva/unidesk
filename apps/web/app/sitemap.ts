@@ -1,4 +1,5 @@
 import type { MetadataRoute } from 'next';
+import { PROCEDURES } from '@/content/procedures';
 import { SITE_URL, apiGet, type PaperCard } from '@/lib/seo';
 
 export const revalidate = 3600; // rebuilt hourly, so new papers appear without a deploy
@@ -31,6 +32,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${SITE_URL}/guide/offices`, lastModified: now, changeFrequency: 'monthly', priority: 0.8 },
     { url: `${SITE_URL}/guide/timetable`, lastModified: now, changeFrequency: 'monthly', priority: 0.7 },
     { url: `${SITE_URL}/guide/venues`, lastModified: now, changeFrequency: 'monthly', priority: 0.7 },
+    ...PROCEDURES.map(p => ({ url: `${SITE_URL}/guide/procedures/${p.id}`, lastModified: now, changeFrequency: 'monthly' as const, priority: 0.8 })),
     { url: `${SITE_URL}/campus`, lastModified: now, changeFrequency: 'weekly', priority: 0.5 },
   ];
 

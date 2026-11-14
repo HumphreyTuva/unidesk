@@ -168,3 +168,7 @@ After deploying:
 ## Downloaded PDFs carry the site address
 
 When a student downloads a paper, the server adds one small grey line, "Downloaded from unidesk.co.ke · KU past papers", at the bottom of every page, linked to the site. The stored original and the in-app reader are not changed. If a PDF is locked, damaged or over 25 MB, the original is sent unchanged, so a download never fails because of this. To change the wording, edit `STAMP_TEXT` in `apps/api/src/papers/stamp.ts`.
+
+## Student procedures
+
+Step-by-step guides (graduation, unit registration, resuming studies, missed exams, student ID replacement, corporate email recovery) live in `apps/web/content/procedures.ts`. They appear in Guide > Student procedures, each at `/guide/procedures/<id>`, in the sitemap, the FAQ and llms files, and the AI assistant's knowledge. After editing that file run `npm run sync:content` (it copies the file for the API). To add a procedure, add one entry to the list.

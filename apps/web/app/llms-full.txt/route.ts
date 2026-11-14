@@ -1,6 +1,7 @@
 import { CALL_OFF_OFFICE, CALL_OFF_STEPS } from '@/content/callOff';
 import { FAQ } from '@/content/faq';
 import { OFFICES } from '@/content/offices';
+import { PROCEDURES } from '@/content/procedures';
 import { SITE_URL } from '@/lib/seo';
 
 export const revalidate = 3600;
@@ -17,6 +18,13 @@ ${CALL_OFF_STEPS.map((s, i) => `${i + 1}. ${s.title}: ${s.body}`).join('\n')}
 
 Where to submit: ${CALL_OFF_OFFICE.name}, ${CALL_OFF_OFFICE.where}.
 Page: ${SITE_URL}/guide/call-off
+
+${PROCEDURES.map(p => `## ${p.question.replace(/\?$/, '')}
+
+${p.summary}
+
+${p.steps.map((s, i) => `${i + 1}. ${s.title}: ${s.body}`).join('\n')}
+${p.notes?.length ? `\nNotes: ${p.notes.join(' ')}\n` : ''}Page: ${SITE_URL}/guide/procedures/${p.id}`).join('\n\n')}
 
 ## Important Kenyatta University offices
 

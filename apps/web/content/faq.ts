@@ -2,6 +2,7 @@
 // Facts about offices and the call-off procedure come from the same files the Guide and the AI assistant use.
 import { CALL_OFF_OFFICE } from './callOff';
 import { OFFICES } from './offices';
+import { PROCEDURES } from './procedures';
 
 export type Faq = { q: string; a: string; link?: { href: string; label: string } };
 
@@ -100,3 +101,6 @@ export const FAQ: Faq[] = [
     a: 'Open Chat and choose Talk to a person. Your message goes to the support team and you see the reply in the same chat.',
   },
 ];
+
+// One question per procedure, answered first and briefly, with a link to the full steps.
+FAQ.push(...PROCEDURES.map(p => ({ q: p.question, a: p.summary, link: { href: `/guide/procedures/${p.id}`, label: 'See the steps' } })));
