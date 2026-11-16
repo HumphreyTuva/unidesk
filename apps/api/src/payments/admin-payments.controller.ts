@@ -13,6 +13,7 @@ class UpdateSettingsDto {
   @IsOptional() @Type(() => Number) @IsInt() @Min(1) @Max(365) listingDays?: number;
   @IsOptional() @IsIn(['full', 'first', 'preview']) readingMode?: 'full' | 'first' | 'preview';
   @IsOptional() @Type(() => Number) @IsInt() @Min(1) @Max(10) freePages?: number;
+  @IsOptional() @Type(() => Number) @IsInt() @Min(0) @Max(1000) freeDownloads?: number;
 }
 
 @Controller('admin')
@@ -41,6 +42,7 @@ export class AdminPaymentsController {
     if (dto.listingDays !== undefined) await this.settings.set('listing_days', String(dto.listingDays));
     if (dto.readingMode !== undefined) await this.settings.set('reading_mode', dto.readingMode);
     if (dto.freePages !== undefined) await this.settings.set('free_pages', String(dto.freePages));
+    if (dto.freeDownloads !== undefined) await this.settings.set('free_downloads', String(dto.freeDownloads));
     return { ...(await this.settings.all()), mpesaMode: this.mpesa.mode };
   }
 

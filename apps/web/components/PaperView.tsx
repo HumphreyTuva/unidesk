@@ -81,6 +81,7 @@ export default function PaperView({ id, initial, related }: { id: string; initia
   const [message, setMessage] = useState('');
   // Set only when the server answers 402. Until then nothing on this page mentions payment.
   const [price, setPrice] = useState<number | null>(null);
+  const [freeLimit, setFreeLimit] = useState(0); // set when the student has used their free downloads
   const [zoom, setZoom] = useState<ZoomAt | null>(null);
   const lastTap = useRef<Tap>({ t: 0, x: 0, y: 0 });
 
@@ -102,6 +103,7 @@ export default function PaperView({ id, initial, related }: { id: string; initia
       if (err.status === 402) {
         // Only reached once the admin has switched payments on and this student has not unlocked the paper.
         setPrice(Number(err.data?.amount) || 0);
+        setFreeLimit(err.data?.reason === 'limit' ? Number(err.data?.limit) || 0 : 0);
       } else if (err.status === 401) {
         router.push(`/login?next=/papers/${id}`);
       } else {
@@ -211,6 +213,7 @@ export default function PaperView({ id, initial, related }: { id: string; initia
           paperId={paper.id}
           label={`${paper.unitCode} ${paper.year}`}
           amount={price}
+          note={freeLimit ? `You have used your ${freeLimit} free downloads. Further papers are KSh ${price} each. Reading in the app stays free.` : undefined}
           onClose={() => setPrice(null)}
           onPaid={() => { window.location.href = `/api/v1/papers/${paper.id}/download`; startedDownload(); setTimeout(load, 2000); }}
         />

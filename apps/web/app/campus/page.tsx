@@ -45,6 +45,7 @@ function Clubs() {
 
   const toggle = async (c: Club) => {
     if (!user) { window.location.href = '/login?next=/campus'; return; }
+    if (mine.includes(c.id) && !window.confirm(`Leave ${c.name}?`)) return;
     setBusy(c.id); setError('');
     try { const was = mine.includes(c.id); await api(`/campus/clubs/${c.id}/join`, was ? 'DELETE' : 'POST'); toast.ok(was ? `Left ${c.name}` : `Joined ${c.name}`); load(); } catch (e: any) { toast.error(e.message); } finally { setBusy(''); }
   };

@@ -36,7 +36,7 @@ export class PaymentsService implements OnModuleInit {
 
   // ---- paper downloads ----
   async startPaperPayment(userId: string, paperId: string, phoneRaw: string) {
-    if (!(await this.settings.paymentsEnabled())) throw new BadRequestException('Nothing to pay for right now.');
+    if (!(await this.settings.paymentsEnabled()) && !(await this.settings.limitStatus(userId)).reached) throw new BadRequestException('Nothing to pay for right now.');
     const phone = normalizePhone(phoneRaw);
     if (!phone) throw new BadRequestException('Enter a valid Safaricom number, like 0712 345 678');
 

@@ -5,7 +5,7 @@ import { ArrowLeft, Loader2 } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useRequireAdmin } from '@/lib/useRequireAdmin';
 
-type Settings = { paymentsEnabled: boolean; paperPrice: number; listingFee: number; listingDays: number; readingMode: 'full' | 'first' | 'preview'; freePages: number; mpesaMode: 'live' | 'mock' };
+type Settings = { paymentsEnabled: boolean; paperPrice: number; listingFee: number; listingDays: number; readingMode: 'full' | 'first' | 'preview'; freePages: number; freeDownloads: number; mpesaMode: 'live' | 'mock' };
 type Item = { id: string; status: 'PENDING' | 'SUCCESS' | 'FAILED'; amount: number; phone: string; receipt: string | null; reason: string | null; what: string; createdAt: string };
 type Recent = { totals: { amount: number; count: number; todayAmount: number; todayCount: number }; items: Item[] };
 
@@ -30,7 +30,7 @@ export default function AdminPayments() {
 
   if (!ok) return null;
 
-  const save = async (patch: Partial<{ paymentsEnabled: boolean; paperPrice: number; readingMode: 'full' | 'first' | 'preview'; freePages: number }>) => {
+  const save = async (patch: Partial<{ paymentsEnabled: boolean; paperPrice: number; readingMode: 'full' | 'first' | 'preview'; freePages: number; freeDownloads: number }>) => {
     setBusy(true); setError(''); setSaved('');
     try {
       const r = await api<Settings>('/admin/settings', 'PUT', patch);
@@ -86,6 +86,19 @@ export default function AdminPayments() {
             </div>
             {saved && <p role="status" className="text-[13px] font-medium text-[#14532D]">{saved}</p>}
           </div>
+        </section>
+      )}
+
+      {s && (
+        <section className="mt-4 rounded-[20px] border-[1.5px] border-line bg-white p-4">
+          <p className="text-[15px] font-extrabold">Free downloads per student</p>
+          <p className="text-[13px] text-muted">While payments are off, each student can download this many papers free. After that, payment is asked for any further paper, only for them. Set 0 for no limit. Reading in the app is never limited.</p>
+          <div className="mt-3 flex items-center gap-3">
+            <label htmlFor="fd" className="text-[13px] font-bold">Free downloads</label>
+            <input id="fd" type="number" inputMode="numeric" min={0} max={1000} defaultValue={s.freeDownloads} key={s.freeDownloads} onBlur={e => { const n = Number(e.target.value); if (Number.isInteger(n) && n >= 0 && n <= 1000 && n !== s.freeDownloads) save({ freeDownloads: n }); }} className="h-11 w-24 rounded-xl border-[1.5px] border-edge bg-[#F8FAFE] px-3 text-[15px]" />
+          </div>
+          {s.freeDownloads > 0 && !s.paymentsEnabled && s.mpesaMode === 'mock' && <p className="mt-2 text-[13px] text-amber-ink">M-Pesa is in test mode, so the limit is not applied on the live site yet.</p>}
+          {saved && <p role="status" className="mt-2 text-[13px] font-medium text-[#14532D]">{saved}</p>}
         </section>
       )}
 

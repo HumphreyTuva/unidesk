@@ -13,8 +13,8 @@ const POLL_MS = 4000;
 const GIVE_UP_MS = 2 * 60_000;
 
 // Only ever opened when the server says this paper needs payment. Pays by M-Pesa STK push, waits for the result, then unlocks.
-export default function PaymentSheet({ open, paperId, label, amount, onClose, onPaid }: {
-  open: boolean; paperId: string; label: string; amount: number; onClose: () => void; onPaid: () => void;
+export default function PaymentSheet({ open, paperId, label, amount, note, onClose, onPaid }: {
+  open: boolean; paperId: string; label: string; amount: number; note?: string; onClose: () => void; onPaid: () => void;
 }) {
   const [phase, setPhase] = useState<Phase>('form');
   const [phone, setPhone] = useState('');
@@ -84,6 +84,7 @@ export default function PaymentSheet({ open, paperId, label, amount, onClose, on
 
             {phase === 'form' && (
               <form onSubmit={pay} className="mt-2 flex flex-col gap-3.5">
+                {note && <p className="rounded-xl bg-amber-soft px-3.5 py-3 text-[14px] font-medium leading-relaxed text-amber-ink">{note}</p>}
                 <div className="flex items-baseline justify-between rounded-2xl bg-brand-soft px-4 py-3">
                   <span className="text-[13px] font-bold text-brand">Price</span>
                   <span className="text-2xl font-extrabold text-brand">KSh {amount}</span>

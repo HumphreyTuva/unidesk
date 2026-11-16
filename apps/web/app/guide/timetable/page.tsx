@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { AlertTriangle, ArrowLeft, Download, ImageIcon, Loader2, Pencil, Plus, Printer, RotateCcw, Trash2, X } from 'lucide-react';
 import { api } from '@/lib/api';
+import { useToast } from '@/lib/toast';
 import { CAT, CLASH, DESIGNS, MAX_SIDE, MIN_SIDE, SIZE_PRESETS, clampSide, hourLabel, renderTimetablePng, type Cat, type Design, type ExDay, type ExText } from '@/lib/timetableExport';
 
 type Kind = 'class' | 'exam';
@@ -39,6 +40,7 @@ type Draft = { id: string; isNew: boolean; code: string; day: string; start: str
 
 export default function Timetable() {
   const [kind, setKind] = useState<Kind>('class');
+  const toast = useToast();
   const [units, setUnits] = useState<string[]>([]);
   const [q, setQ] = useState('');
   const [sugg, setSugg] = useState<string[]>([]);
@@ -76,8 +78,8 @@ export default function Timetable() {
     return () => clearTimeout(t);
   }, [q, kind, units]);
 
-  const add = (c: string) => { setUnits(u => (u.includes(c) || u.length >= 30 ? u : [...u, c])); setQ(''); setSugg([]); setRes(null); };
-  const remove = (c: string) => { setUnits(u => u.filter(x => x !== c)); setRes(null); };
+  const add = (c: string) => { if (units.length >= 30 && !units.includes(c)) { toast.error('You can add up to 30 units.'); return; } if (!units.includes(c)) toast.ok(`Added ${c}`); setUnits(u => (u.includes(c) || u.length >= 30 ? u : [...u, c])); setQ(''); setSugg([]); setRes(null); };
+  const remove = (c: string) => { if (!window.confirm(`Remove ${c} from your units?`)) return; setUnits(u => u.filter(x => x !== c)); setRes(null); toast.ok(`Removed ${c}`); };
 
   const generate = async (ch = choices) => {
     setBusy(true); setError('');
@@ -107,10 +109,11 @@ export default function Timetable() {
     else setDraft(base);
   };
   const del = (id: string) => {
+    toast.ok('Removed. Tap “Undo my changes” to bring it back.');
     if (kind === 'class') setCEdits(e => e.add.some(a => a.id === id) ? { ...e, add: e.add.filter(a => a.id !== id) } : { ...e, del: [...e.del, id] });
     else setEEdits(e => e.add.some(a => a.id === id) ? { ...e, add: e.add.filter(a => a.id !== id) } : { ...e, del: [...e.del, id] });
   };
-  const resetEdits = () => { if (kind === 'class') setCEdits(noEdits()); else setEEdits(noEdits()); };
+  const resetEdits = () => { if (!window.confirm('Undo all your changes and go back to the original timetable?')) return; if (kind === 'class') setCEdits(noEdits()); else setEEdits(noEdits()); toast.ok('Back to the original'); };
   const saveDraft = () => {
     if (!draft) return;
     const code = draft.code.replace(/\s+/g, '').toUpperCase();
@@ -125,6 +128,7 @@ export default function Timetable() {
       setEEdits(ed => draft.isNew ? { ...ed, add: [...ed.add, row] } : ed.add.some(a => a.id === row.id) ? { ...ed, add: ed.add.map(a => (a.id === row.id ? row : a)) } : { ...ed, mod: { ...ed.mod, [row.id]: row } });
     }
     setError(''); setDraft(null);
+    toast.ok(draft.isNew ? 'Added' : 'Changes saved');
   };
 
   // What the picture is drawn from.
@@ -143,7 +147,7 @@ export default function Timetable() {
   const rowButtons = (id: string, r: ClassRow | ExamRow) => (
     <span className="flex shrink-0 print:hidden">
       <button type="button" onClick={() => openEdit(r)} aria-label={`Edit ${r.code}`} className="flex h-10 w-10 items-center justify-center rounded-full text-muted"><Pencil size={17} aria-hidden /></button>
-      <button type="button" onClick={() => del(id)} aria-label={`Remove ${r.code}`} className="flex h-10 w-10 items-center justify-center rounded-full text-[#9B1C1C]"><Trash2 size={17} aria-hidden /></button>
+      <button type="button" onClick={() => { if (window.confirm(`Remove ${r.code} from your timetable?`)) del(id); }} aria-label={`Remove ${r.code}`} className="flex h-10 w-10 items-center justify-center rounded-full text-[#9B1C1C]"><Trash2 size={17} aria-hidden /></button>
     </span>
   );
 

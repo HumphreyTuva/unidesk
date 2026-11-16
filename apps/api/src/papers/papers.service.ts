@@ -95,14 +95,22 @@ export class PapersService {
   }
 
   // The one place that decides whether a student may download.
-  // While payments are off, everyone may and nothing about payment is ever mentioned.
+  // While payments are off, everyone may (up to the free-download limit) and nothing about payment is mentioned before that.
   // Once the admin turns payments on, a student who has not unlocked the paper gets 402 with the price, only when they try to download.
   async assertCanDownload(userId: string, paperId: string) {
     const paper = await this.published(paperId);
-    if (!(await this.settings.paymentsEnabled())) return paper;
     const unlocked = await this.db.paperAccess.findUnique({ where: { userId_paperId: { userId, paperId } } });
     if (unlocked) return paper;
-    throw new HttpException({ code: 'PAYMENT_REQUIRED', message: 'Payment is needed to download this paper.', amount: await this.settings.paperPrice() }, 402);
+    if (await this.settings.paymentsEnabled()) {
+      throw new HttpException({ code: 'PAYMENT_REQUIRED', message: 'Payment is needed to download this paper.', amount: await this.settings.paperPrice() }, 402);
+    }
+    // Payments are off for everyone, but a student who has used all their free downloads is asked to pay for further papers.
+    const lim = await this.settings.limitStatus(userId);
+    const price = await this.settings.paperPrice();
+    if (lim.reached && price >= 1) {
+      throw new HttpException({ code: 'PAYMENT_REQUIRED', reason: 'limit', limit: lim.limit, message: `You have used your ${lim.limit} free downloads.`, amount: price }, 402);
+    }
+    return paper;
   }
 
   // The PDF a student downloads: the stored file with a small unidesk.co.ke line added to every page. The in-app reader is not affected.
