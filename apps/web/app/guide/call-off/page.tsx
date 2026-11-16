@@ -44,7 +44,8 @@ function letterLines(f: Form, date: string): string[] {
     '',
     'Yours faithfully,',
     '',
-    f.name.trim(),
+    'Signature: ____________________',
+    `Name: ${f.name.trim()}`,
     `Phone: ${f.phone.trim()}`,
   ];
 }

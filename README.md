@@ -177,3 +177,6 @@ Step-by-step guides (graduation, unit registration, resuming studies, missed exa
 - Setting `free_downloads` (Admin → Payments, default 8, 0 = no limit): while payments are off, a student who holds 8 unpaid papers is asked to pay (402, `reason: "limit"`) for further papers only. Needs `MPESA_MODE=live` in production. Reading in the app is never limited.
 - `GET /admin/overview` returns counts (chats awaiting reply, open requests, ads/clubs to approve). Shown as a bell on Home for staff and as badges on the admin tiles.
 - Timetable page: removing a unit or class, undoing changes, and leaving a club now ask first; actions show a toast.
+
+### More procedures (Nov 2026)
+Late unit registration, late fee payment (with appeal), extra units/retakes (letters via `lib/letters.ts`) and Eduroam Wi-Fi setup were added to `content/procedures.ts`. Run `npm run sync:content` after editing it.

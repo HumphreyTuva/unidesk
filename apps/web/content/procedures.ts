@@ -10,7 +10,7 @@ export type Procedure = {
   summary: string; // the answer in one or two sentences
   steps: ProcStep[];
   notes?: string[];
-  letterKind?: 'resume' | 'missed' | 'id'; // procedures that need a letter get a "My letter" tab (see lib/letters.ts)
+  letterKind?: 'resume' | 'missed' | 'id' | 'late' | 'latefee' | 'extra'; // procedures that need a letter get a "My letter" tab (see lib/letters.ts)
   link?: { href: string; label: string };
   keywords: string[];
 };
@@ -126,6 +126,75 @@ export const PROCEDURES: Procedure[] = [
     notes: ['You can also ask in person at the Student Portal / Corporate Email Reset office: Room 324, Central Admin.'],
     link: { href: 'https://support.ku.ac.ke', label: 'Open KU support' },
     keywords: ['corporate email', 'student email', 'password reset', 'forgot password', 'ict ticket', 'email recovery', 'portal login'],
+  },
+  {
+    id: 'late-unit-registration',
+    title: 'Late unit registration',
+    sub: 'Letter to the Registrar (Academic)',
+    question: 'How do I register units late at Kenyatta University?',
+    summary: 'Write a short letter to the Registrar (Academic) asking for late unit registration and give your reason. Take the signed letter to the Old Administration Block, Room 12. A response is normally issued within five working days, and once approved you go to your School or Department to register.',
+    steps: [
+      { title: 'Write the letter', body: 'Address it to the Registrar (Academic), Kenyatta University, P.O. Box 43844-00100, Nairobi. The subject is: REQUEST FOR LATE UNIT REGISTRATION. Keep it brief and clear, and explain why you could not register in time.' },
+      { title: 'Include your details', body: 'Your full name, registration number, mobile number, email address (corporate or personal), the date and your signature.' },
+      { title: 'Submit it', body: 'Take the signed letter to the Old Administration Block, Room 12.' },
+      { title: 'Follow the guidance', body: 'After you submit, you are guided on the next steps.' },
+      { title: 'Wait for the response', body: 'A response is normally issued within five (5) working days or earlier.' },
+      { title: 'Register your units', body: 'Once approved, go to your School or Department for unit registration or further action.' },
+    ],
+    letterKind: 'late',
+    keywords: ['late registration', 'late unit registration', 'register late', 'missed unit registration', 'registration deadline'],
+  },
+  {
+    id: 'late-fee-payment',
+    title: 'Late fee payment',
+    sub: 'Letter to the Registrar (Academic)',
+    question: 'What if I cannot pay my fees before the deadline at Kenyatta University?',
+    summary: 'Write to the Registrar (Academic) asking for approval to pay after the deadline and state the reason. If you have already paid late, write an appeal attaching your fee receipt and ask for the registration hold to be lifted. Submit at the Old Administration Block, Room 12.',
+    steps: [
+      { title: 'Write the letter', body: 'Address it to the Registrar (Academic), Kenyatta University, P.O. Box 43844-00100, Nairobi. The subject is: REQUEST FOR LATE FEE PAYMENT. State the reason for the delay. Keep it brief, clear and straight to the point.' },
+      { title: 'Already paid after the deadline?', body: 'Write an appeal letter, attach your fee payment receipt as proof of payment, and ask the Registrar to lift the registration hold so you can register.' },
+      { title: 'Include your details', body: 'Your full name, registration number, mobile number, email address (corporate or personal), the date and your signature.' },
+      { title: 'Submit it', body: 'Take the signed letter to the Old Administration Block, Room 12. After you submit, you are guided on the next steps.' },
+      { title: 'Wait for the response', body: 'A response is normally issued within five (5) working days or earlier.' },
+      { title: 'Once approved', body: 'Make the fee payment and follow any further instructions from the relevant office.' },
+    ],
+    notes: ['If your appeal is rejected, you may be asked to call off the semester. Your fee balance stays in your student account: the money is not lost, and it remains available when you resume, whether in the second semester or the next academic year.'],
+    letterKind: 'latefee',
+    keywords: ['late fees', 'late fee payment', 'fee deadline', 'registration hold', 'fees after deadline', 'appeal letter'],
+  },
+  {
+    id: 'extra-units',
+    title: 'Register extra units or retakes',
+    sub: 'Over 8 units in a semester',
+    question: 'How do I register extra units or retakes at Kenyatta University?',
+    summary: 'The usual maximum is 8 units per semester. To register more (for example retakes), write to the Registrar (Academic) naming the unit(s) and why you need them. Your GPA must be 60 or above. If approved, register at Room 152, 844 Building.',
+    steps: [
+      { title: 'Check the limit and your GPA', body: 'The maximum standard registration is 8 units per semester. Your GPA must be 60 and above for your request to be considered.' },
+      { title: 'Write the letter', body: 'Address it to the Registrar (Academic), Kenyatta University, P.O. Box 43844-00100, Nairobi, Kenya. The subject is: REQUEST TO REGISTER EXTRA UNIT(S). Name the unit(s) and briefly explain why you need them. Keep it short and clear.' },
+      { title: 'Submit it', body: 'Take the signed letter to the Old Administration Block, Room 12 (Ground Floor).' },
+      { title: 'Register once approved', body: 'Go to Room 152, 844 Building to register the extra unit(s).' },
+    ],
+    notes: ['This guidance was shared for the School of Law, Arts and Social Sciences (SLASS). Students in other schools should confirm with their School or Department.'],
+    letterKind: 'extra',
+    keywords: ['extra units', 'retake', 'retakes', 'more than 8 units', 'maximum units', 'additional units'],
+  },
+  {
+    id: 'eduroam-wifi',
+    title: 'Connect to KU Wi-Fi (eduroam)',
+    sub: 'Phone and laptop setup',
+    question: 'How do I connect to Kenyatta University Wi-Fi (eduroam)?',
+    summary: 'Get your eduroam password from an email in your KU corporate email, then connect to “eduroam” using your KU student email as the identity, PEAP and MSCHAPV2. Your eduroam password is different from your email password.',
+    steps: [
+      { title: 'Get your eduroam password', body: 'Open your KU corporate email, search for “eduroam password”, open the email with your credentials and copy the password. It is different from your Gmail or corporate email password.' },
+      { title: 'Know your identity', body: 'Your identity (username) is your own KU student email address.' },
+      { title: 'On an Android phone', body: 'Go to Settings, then Wi-Fi, then select eduroam. Set EAP method to PEAP and Phase 2 authentication to MSCHAPV2. Set Domain to ku.ac.ke. Enter your KU student email as Identity, leave Anonymous identity blank and enter your eduroam password. Tap Connect.' },
+      { title: 'CA certificate', body: 'Options differ by Android version and phone brand. Choose the certificate option KU supports for your phone, such as trust on first use where available, or system certificates with the domain ku.ac.ke. If your device needs the official KU CA certificate, ask KU ICT Support for it and only install certificates from trusted KU sources.' },
+      { title: 'On a Windows laptop', body: 'Turn on Wi-Fi, select eduroam and click Connect. Enter your KU student email as the username and your eduroam password. Check the certificate prompt before accepting it, then wait until it shows Connected.' },
+      { title: 'If it refuses to connect', body: 'Forget the eduroam network, restart your device, turn Wi-Fi off and on, then select eduroam again and re-enter your email and password with no extra spaces. Check PEAP, MSCHAPV2, the certificate and the domain. If you changed your eduroam password, update it on your device. Try another area where eduroam is available.' },
+      { title: 'Still stuck?', body: 'Contact KU ICT Support at support@ku.ac.ke.' },
+    ],
+    notes: ['Never ignore unexpected certificate warnings. Eduroam is available in various locations within the university and works once your device is set up correctly.'],
+    keywords: ['eduroam', 'wifi', 'wi-fi', 'ku wifi', 'internet', 'connect to wifi', 'campus wifi'],
   },
 ];
 

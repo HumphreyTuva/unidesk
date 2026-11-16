@@ -1,6 +1,6 @@
 // Letters students must send to the Registrar. Each one is built from a few answers, in the layout the Registrar expects
 // (the same layout as the call-off letter). Used by components/LetterForm.tsx.
-export type LetterKind = 'resume' | 'missed' | 'id';
+export type LetterKind = 'resume' | 'missed' | 'id' | 'late' | 'latefee' | 'extra';
 
 export type FieldDef = {
   id: string;
@@ -40,6 +40,9 @@ const PERSON: FieldDef[] = [
 ];
 
 // Details top left, the date, and who it is addressed to. `through` adds "THROUGH:" offices (used for the ID letter).
+// For letters that follow the Registrar's short format: no school or course needed.
+const BASIC = PERSON.filter(f => f.id !== 'school' && f.id !== 'course');
+
 const head = (v: Record<string, string>, date: string, through: string[][] = []) => [
   `NAME: ${t(v.name)}`,
   `ADM NO: ${t(v.adm).toUpperCase()}`,
@@ -53,7 +56,7 @@ const head = (v: Record<string, string>, date: string, through: string[][] = [])
   '',
 ];
 const intro = (v: Record<string, string>) => `I, ${t(v.name)}, of Admission Number ${t(v.adm).toUpperCase()}, a student in the School of ${t(v.school)}, taking ${t(v.course)} course`;
-const sign = (v: Record<string, string>) => ['', 'Yours faithfully,', '', t(v.name), `Phone: ${t(v.phone)}`];
+const sign = (v: Record<string, string>) => ['', 'Yours faithfully,', '', 'Signature: ____________________', `Name: ${t(v.name)}`, `Phone: ${t(v.phone)}`];
 
 export const LETTERS: Record<LetterKind, LetterSpec> = {
   resume: {
@@ -104,6 +107,76 @@ export const LETTERS: Record<LetterKind, LetterSpec> = {
       ];
     },
     submit: 'Sign the printed letter, attach your evidence, and take them to the Old Administration Block, Room 12 (Ground Floor).',
+  },
+  late: {
+    intro: 'Fill this in and we will write your letter to the Registrar asking to register your units late.',
+    fields: [...BASIC, { id: 'reason', label: 'Why you could not register in time', type: 'textarea', placeholder: 'Explain clearly, in your own words' }],
+    lines: (v, date) => [
+      ...head(v, date),
+      'RE: REQUEST FOR LATE UNIT REGISTRATION',
+      '',
+      `I kindly request approval for late unit registration for the current semester. I was unable to register my units within the stipulated period due to ${noDot(v.reason)}. I therefore request your consideration and approval to enable me to complete my registration.`,
+      '',
+      `Registration Number: ${t(v.adm).toUpperCase()}`,
+      `Mobile Number: ${t(v.phone)}`,
+      ...(t(v.email) ? [`Email Address: ${t(v.email)}`] : []),
+      '',
+      'Thank you for your consideration.',
+      ...sign(v),
+    ],
+    submit: 'Sign the printed letter and take it to the Old Administration Block, Room 12. A response is normally issued within 5 working days. Once approved, go to your School or Department to register.',
+  },
+  latefee: {
+    intro: 'Fill this in and we will write your letter to the Registrar about your fees.',
+    fields: [
+      ...BASIC,
+      { id: 'paid', label: 'Have you already paid?', type: 'select', options: [['no', 'No, I need approval to pay late'], ['yes', 'Yes, I paid after the deadline (appeal)']] },
+      { id: 'reason', label: 'Why the fees were late', type: 'textarea', placeholder: 'Explain clearly, in your own words' },
+    ],
+    lines: (v, date) => {
+      const paid = v.paid === 'yes';
+      return [
+        ...head(v, date),
+        paid ? 'RE: APPEAL FOR LATE FEE PAYMENT AND LIFTING OF REGISTRATION HOLD' : 'RE: REQUEST FOR LATE FEE PAYMENT',
+        '',
+        paid
+          ? `I paid my fees for the current semester after the stipulated deadline due to ${noDot(v.reason)}. I have attached my fee payment receipt as proof of payment. I therefore request your consideration and approval to lift the registration hold, to enable me to proceed with my registration.`
+          : `I kindly request approval to make my fee payment after the stipulated deadline for the current semester. I was unable to pay within the required period due to ${noDot(v.reason)}. I therefore request your consideration and approval to enable me to proceed with my academic activities.`,
+        '',
+        `Registration Number: ${t(v.adm).toUpperCase()}`,
+        `Mobile Number: ${t(v.phone)}`,
+        ...(t(v.email) ? [`Email Address: ${t(v.email)}`] : []),
+        '',
+        'Thank you for your consideration.',
+        ...sign(v),
+      ];
+    },
+    submit: 'Sign the printed letter (attach your fee receipt if you have already paid) and take it to the Old Administration Block, Room 12. A response is normally issued within 5 working days.',
+  },
+  extra: {
+    intro: 'Fill this in and we will write your letter to the Registrar asking to register extra units or retakes.',
+    fields: [
+      ...BASIC,
+      { id: 'units', label: 'Unit(s) you want to register', type: 'text', placeholder: 'e.g. SMA 101 (retake), SMA 202' },
+      { id: 'reason', label: 'Why you need them', type: 'textarea', placeholder: 'Briefly, in your own words' },
+      { id: 'gpa', label: 'My GPA is 60 or above', type: 'check' },
+    ],
+    lines: (v, date) => [
+      ...head(v, date),
+      'RE: REQUEST TO REGISTER EXTRA UNIT(S)',
+      '',
+      `I kindly request approval to register the following extra unit(s) this semester: ${noDot(v.units)}.`,
+      '',
+      `${noDot(v.reason)}. My GPA is 60 and above.`,
+      '',
+      `Registration Number: ${t(v.adm).toUpperCase()}`,
+      `Mobile Number: ${t(v.phone)}`,
+      ...(t(v.email) ? [`Email Address: ${t(v.email)}`] : []),
+      '',
+      'Thank you for your consideration.',
+      ...sign(v),
+    ],
+    submit: 'Sign the printed letter and take it to the Old Administration Block, Room 12 (Ground Floor). If approved, register the units at Room 152, 844 Building.',
   },
   id: {
     intro: 'Fill this in and we will write your letter to the Registrar asking for a new student ID, addressed through Student Affairs and Security Services.',
