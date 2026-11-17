@@ -39,6 +39,12 @@ export default function Offices() {
             <p className="mt-2 flex items-center gap-1.5 text-[14px] font-bold text-brand">
               <MapPin size={16} aria-hidden /> {o.building}, {o.room}
             </p>
+            {(o.tel || o.email) && (
+              <p className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1 text-[13px] text-muted">
+                {o.tel && <a href={`tel:${o.tel.replace(/\s/g, '')}`} className="font-semibold text-brand">Call {o.tel}</a>}
+                {o.email?.map(m => m.includes('@') ? <a key={m} href={`mailto:${m}`} className="break-all font-semibold text-brand">{m}</a> : <span key={m} className="break-all">{m}</span>)}
+              </p>
+            )}
           </li>
         ))}
       </ul>

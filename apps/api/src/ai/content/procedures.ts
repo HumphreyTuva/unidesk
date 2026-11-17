@@ -10,7 +10,7 @@ export type Procedure = {
   summary: string; // the answer in one or two sentences
   steps: ProcStep[];
   notes?: string[];
-  letterKind?: 'resume' | 'missed' | 'id' | 'late' | 'latefee' | 'extra'; // procedures that need a letter get a "My letter" tab (see lib/letters.ts)
+  letterKind?: 'resume' | 'missed' | 'id' | 'late' | 'latefee' | 'extra' | 'remark'; // procedures that need a letter get a "My letter" tab (see lib/letters.ts)
   link?: { href: string; label: string };
   keywords: string[];
 };
@@ -123,7 +123,7 @@ export const PROCEDURES: Procedure[] = [
       { title: 'Wait for two emails', body: 'First you get a confirmation that the ICT team has received your request. Within 24 hours you get another email with a link.' },
       { title: 'Reset your password', body: 'Click the link. It opens the password reset page and gives you an 8-digit verification code to reset your password.' },
     ],
-    notes: ['You can also ask in person at the Student Portal / Corporate Email Reset office: Room 324, Central Admin.'],
+    notes: ['You can also ask in person at the Student Portal / Corporate Email Reset office: Room 321, Central Admin.'],
     link: { href: 'https://support.ku.ac.ke', label: 'Open KU support' },
     keywords: ['corporate email', 'student email', 'password reset', 'forgot password', 'ict ticket', 'email recovery', 'portal login'],
   },
@@ -195,6 +195,37 @@ export const PROCEDURES: Procedure[] = [
     ],
     notes: ['Never ignore unexpected certificate warnings. Eduroam is available in various locations within the university and works once your device is set up correctly.'],
     keywords: ['eduroam', 'wifi', 'wi-fi', 'ku wifi', 'internet', 'connect to wifi', 'campus wifi'],
+  },
+  {
+    id: 'remarking',
+    title: 'Apply for remarking',
+    sub: 'Not happy with a mark',
+    question: 'How do I apply for remarking at Kenyatta University?',
+    summary: 'If you are not satisfied with the marks your lecturer awarded, write to the Registrar (Academic) applying for remarking. It costs Ksh 2,000 per unit. Drop the letter at Room 12, Old Admin. If you suspect a missing mark (an E grade), verify with the department first.',
+    steps: [
+      { title: 'Verify first', body: 'If you have an E grade on your portal and suspect a missing mark, visit the department that offers the unit and verify before you apply for remarking.' },
+      { title: 'Write the letter', body: 'Address it to the Registrar (Academic) and apply for remarking of the unit(s). Name each unit.' },
+      { title: 'Know the cost', body: 'Remarking costs Ksh 2,000 per unit. Confirm how to pay with Student Finance before you submit.' },
+      { title: 'Submit it', body: 'Drop the letter at Room 12, Old Admin.' },
+    ],
+    notes: ['Follow the right office for your kind of exam query: missing marks go to Academic Data Verification (Room 110, Central Admin), and incomplete, special or supplementary exams go to Room 134, Central Admin.'],
+    letterKind: 'remark',
+    keywords: ['remarking', 'remark', 're-mark', 'appeal marks', 'wrong marks', 'not satisfied with marks'],
+  },
+  {
+    id: 'missing-marks',
+    title: 'Missing marks or an E grade',
+    sub: 'Check before you apply for remarking',
+    question: 'What should I do if I have an E grade or missing marks at Kenyatta University?',
+    summary: 'If you have an E grade on your portal and suspect missing marks, go to the department that offers the unit to verify first. If a mark is confirmed missing, you may be asked for your CAT papers (CAT 1 and CAT 2). Only then consider applying for remarking.',
+    steps: [
+      { title: 'Check your portal', body: 'Note the unit where you have an E grade and think a mark is missing.' },
+      { title: 'Go to the department', body: 'Visit the department offering the unit and ask them to verify the marks.' },
+      { title: 'Bring your CAT papers', body: 'If it is confirmed that a mark is missing, you may be required to produce your CAT papers, including CAT 1 and CAT 2, where the CAT marks are missing.' },
+      { title: 'Still unresolved?', body: 'Missing marks are handled by Academic Data Verification, Room 110, Central Admin (head.advs@ku.ac.ke). If you simply disagree with the mark, apply for remarking.' },
+    ],
+    notes: ['Verify first before you apply for remarking.'],
+    keywords: ['missing marks', 'missing mark', 'e grade', 'marks missing', 'cat marks', 'wrong grade'],
   },
 ];
 

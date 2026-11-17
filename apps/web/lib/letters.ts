@@ -1,6 +1,6 @@
 // Letters students must send to the Registrar. Each one is built from a few answers, in the layout the Registrar expects
 // (the same layout as the call-off letter). Used by components/LetterForm.tsx.
-export type LetterKind = 'resume' | 'missed' | 'id' | 'late' | 'latefee' | 'extra';
+export type LetterKind = 'resume' | 'missed' | 'id' | 'late' | 'latefee' | 'extra' | 'remark';
 
 export type FieldDef = {
   id: string;
@@ -177,6 +177,32 @@ export const LETTERS: Record<LetterKind, LetterSpec> = {
       ...sign(v),
     ],
     submit: 'Sign the printed letter and take it to the Old Administration Block, Room 12 (Ground Floor). If approved, register the units at Room 152, 844 Building.',
+  },
+  remark: {
+    intro: 'Fill this in and we will write your letter to the Registrar applying for remarking.',
+    fields: [
+      ...BASIC,
+      { id: 'units', label: 'Unit(s) to be remarked', type: 'text', placeholder: 'e.g. SMA 101, SMA 202' },
+      { id: 'sem', label: 'Semester', type: 'select', options: SEMESTERS, half: true },
+      { id: 'year', label: 'Academic year', type: 'year', half: true },
+      { id: 'verified', label: 'I have verified with the department that no mark is missing', type: 'check' },
+    ],
+    lines: (v, date) => [
+      ...head(v, date),
+      'RE: APPLICATION FOR REMARKING',
+      '',
+      `I am not satisfied with the marks awarded to me in the following unit(s) for semester ${t(v.sem).toLowerCase()} of academic year ${t(v.year)}: ${noDot(v.units)}.`,
+      '',
+      'I therefore kindly apply for remarking of the unit(s) above, and I will pay the required remarking fee.',
+      '',
+      `Registration Number: ${t(v.adm).toUpperCase()}`,
+      `Mobile Number: ${t(v.phone)}`,
+      ...(t(v.email) ? [`Email Address: ${t(v.email)}`] : []),
+      '',
+      'Thank you for your consideration.',
+      ...sign(v),
+    ],
+    submit: 'Sign the printed letter and drop it at Room 12, Old Admin. Remarking costs Ksh 2,000 per unit: confirm how to pay with Student Finance.',
   },
   id: {
     intro: 'Fill this in and we will write your letter to the Registrar asking for a new student ID, addressed through Student Affairs and Security Services.',

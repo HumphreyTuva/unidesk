@@ -28,7 +28,7 @@ ${p.notes?.length ? `\nNotes: ${p.notes.join(' ')}\n` : ''}Page: ${SITE_URL}/gui
 
 ## Important Kenyatta University offices
 
-${OFFICES.map(o => `- ${o.name}: ${o.room}, ${o.building}`).join('\n')}
+${OFFICES.map(o => `- ${o.name}: ${o.room}, ${o.building}${o.tel ? `, tel ${o.tel}` : ''}${o.email?.length ? `, email ${o.email.join(' / ')}` : ''}`).join('\n')}
 
 Page: ${SITE_URL}/guide/offices
 

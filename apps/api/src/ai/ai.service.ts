@@ -9,7 +9,7 @@ type Turn = { role: 'user' | 'assistant'; content: string };
 
 const KNOWLEDGE = [
   'IMPORTANT KU OFFICES (name: building, room):',
-  ...OFFICES.map(o => `- ${o.name}: ${o.building}, ${o.room}`),
+  ...OFFICES.map(o => `- ${o.name}: ${o.building}, ${o.room}${o.tel ? `, tel ${o.tel}` : ''}${o.email?.length ? `, email ${o.email.join(' / ')}` : ''}`),
   '',
   `HOW TO CALL OFF A SEMESTER (deferment) at ${CALL_OFF_OFFICE.name}, ${CALL_OFF_OFFICE.where}:`,
   ...CALL_OFF_STEPS.map((s, i) => `${i + 1}. ${s.title}: ${s.body}`),
