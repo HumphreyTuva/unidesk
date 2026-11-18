@@ -103,8 +103,10 @@ export default function Timetable() {
   const pick = (key: string, id: string) => { const ch = { ...choices, [key]: id }; setChoices(ch); generate(ch); };
 
   const available = info ? (kind === 'class' ? info.class : info.exam) : undefined;
-  const cls = kind === 'class' ? (res as ClassResult | null) : null;
-  const exm = kind === 'exam' ? (res as ExamResult | null) : null;
+  // On a tab switch the old result is still here for one render, so check its shape, not just the tab.
+  const cls = kind === 'class' && res && 'resolved' in res ? (res as ClassResult) : null;
+  const exm = kind === 'exam' && res && 'exams' in res ? (res as ExamResult) : null;
+  const shown = cls ?? exm;
 
   // The sheet's rows with this student's own changes on top.
   const classes = useMemo(() => (cls ? applyEdits(cls.resolved, cEdits).sort((a, b) => dayIdx(a.day) - dayIdx(b.day) || a.startHour - b.startHour) : []), [cls, cEdits]);
@@ -217,9 +219,9 @@ export default function Timetable() {
             {busy && <Loader2 size={20} className="animate-spin" aria-hidden />} Make my {kind === 'class' ? 'class' : 'exam'} timetable
           </button>
 
-          {res && (
+          {shown && (
             <section className="print-area mt-6" aria-live="polite">
-              {res.notFound.length > 0 && <p className="mb-3 rounded-xl bg-amber-soft px-3.5 py-2.5 text-sm font-medium text-amber-ink">Not found in this timetable: {res.notFound.join(', ')}. Check the code.</p>}
+              {shown.notFound.length > 0 && <p className="mb-3 rounded-xl bg-amber-soft px-3.5 py-2.5 text-sm font-medium text-amber-ink">Not found in this timetable: {shown.notFound.join(', ')}. Check the code.</p>}
 
               {clashCount > 0 && (
                 <div className="mb-3 rounded-xl bg-danger-soft px-3.5 py-2.5 text-sm font-medium text-danger">
