@@ -53,6 +53,21 @@ export default function Timetable() {
   const [eEdits, setEEdits] = useState<Edits<ExamRow>>(noEdits());
   const [draft, setDraft] = useState<Draft | null>(null);
   const [exporting, setExporting] = useState(false);
+  const [allUnits, setAllUnits] = useState(false);
+  // Floating buttons: show when scrolling up, hide when scrolling down.
+  const [barOn, setBarOn] = useState(true);
+  useEffect(() => {
+    let last = window.scrollY;
+    const onScroll = () => {
+      const y = window.scrollY, dy = y - last;
+      if (y < 80) { setBarOn(true); last = y; return; }
+      if (Math.abs(dy) < 8) return;
+      setBarOn(dy < 0);
+      last = y;
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
   const seq = useRef(0);
 
   useEffect(() => { api('/timetable/info').then(setInfo).catch(() => setInfo({ class: null, exam: null })); }, []);
@@ -183,13 +198,19 @@ export default function Timetable() {
           {q.trim().length >= 2 && sugg.length === 0 && <p className="mt-2 text-[13px] text-muted print:hidden">No unit starting with “{q.trim().toUpperCase()}”.</p>}
 
           {units.length > 0 && (
-            <ul className="mt-4 flex flex-wrap gap-2 print:hidden">
-              {units.map(c => (
-                <li key={c} className="flex h-10 items-center gap-1 rounded-full bg-brand pl-3.5 pr-1 text-[14px] font-bold text-white">{c}
-                  <button type="button" onClick={() => remove(c)} aria-label={`Remove ${c}`} className="flex h-8 w-8 items-center justify-center rounded-full"><X size={16} aria-hidden /></button>
-                </li>
-              ))}
-            </ul>
+            <div className="mt-4 print:hidden">
+              <div className="mb-1.5 flex items-center justify-between">
+                <p className="text-[13px] font-bold text-muted">Your units ({units.length})</p>
+                {units.length > 3 && <button type="button" onClick={() => setAllUnits(v => !v)} aria-expanded={allUnits} className="h-8 px-1 text-[13px] font-bold text-brand-ink">{allUnits ? 'Show less' : 'Show all'}</button>}
+              </div>
+              <ul className={allUnits ? 'flex flex-wrap gap-2' : 'flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden'}>
+                {units.map(c => (
+                  <li key={c} className="flex h-10 shrink-0 items-center gap-1 rounded-full bg-brand pl-3.5 pr-1 text-[14px] font-bold text-white">{c}
+                    <button type="button" onClick={() => remove(c)} aria-label={`Remove ${c}`} className="flex h-8 w-8 items-center justify-center rounded-full"><X size={16} aria-hidden /></button>
+                  </li>
+                ))}
+              </ul>
+            </div>
           )}
 
           {error && <p role="alert" className="mt-4 rounded-xl bg-danger-soft px-3.5 py-2.5 text-sm font-medium text-danger">{error}</p>}
@@ -310,7 +331,7 @@ export default function Timetable() {
               {hasRows && (
                 <>
                   <div className="h-20 md:hidden print:hidden" aria-hidden />
-                  <div className="fixed inset-x-0 bottom-[calc(88px+env(safe-area-inset-bottom)+8px)] z-30 px-4 md:static md:px-0 print:hidden">
+                  <div className={`fixed inset-x-0 bottom-[calc(88px+env(safe-area-inset-bottom)+8px)] z-30 px-4 transition-all duration-200 md:static md:translate-y-0 md:px-0 md:opacity-100 print:hidden ${barOn ? 'translate-y-0 opacity-100' : 'pointer-events-none translate-y-6 opacity-0'}`}>
                     <div className="mx-auto flex max-w-[560px] gap-2 md:max-w-none">
                       <button type="button" onClick={() => window.print()} className="flex h-12 flex-1 items-center justify-center gap-2 rounded-2xl border-[1.5px] border-edge bg-card text-[14px] font-bold shadow-lg md:shadow-none"><Printer size={18} aria-hidden /> Save PDF</button>
                       <button type="button" onClick={() => setExporting(true)} className="flex h-12 flex-1 items-center justify-center gap-2 rounded-2xl bg-brand text-[14px] font-bold text-white shadow-lg md:shadow-none"><ImageIcon size={18} aria-hidden /> Save as image</button>
