@@ -223,9 +223,8 @@ export default function Timetable() {
                 </div>
               ))}
 
-              <div className="mb-4 flex flex-wrap gap-2 print:hidden">
+              <div className="mb-4 flex gap-2 print:hidden">
                 <button type="button" onClick={() => openEdit()} className="flex h-11 items-center gap-1.5 rounded-full border-[1.5px] border-brand bg-card px-4 text-[14px] font-bold text-brand-ink"><Plus size={16} aria-hidden /> Add {kind === 'class' ? 'a class' : 'an exam'}</button>
-                {hasRows && <button type="button" onClick={() => setExporting(true)} className="flex h-11 items-center gap-1.5 rounded-full bg-brand px-4 text-[14px] font-bold text-white"><ImageIcon size={16} aria-hidden /> Save as image</button>}
                 {changed && <button type="button" onClick={resetEdits} className="flex h-11 items-center gap-1.5 rounded-full border-[1.5px] border-edge bg-card px-4 text-[14px] font-bold text-muted"><RotateCcw size={16} aria-hidden /> Undo my changes</button>}
               </div>
 
@@ -308,7 +307,17 @@ export default function Timetable() {
               ))}
 
               {!hasRows && <p className="mb-3 rounded-xl border-[1.5px] border-dashed border-edge bg-card p-5 text-center text-[14px] text-muted">Nothing here. Use Add to put a {kind === 'class' ? 'class' : 'exam'} back, or Undo my changes.</p>}
-              {hasRows && <button type="button" onClick={() => window.print()} className="flex h-12 w-full items-center justify-center gap-2 rounded-2xl border-[1.5px] border-edge bg-card font-bold print:hidden"><Printer size={18} aria-hidden /> Print / Save as PDF</button>}
+              {hasRows && (
+                <>
+                  <div className="h-20 md:hidden print:hidden" aria-hidden />
+                  <div className="fixed inset-x-0 bottom-[calc(88px+env(safe-area-inset-bottom)+8px)] z-30 px-4 md:static md:px-0 print:hidden">
+                    <div className="mx-auto flex max-w-[560px] gap-2 md:max-w-none">
+                      <button type="button" onClick={() => window.print()} className="flex h-12 flex-1 items-center justify-center gap-2 rounded-2xl border-[1.5px] border-edge bg-card text-[14px] font-bold shadow-lg md:shadow-none"><Printer size={18} aria-hidden /> Save PDF</button>
+                      <button type="button" onClick={() => setExporting(true)} className="flex h-12 flex-1 items-center justify-center gap-2 rounded-2xl bg-brand text-[14px] font-bold text-white shadow-lg md:shadow-none"><ImageIcon size={18} aria-hidden /> Save as image</button>
+                    </div>
+                  </div>
+                </>
+              )}
               <p className="mt-3 text-[12px] text-muted">Made from the published sheet{changed ? ' with your changes' : ''}. Always confirm on the official notice.</p>
             </section>
           )}
