@@ -187,3 +187,9 @@ Late unit registration, late fee payment (with appeal), extra units/retakes (let
 
 ## Light and dark theme
 Colours are CSS variables (`app/globals.css`) used through Tailwind tokens (`card`, `field`, `ink`, `muted`, `brand-ink`, `danger`, `ok`...). Light is the default and uses the original colours. Students choose Light / Dark / Auto in Your account (`components/ThemeSwitch.tsx`, saved in `localStorage` as `unidesk_theme`; a small script in `app/layout.tsx` applies it before first paint). Letters always print dark on white. Use `bg-card` instead of `bg-white`, and `text-brand-ink` instead of `text-brand`, in new code.
+
+### Timetable picture fills the canvas
+Poster and dark designs lay the days out in rows that stretch to use the whole picture (a lone last day spans the full width), and the weekly grid stretches its rows and text the same way. No empty strip at the bottom at any size.
+
+### Two more timetable designs
+**Vivid** (a colour per weekday on dark) and **Colour bands** (light, coloured day headers) are in `lib/timetableExport.ts` next to Auto, Weekly grid, Poster and Dark poster. Both put the time in a pill beside the unit, show clashes with a red outline, and fill the picture like the other poster designs.
