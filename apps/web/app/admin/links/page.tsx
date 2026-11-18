@@ -6,7 +6,7 @@ import { api } from '@/lib/api';
 import { useRequireAdmin } from '@/lib/useRequireAdmin';
 
 type QuickLink = { id: string; title: string; url: string };
-const field = 'h-[50px] w-full rounded-2xl border-[1.5px] border-edge bg-[#F8FAFE] px-4 text-[15px] text-ink placeholder:text-[#6B7794]';
+const field = 'h-[50px] w-full rounded-2xl border-[1.5px] border-edge bg-field px-4 text-[15px] text-ink placeholder:text-faint';
 
 export default function AdminLinks() {
   const ok = useRequireAdmin();
@@ -37,12 +37,12 @@ export default function AdminLinks() {
       <h1 className="mt-2 text-2xl font-extrabold">Quick links</h1>
       <p className="mt-1 text-sm text-muted">Permanent shortcuts shown in the Guide. Keep them to official pages that do not go out of date.</p>
 
-      {error && <p role="alert" className="mt-4 rounded-xl bg-[#FDECEC] px-3.5 py-2.5 text-sm font-medium text-[#9B1C1C]">{error}</p>}
-      {!links && !error && <div className="flex justify-center py-8 text-brand"><Loader2 className="animate-spin" aria-label="Loading" /></div>}
+      {error && <p role="alert" className="mt-4 rounded-xl bg-danger-soft px-3.5 py-2.5 text-sm font-medium text-danger">{error}</p>}
+      {!links && !error && <div className="flex justify-center py-8 text-brand-ink"><Loader2 className="animate-spin" aria-label="Loading" /></div>}
 
       <ul className="mt-4 flex flex-col gap-2">
         {links?.map(l => (
-          <li key={l.id} className="flex items-center gap-3 rounded-[16px] border-[1.5px] border-line bg-white px-4 py-3">
+          <li key={l.id} className="flex items-center gap-3 rounded-[16px] border-[1.5px] border-line bg-card px-4 py-3">
             <span className="min-w-0 flex-1">
               <span className="block text-[15px] font-bold">{l.title}</span>
               <span className="block truncate text-[13px] text-muted">{l.url}</span>
@@ -52,7 +52,7 @@ export default function AdminLinks() {
         ))}
       </ul>
 
-      <form onSubmit={add} className="mt-6 flex flex-col gap-3.5 rounded-[20px] border-[1.5px] border-line bg-white p-4">
+      <form onSubmit={add} className="mt-6 flex flex-col gap-3.5 rounded-[20px] border-[1.5px] border-line bg-card p-4">
         <p className="text-[15px] font-extrabold">Add a link</p>
         <div className="flex flex-col gap-1.5">
           <label htmlFor="lt" className="text-[13px] font-bold">Name</label>

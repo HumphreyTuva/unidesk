@@ -147,7 +147,7 @@ export default function Timetable() {
   const rowButtons = (id: string, r: ClassRow | ExamRow) => (
     <span className="flex shrink-0 print:hidden">
       <button type="button" onClick={() => openEdit(r)} aria-label={`Edit ${r.code}`} className="flex h-10 w-10 items-center justify-center rounded-full text-muted"><Pencil size={17} aria-hidden /></button>
-      <button type="button" onClick={() => { if (window.confirm(`Remove ${r.code} from your timetable?`)) del(id); }} aria-label={`Remove ${r.code}`} className="flex h-10 w-10 items-center justify-center rounded-full text-[#9B1C1C]"><Trash2 size={17} aria-hidden /></button>
+      <button type="button" onClick={() => { if (window.confirm(`Remove ${r.code} from your timetable?`)) del(id); }} aria-label={`Remove ${r.code}`} className="flex h-10 w-10 items-center justify-center rounded-full text-danger"><Trash2 size={17} aria-hidden /></button>
     </span>
   );
 
@@ -161,23 +161,23 @@ export default function Timetable() {
 
       <div role="tablist" className="mt-4 grid grid-cols-2 gap-1 rounded-2xl bg-brand-soft p-1 print:hidden">
         {(['class', 'exam'] as Kind[]).map(k => (
-          <button key={k} role="tab" aria-selected={kind === k} onClick={() => setKind(k)} className={`h-11 rounded-xl text-[15px] font-bold ${kind === k ? 'bg-white text-brand shadow-sm' : 'text-muted'}`}>{k === 'class' ? 'Classes' : 'Exams'}</button>
+          <button key={k} role="tab" aria-selected={kind === k} onClick={() => setKind(k)} className={`h-11 rounded-xl text-[15px] font-bold ${kind === k ? 'bg-card text-brand-ink shadow-sm' : 'text-muted'}`}>{k === 'class' ? 'Classes' : 'Exams'}</button>
         ))}
       </div>
 
       {info && !available ? (
-        <p className="mt-6 rounded-[18px] border-[1.5px] border-dashed border-edge bg-white p-6 text-center text-[15px] text-muted">The {kind === 'class' ? 'class' : 'exam'} timetable is not here yet. Check back soon.</p>
+        <p className="mt-6 rounded-[18px] border-[1.5px] border-dashed border-edge bg-card p-6 text-center text-[15px] text-muted">The {kind === 'class' ? 'class' : 'exam'} timetable is not here yet. Check back soon.</p>
       ) : (
         <>
           {available && <p className="mt-3 text-[13px] text-muted print:hidden">{available.label}</p>}
 
           <label className="relative mt-3 block print:hidden">
             <span className="sr-only">Add a unit code</span>
-            <input value={q} onChange={e => setQ(e.target.value)} autoCapitalize="characters" autoComplete="off" placeholder="Type a unit code, e.g. SBC101" className="h-[52px] w-full rounded-2xl border-[1.5px] border-edge bg-white px-4 text-[15px] uppercase placeholder:normal-case placeholder:text-muted" />
+            <input value={q} onChange={e => setQ(e.target.value)} autoCapitalize="characters" autoComplete="off" placeholder="Type a unit code, e.g. SBC101" className="h-[52px] w-full rounded-2xl border-[1.5px] border-edge bg-card px-4 text-[15px] uppercase placeholder:normal-case placeholder:text-muted" />
           </label>
           {sugg.length > 0 && (
             <ul className="mt-2 flex flex-wrap gap-2 print:hidden">
-              {sugg.map(c => <li key={c}><button type="button" onClick={() => add(c)} className="flex h-10 items-center gap-1 rounded-full border-[1.5px] border-brand bg-white px-3.5 text-[14px] font-bold text-brand"><Plus size={16} aria-hidden />{c}</button></li>)}
+              {sugg.map(c => <li key={c}><button type="button" onClick={() => add(c)} className="flex h-10 items-center gap-1 rounded-full border-[1.5px] border-brand bg-card px-3.5 text-[14px] font-bold text-brand-ink"><Plus size={16} aria-hidden />{c}</button></li>)}
             </ul>
           )}
           {q.trim().length >= 2 && sugg.length === 0 && <p className="mt-2 text-[13px] text-muted print:hidden">No unit starting with “{q.trim().toUpperCase()}”.</p>}
@@ -192,17 +192,17 @@ export default function Timetable() {
             </ul>
           )}
 
-          {error && <p role="alert" className="mt-4 rounded-xl bg-[#FDECEC] px-3.5 py-2.5 text-sm font-medium text-[#9B1C1C]">{error}</p>}
+          {error && <p role="alert" className="mt-4 rounded-xl bg-danger-soft px-3.5 py-2.5 text-sm font-medium text-danger">{error}</p>}
           <button type="button" disabled={!units.length || busy} onClick={() => generate()} className="mt-4 flex h-[54px] w-full items-center justify-center gap-2 rounded-2xl bg-brand text-base font-bold text-white disabled:opacity-50 print:hidden">
             {busy && <Loader2 size={20} className="animate-spin" aria-hidden />} Make my {kind === 'class' ? 'class' : 'exam'} timetable
           </button>
 
           {res && (
             <section className="print-area mt-6" aria-live="polite">
-              {res.notFound.length > 0 && <p className="mb-3 rounded-xl bg-[#FFF4DB] px-3.5 py-2.5 text-sm font-medium text-[#6B4A00]">Not found in this timetable: {res.notFound.join(', ')}. Check the code.</p>}
+              {res.notFound.length > 0 && <p className="mb-3 rounded-xl bg-amber-soft px-3.5 py-2.5 text-sm font-medium text-amber-ink">Not found in this timetable: {res.notFound.join(', ')}. Check the code.</p>}
 
               {clashCount > 0 && (
-                <div className="mb-3 rounded-xl bg-[#FDECEC] px-3.5 py-2.5 text-sm font-medium text-[#9B1C1C]">
+                <div className="mb-3 rounded-xl bg-danger-soft px-3.5 py-2.5 text-sm font-medium text-danger">
                   <p className="flex items-center gap-1.5 font-bold"><AlertTriangle size={16} aria-hidden /> {clashCount} clash{clashCount > 1 ? 'es' : ''}</p>
                   <ul className="mt-1">
                     {cClash.map((c, i) => <li key={i}>{c.day}: {c.a.code} and {c.b.code} overlap ({hr(c.a.startHour)}-{hr(c.a.endHour)} / {hr(c.b.startHour)}-{hr(c.b.endHour)})</li>)}
@@ -212,26 +212,26 @@ export default function Timetable() {
               )}
 
               {cls?.ambiguous.map(a => (
-                <div key={a.key} className="mb-3 rounded-xl border-[1.5px] border-line bg-white p-3.5 print:hidden">
+                <div key={a.key} className="mb-3 rounded-xl border-[1.5px] border-line bg-card p-3.5 print:hidden">
                   <p className="text-sm font-bold">{a.code} has more than one {a.day} class. Which is yours?</p>
                   <div className="mt-2 flex flex-wrap gap-2">
                     {a.options.map(o => {
                       const on = (choices[a.key] ?? cls.resolved.find(r => r.code === a.code && r.day === a.day)?.id) === o.id;
-                      return <button key={o.id} type="button" onClick={() => pick(a.key, o.id)} className={`h-10 rounded-full border-[1.5px] px-3.5 text-[14px] font-bold ${on ? 'border-brand bg-brand text-white' : 'border-edge bg-white'}`}>{hr(o.startHour)}-{hr(o.endHour)}{o.venue ? ` · ${o.venue}` : ''}</button>;
+                      return <button key={o.id} type="button" onClick={() => pick(a.key, o.id)} className={`h-10 rounded-full border-[1.5px] px-3.5 text-[14px] font-bold ${on ? 'border-brand bg-brand text-white' : 'border-edge bg-card'}`}>{hr(o.startHour)}-{hr(o.endHour)}{o.venue ? ` · ${o.venue}` : ''}</button>;
                     })}
                   </div>
                 </div>
               ))}
 
               <div className="mb-4 flex flex-wrap gap-2 print:hidden">
-                <button type="button" onClick={() => openEdit()} className="flex h-11 items-center gap-1.5 rounded-full border-[1.5px] border-brand bg-white px-4 text-[14px] font-bold text-brand"><Plus size={16} aria-hidden /> Add {kind === 'class' ? 'a class' : 'an exam'}</button>
+                <button type="button" onClick={() => openEdit()} className="flex h-11 items-center gap-1.5 rounded-full border-[1.5px] border-brand bg-card px-4 text-[14px] font-bold text-brand-ink"><Plus size={16} aria-hidden /> Add {kind === 'class' ? 'a class' : 'an exam'}</button>
                 {hasRows && <button type="button" onClick={() => setExporting(true)} className="flex h-11 items-center gap-1.5 rounded-full bg-brand px-4 text-[14px] font-bold text-white"><ImageIcon size={16} aria-hidden /> Save as image</button>}
-                {changed && <button type="button" onClick={resetEdits} className="flex h-11 items-center gap-1.5 rounded-full border-[1.5px] border-edge bg-white px-4 text-[14px] font-bold text-muted"><RotateCcw size={16} aria-hidden /> Undo my changes</button>}
+                {changed && <button type="button" onClick={resetEdits} className="flex h-11 items-center gap-1.5 rounded-full border-[1.5px] border-edge bg-card px-4 text-[14px] font-bold text-muted"><RotateCcw size={16} aria-hidden /> Undo my changes</button>}
               </div>
 
               {cls && classes.length > 0 && (
                 <div className="mb-5 hidden md:block print:hidden">
-                  <div className="overflow-x-auto rounded-2xl border-[1.5px] border-line bg-white p-2">
+                  <div className="overflow-x-auto rounded-2xl border-[1.5px] border-line bg-card p-2">
                     <div style={{ minWidth: 96 + gridCols * 84 }}>
                       <div className="flex">
                         <div className="w-[96px] shrink-0" />
@@ -249,8 +249,8 @@ export default function Timetable() {
                               {placed.map(({ r, lane }) => {
                                 const c = clashIds.has(r.id) ? CLASH : CAT[catOf(r)];
                                 return (
-                                  <button key={r.id} type="button" onClick={() => openEdit(r)} aria-label={`Edit ${r.code}`} className="absolute overflow-hidden rounded-lg border-2 px-2 py-1 text-left"
-                                    style={{ left: `${((r.startHour - gridFrom) / gridCols) * 100}%`, width: `${((r.endHour - r.startHour) / gridCols) * 100}%`, top: lane * 58 + 3, height: 52, background: c.bg, borderColor: c.border }}>
+                                  <button key={r.id} type="button" onClick={() => openEdit(r)} aria-label={`Edit ${r.code}`} className="pastel absolute overflow-hidden rounded-lg border-2 px-2 py-1 text-left"
+                                    style={{ left: `${((r.startHour - gridFrom) / gridCols) * 100}%`, width: `${((r.endHour - r.startHour) / gridCols) * 100}%`, top: lane * 58 + 3, height: 52, ['--p-bg' as string]: c.bg, ['--p-dbg' as string]: c.dbg, borderColor: c.border }}>
                                     <span className="block truncate text-[13px] font-extrabold leading-tight">{r.code}</span>
                                     <span className="block truncate text-[11px] font-semibold text-muted">{r.elearning ? 'Online' : r.venue ?? 'Venue not listed'}</span>
                                   </button>
@@ -263,8 +263,8 @@ export default function Timetable() {
                     </div>
                   </div>
                   <ul className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[12px] font-semibold text-muted">
-                    {[...new Set(classes.map(catOf))].map(k => <li key={k} className="flex items-center gap-1.5"><span className="h-3 w-3 rounded border-2" style={{ background: CAT[k].bg, borderColor: CAT[k].border }} />{CAT[k].label}</li>)}
-                    {cClash.length > 0 && <li className="flex items-center gap-1.5"><span className="h-3 w-3 rounded border-2" style={{ background: CLASH.bg, borderColor: CLASH.border }} />Clash</li>}
+                    {[...new Set(classes.map(catOf))].map(k => <li key={k} className="flex items-center gap-1.5"><span className="pastel h-3 w-3 rounded border-2" style={{ ['--p-bg' as string]: CAT[k].bg, ['--p-dbg' as string]: CAT[k].dbg, borderColor: CAT[k].border }} />{CAT[k].label}</li>)}
+                    {cClash.length > 0 && <li className="flex items-center gap-1.5"><span className="pastel h-3 w-3 rounded border-2" style={{ ['--p-bg' as string]: CLASH.bg, ['--p-dbg' as string]: CLASH.dbg, borderColor: CLASH.border }} />Clash</li>}
                   </ul>
                 </div>
               )}
@@ -277,9 +277,9 @@ export default function Timetable() {
                       {classes.filter(r => r.day === d).map(r => {
                         const c = clashIds.has(r.id) ? CLASH : CAT[catOf(r)];
                         return (
-                          <li key={r.id} className="flex items-center gap-2 rounded-[16px] border-[1.5px] bg-white py-2 pl-4 pr-1" style={{ borderColor: c.border, borderLeftWidth: 6 }}>
-                            <span className="w-[74px] shrink-0 text-[13px] font-bold text-brand">{hr(r.startHour)}-{hr(r.endHour)}</span>
-                            <span className="min-w-0 flex-1"><span className="block text-[15px] font-bold">{r.code}</span><span className="block text-[13px] text-muted">{r.elearning ? 'E-learning (online)' : r.venue ? <Link href={`/guide/venues?q=${encodeURIComponent(r.venue)}`} className="font-semibold text-brand underline print:no-underline">{r.venue}</Link> : 'Venue not listed'}</span></span>
+                          <li key={r.id} className="flex items-center gap-2 rounded-[16px] border-[1.5px] bg-card py-2 pl-4 pr-1" style={{ borderColor: c.border, borderLeftWidth: 6 }}>
+                            <span className="w-[74px] shrink-0 text-[13px] font-bold text-brand-ink">{hr(r.startHour)}-{hr(r.endHour)}</span>
+                            <span className="min-w-0 flex-1"><span className="block text-[15px] font-bold">{r.code}</span><span className="block text-[13px] text-muted">{r.elearning ? 'E-learning (online)' : r.venue ? <Link href={`/guide/venues?q=${encodeURIComponent(r.venue)}`} className="font-semibold text-brand-ink underline print:no-underline">{r.venue}</Link> : 'Venue not listed'}</span></span>
                             {rowButtons(r.id, r)}
                           </li>
                         );
@@ -294,9 +294,9 @@ export default function Timetable() {
                   <h2 className="mb-2 text-[15px] font-extrabold">{niceDate(d)}</h2>
                   <ul className="flex flex-col gap-2">
                     {exams.filter(r => r.date === d).map(r => (
-                      <li key={r.id} className="flex items-center gap-2 rounded-[16px] border-[1.5px] bg-white py-2 pl-4 pr-1" style={{ borderColor: clashIds.has(r.id) ? CLASH.border : '#DDE3F0', borderLeftWidth: 6 }}>
+                      <li key={r.id} className="flex items-center gap-2 rounded-[16px] border-[1.5px] bg-card py-2 pl-4 pr-1" style={{ borderColor: clashIds.has(r.id) ? CLASH.border : 'rgb(var(--c-line))', borderLeftWidth: 6 }}>
                         <span className="min-w-0 flex-1">
-                          <span className="block text-[13px] font-bold text-brand">{r.slot}</span>
+                          <span className="block text-[13px] font-bold text-brand-ink">{r.slot}</span>
                           <span className="block text-[15px] font-bold">{r.code}</span>
                           <span className="block text-[13px] text-muted">{r.venues.length ? r.venues.join(', ') : 'Venue not listed'}</span>
                         </span>
@@ -307,8 +307,8 @@ export default function Timetable() {
                 </div>
               ))}
 
-              {!hasRows && <p className="mb-3 rounded-xl border-[1.5px] border-dashed border-edge bg-white p-5 text-center text-[14px] text-muted">Nothing here. Use Add to put a {kind === 'class' ? 'class' : 'exam'} back, or Undo my changes.</p>}
-              {hasRows && <button type="button" onClick={() => window.print()} className="flex h-12 w-full items-center justify-center gap-2 rounded-2xl border-[1.5px] border-edge bg-white font-bold print:hidden"><Printer size={18} aria-hidden /> Print / Save as PDF</button>}
+              {!hasRows && <p className="mb-3 rounded-xl border-[1.5px] border-dashed border-edge bg-card p-5 text-center text-[14px] text-muted">Nothing here. Use Add to put a {kind === 'class' ? 'class' : 'exam'} back, or Undo my changes.</p>}
+              {hasRows && <button type="button" onClick={() => window.print()} className="flex h-12 w-full items-center justify-center gap-2 rounded-2xl border-[1.5px] border-edge bg-card font-bold print:hidden"><Printer size={18} aria-hidden /> Print / Save as PDF</button>}
               <p className="mt-3 text-[12px] text-muted">Made from the published sheet{changed ? ' with your changes' : ''}. Always confirm on the official notice.</p>
             </section>
           )}
@@ -324,12 +324,12 @@ export default function Timetable() {
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return <label className="block"><span className="mb-1 block text-[13px] font-bold text-muted">{label}</span>{children}</label>;
 }
-const inputCls = 'h-12 w-full rounded-xl border-[1.5px] border-edge bg-white px-3 text-[15px]';
+const inputCls = 'h-12 w-full rounded-xl border-[1.5px] border-edge bg-card px-3 text-[15px]';
 
 function Modal({ title, onClose, children, wide }: { title: string; onClose: () => void; children: React.ReactNode; wide?: boolean }) {
   return (
     <div className="fixed inset-0 z-[60] flex items-end justify-center bg-black/50 sm:items-center print:hidden" role="dialog" aria-modal="true" aria-label={title} onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className={`max-h-[92vh] w-full overflow-y-auto rounded-t-3xl bg-white p-5 pb-[calc(20px+env(safe-area-inset-bottom))] sm:rounded-3xl ${wide ? 'sm:max-w-3xl' : 'sm:max-w-md'}`}>
+      <div className={`max-h-[92vh] w-full overflow-y-auto rounded-t-3xl bg-card p-5 pb-[calc(20px+env(safe-area-inset-bottom))] sm:rounded-3xl ${wide ? 'sm:max-w-3xl' : 'sm:max-w-md'}`}>
         <div className="mb-3 flex items-center justify-between">
           <h2 className="text-lg font-extrabold">{title}</h2>
           <button type="button" onClick={onClose} aria-label="Close" className="flex h-10 w-10 items-center justify-center rounded-full"><X size={20} aria-hidden /></button>
@@ -405,7 +405,7 @@ function ExportDialog({ days, kind, onClose }: { days: ExDay[]; kind: Kind; onCl
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(a.href), 2000);
   };
-  const chip = (on: boolean) => `h-10 rounded-full border-[1.5px] px-3.5 text-[14px] font-bold ${on ? 'border-brand bg-brand text-white' : 'border-edge bg-white'}`;
+  const chip = (on: boolean) => `h-10 rounded-full border-[1.5px] px-3.5 text-[14px] font-bold ${on ? 'border-brand bg-brand text-white' : 'border-edge bg-card'}`;
 
   return (
     <Modal title="Save as image" onClose={onClose} wide>
@@ -435,7 +435,7 @@ function ExportDialog({ days, kind, onClose }: { days: ExDay[]; kind: Kind; onCl
           <div className="flex min-h-[200px] items-center justify-center overflow-hidden rounded-2xl border-[1.5px] border-line bg-brand-soft p-2">
             {url ? <img src={url} alt="Preview of your timetable image" className="max-h-[60vh] w-auto max-w-full rounded-lg" /> : <Loader2 className="animate-spin text-muted" aria-hidden />}
           </div>
-          {err && <p role="alert" className="rounded-xl bg-[#FDECEC] px-3.5 py-2.5 text-sm font-medium text-[#9B1C1C]">{err}</p>}
+          {err && <p role="alert" className="rounded-xl bg-danger-soft px-3.5 py-2.5 text-sm font-medium text-danger">{err}</p>}
           <button type="button" onClick={download} disabled={busy || !url} className="flex h-[54px] items-center justify-center gap-2 rounded-2xl bg-brand text-base font-bold text-white disabled:opacity-50"><Download size={18} aria-hidden /> Download PNG</button>
         </div>
       </div>

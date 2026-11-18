@@ -9,8 +9,8 @@ import { makePages, makePreview } from '@/lib/pdfPreview';
 
 type Row = { id: string; unitCode: string; title: string; year: number; sitting: string | null; school: string | null; published: boolean; pageCount: number; downloads: number; hasPreview: boolean };
 
-const field = 'h-12 w-full rounded-2xl border-[1.5px] border-edge bg-[#F8FAFE] px-3.5 text-[15px] text-ink placeholder:text-[#6B7794]';
-const btn = 'inline-flex h-10 items-center justify-center gap-1.5 rounded-xl border-[1.5px] border-edge bg-white px-3 text-[13px] font-bold text-ink disabled:opacity-50';
+const field = 'h-12 w-full rounded-2xl border-[1.5px] border-edge bg-field px-3.5 text-[15px] text-ink placeholder:text-faint';
+const btn = 'inline-flex h-10 items-center justify-center gap-1.5 rounded-xl border-[1.5px] border-edge bg-card px-3 text-[13px] font-bold text-ink disabled:opacity-50';
 
 export default function ManagePapers() {
   const ok = useRequireAdmin();
@@ -102,13 +102,13 @@ export default function ManagePapers() {
       }} />
 
       {!rows ? (
-        <div className="flex justify-center pt-16 text-brand"><Loader2 className="animate-spin" aria-label="Loading" /></div>
+        <div className="flex justify-center pt-16 text-brand-ink"><Loader2 className="animate-spin" aria-label="Loading" /></div>
       ) : rows.length === 0 ? (
         <p className="mt-10 text-center text-muted">{q.trim() ? 'No paper matches that.' : 'No papers yet. Upload the first one.'}</p>
       ) : (
         <ul className="cols-lg mt-4 flex flex-col gap-3">
           {rows.map(r => (
-            <li key={r.id} className={`rounded-[18px] border-[1.5px] bg-white p-4 ${r.published ? 'border-line' : 'border-dashed border-edge opacity-90'}`}>
+            <li key={r.id} className={`rounded-[18px] border-[1.5px] bg-card p-4 ${r.published ? 'border-line' : 'border-dashed border-edge opacity-90'}`}>
               {editing === r.id ? (
                 <div className="flex flex-col gap-2.5">
                   <input value={form.unitCode} onChange={e => setForm({ ...form, unitCode: e.target.value })} placeholder="Unit code" aria-label="Unit code" autoCapitalize="characters" className={field} />
@@ -133,17 +133,17 @@ export default function ManagePapers() {
                     </div>
                     <div className="flex shrink-0 flex-col items-end gap-1">
                       {!r.published && <span className="rounded-full bg-amber-soft px-2.5 py-0.5 text-[11px] font-bold text-amber-ink">Hidden</span>}
-                      <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-bold ${r.pageCount ? 'bg-[#E7F6EC] text-[#14532D]' : 'bg-[#FDECEC] text-[#9B1C1C]'}`}>{r.pageCount ? `${r.pageCount} page${r.pageCount === 1 ? '' : 's'}` : 'No pages'}</span>
+                      <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-bold ${r.pageCount ? 'bg-ok-soft text-ok' : 'bg-danger-soft text-danger'}`}>{r.pageCount ? `${r.pageCount} page${r.pageCount === 1 ? '' : 's'}` : 'No pages'}</span>
                       <span className="text-[11px] text-muted">{r.downloads} download{r.downloads === 1 ? '' : 's'}</span>
                     </div>
                   </div>
 
                   {confirming === r.id ? (
-                    <div className="mt-3 rounded-xl bg-[#FDECEC] p-3">
-                      <p className="text-[13px] font-semibold text-[#9B1C1C]">Delete {r.unitCode} {r.year} for good? The PDF and its pages are removed and this cannot be undone.</p>
+                    <div className="mt-3 rounded-xl bg-danger-soft p-3">
+                      <p className="text-[13px] font-semibold text-danger">Delete {r.unitCode} {r.year} for good? The PDF and its pages are removed and this cannot be undone.</p>
                       <div className="mt-2.5 flex gap-2">
                         <button type="button" onClick={() => remove(r)} disabled={busy === r.id} className="inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-xl bg-[#B42318] text-[13px] font-bold text-white disabled:opacity-60">{busy === r.id && <Loader2 size={16} className="animate-spin" aria-hidden />} Yes, delete</button>
-                        <button type="button" onClick={() => setConfirming(null)} className="h-10 rounded-xl border-[1.5px] border-edge bg-white px-4 text-[13px] font-bold">Keep it</button>
+                        <button type="button" onClick={() => setConfirming(null)} className="h-10 rounded-xl border-[1.5px] border-edge bg-card px-4 text-[13px] font-bold">Keep it</button>
                       </div>
                     </div>
                   ) : (
@@ -156,7 +156,7 @@ export default function ManagePapers() {
                       <button type="button" onClick={() => { setEditing(null); setConfirming(r.id); }} disabled={busy === r.id} className={`${btn} text-[#B42318]`}><Trash2 size={15} aria-hidden /> Delete</button>
                     </div>
                   )}
-                  <Link href={`/papers/${r.id}`} className="mt-2.5 inline-block text-[12px] font-semibold text-brand">Open as a student sees it</Link>
+                  <Link href={`/papers/${r.id}`} className="mt-2.5 inline-block text-[12px] font-semibold text-brand-ink">Open as a student sees it</Link>
                 </>
               )}
             </li>

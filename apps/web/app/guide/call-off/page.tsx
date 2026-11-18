@@ -7,7 +7,7 @@ import { REGISTRAR_ADDRESS } from '@/lib/letters';
 import { useToast } from '@/lib/toast';
 import { useSavedProfile } from '@/lib/useSavedProfile';
 
-const field = 'h-[50px] w-full rounded-2xl border-[1.5px] border-edge bg-[#F8FAFE] px-4 text-[15px] text-ink placeholder:text-[#6B7794]';
+const field = 'h-[50px] w-full rounded-2xl border-[1.5px] border-edge bg-field px-4 text-[15px] text-ink placeholder:text-faint';
 const today = () => new Date().toLocaleDateString('en-KE', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Africa/Nairobi' });
 
 
@@ -87,7 +87,7 @@ export default function CallOff() {
         To call off a semester at Kenyatta University, write a letter to the Registrar (Academic), take it to {CALL_OFF_OFFICE.where} and make sure it is stamped. Processing takes 2 to 3 days, and the reply is sent to your postal address within a week.
       </p>
 
-      <div role="tablist" aria-label="Call off guide" className="mt-4 grid grid-cols-2 rounded-2xl bg-white p-1 print:hidden">
+      <div role="tablist" aria-label="Call off guide" className="mt-4 grid grid-cols-2 rounded-2xl bg-card p-1 print:hidden">
         {([['steps', 'Steps'], ['letter', 'My letter']] as const).map(([k, label]) => (
           <button key={k} role="tab" type="button" aria-selected={tab === k} onClick={() => setTab(k)} className={`h-10 rounded-xl text-sm font-bold ${tab === k ? 'bg-brand text-white' : 'text-muted'}`}>{label}</button>
         ))}
@@ -97,8 +97,8 @@ export default function CallOff() {
         <div className="print:hidden">
           <ol className="mt-5 flex flex-col gap-3">
             {CALL_OFF_STEPS.map((s, i) => (
-              <li key={s.title} id={`step-${i + 1}`} className="flex gap-3.5 rounded-[18px] border-[1.5px] border-line bg-white p-4">
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-soft text-sm font-extrabold text-brand">{i + 1}</span>
+              <li key={s.title} id={`step-${i + 1}`} className="flex gap-3.5 rounded-[18px] border-[1.5px] border-line bg-card p-4">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-soft text-sm font-extrabold text-brand-ink">{i + 1}</span>
                 <span>
                   <span className="block text-[15px] font-bold">{s.title}</span>
                   <span className="mt-0.5 block text-[14px] leading-relaxed text-muted">{s.body}</span>
@@ -106,7 +106,7 @@ export default function CallOff() {
               </li>
             ))}
           </ol>
-          <p className="mt-4 flex items-start gap-2 rounded-2xl bg-brand-soft p-4 text-[14px] font-bold text-brand">
+          <p className="mt-4 flex items-start gap-2 rounded-2xl bg-brand-soft p-4 text-[14px] font-bold text-brand-ink">
             <MapPin size={18} className="mt-0.5 shrink-0" aria-hidden /> {CALL_OFF_OFFICE.where}
           </p>
           <button type="button" onClick={() => setTab('letter')} className="mt-4 h-[54px] w-full rounded-2xl bg-amber text-[15px] font-extrabold text-navy-900">Make my letter</button>
@@ -132,7 +132,7 @@ export default function CallOff() {
               <Field id="co-year" label="Academic year"><input id="co-year" value={f.year} onChange={e => setF(prev => ({ ...prev, year: formatYear(e.target.value, prev.year) }))} inputMode="numeric" maxLength={9} pattern="\d{4}/\d{4}" title="Like 2026/2027" placeholder="2026/2027" required className={field} /></Field>
             </div>
             <Field id="co-reason" label="Reason for calling off">
-              <textarea id="co-reason" value={f.reason} onChange={set('reason')} rows={3} maxLength={500} placeholder="Explain clearly, in your own words" required className="w-full rounded-2xl border-[1.5px] border-edge bg-[#F8FAFE] px-4 py-3 text-[15px] text-ink placeholder:text-[#6B7794]" />
+              <textarea id="co-reason" value={f.reason} onChange={set('reason')} rows={3} maxLength={500} placeholder="Explain clearly, in your own words" required className="w-full rounded-2xl border-[1.5px] border-edge bg-field px-4 py-3 text-[15px] text-ink placeholder:text-faint" />
             </Field>
             <Field id="co-resume" label="When will you resume?"><input id="co-resume" value={f.resume} onChange={set('resume')} placeholder="e.g. January 2027" required className={field} /></Field>
             <button type="submit" className="h-[54px] rounded-2xl bg-brand text-base font-bold text-white">Write my letter</button>
@@ -140,9 +140,9 @@ export default function CallOff() {
 
           {lines && (
             <section ref={letterRef} className="mt-6 scroll-mt-4" aria-label="Your letter">
-              <article id="letter" className="print-area whitespace-pre-wrap rounded-[18px] border-[1.5px] border-line bg-white p-5 font-serif text-[15px] leading-relaxed text-ink">{text}</article>
+              <article id="letter" className="print-area whitespace-pre-wrap rounded-[18px] border-[1.5px] border-line bg-card p-5 font-serif text-[15px] leading-relaxed text-ink">{text}</article>
               <div className="mt-4 grid grid-cols-2 gap-3 print:hidden">
-                <button type="button" onClick={copy} className="flex h-[50px] items-center justify-center gap-2 rounded-2xl border-[1.5px] border-edge bg-white font-bold">
+                <button type="button" onClick={copy} className="flex h-[50px] items-center justify-center gap-2 rounded-2xl border-[1.5px] border-edge bg-card font-bold">
                   {copied ? <Check size={18} aria-hidden /> : <Copy size={18} aria-hidden />} {copied ? 'Copied' : 'Copy'}
                 </button>
                 <button type="button" onClick={() => window.print()} className="flex h-[50px] items-center justify-center gap-2 rounded-2xl bg-brand font-bold text-white">

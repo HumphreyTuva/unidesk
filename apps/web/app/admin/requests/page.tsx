@@ -33,13 +33,13 @@ export default function Requests() {
       <h1 className="mt-2 text-2xl font-extrabold">Paper requests</h1>
       <p className="mt-1 text-sm text-muted">Most wanted first. Uploading the paper closes its requests.</p>
 
-      {error && <p role="alert" className="mt-4 rounded-xl bg-[#FDECEC] px-3.5 py-2.5 text-sm font-medium text-[#9B1C1C]">{error}</p>}
-      {!groups && !error && <div className="flex justify-center py-8 text-brand"><Loader2 className="animate-spin" aria-label="Loading" /></div>}
-      {groups?.length === 0 && <p className="mt-6 rounded-[18px] border-[1.5px] border-dashed border-edge bg-white p-6 text-center text-[15px] text-muted">No open requests.</p>}
+      {error && <p role="alert" className="mt-4 rounded-xl bg-danger-soft px-3.5 py-2.5 text-sm font-medium text-danger">{error}</p>}
+      {!groups && !error && <div className="flex justify-center py-8 text-brand-ink"><Loader2 className="animate-spin" aria-label="Loading" /></div>}
+      {groups?.length === 0 && <p className="mt-6 rounded-[18px] border-[1.5px] border-dashed border-edge bg-card p-6 text-center text-[15px] text-muted">No open requests.</p>}
 
       <ul className="cols-lg mt-4 flex flex-col gap-2.5">
         {groups?.map(g => (
-          <li key={g.unitCode} className="rounded-[18px] border-[1.5px] border-line bg-white p-4">
+          <li key={g.unitCode} className="rounded-[18px] border-[1.5px] border-line bg-card p-4">
             <div className="flex items-center justify-between gap-3">
               <div>
                 <p className="text-[17px] font-extrabold">{g.unitCode}</p>
@@ -50,7 +50,7 @@ export default function Requests() {
                 <button type="button" onClick={() => dismiss(g.unitCode)} aria-label={`Dismiss requests for ${g.unitCode}`} className="flex h-11 w-11 items-center justify-center rounded-xl border-[1.5px] border-edge text-muted"><X size={18} aria-hidden /></button>
               </div>
             </div>
-            <button type="button" onClick={() => setOpen(open === g.unitCode ? null : g.unitCode)} aria-expanded={open === g.unitCode} className="mt-2 text-[13px] font-bold text-brand">{open === g.unitCode ? 'Hide who asked' : 'Who asked'}</button>
+            <button type="button" onClick={() => setOpen(open === g.unitCode ? null : g.unitCode)} aria-expanded={open === g.unitCode} className="mt-2 text-[13px] font-bold text-brand-ink">{open === g.unitCode ? 'Hide who asked' : 'Who asked'}</button>
             {open === g.unitCode && (
               <ul className="mt-2 flex flex-col divide-y divide-line rounded-xl border-[1.5px] border-line">
                 {g.who.map((w, i) => (

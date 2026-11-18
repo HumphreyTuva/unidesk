@@ -28,7 +28,7 @@ export default function Chat() {
         {aiOn && (
           <div role="tablist" className="mt-3 grid grid-cols-2 gap-1 rounded-2xl bg-brand-soft p-1">
             {([['ai', 'Ask AI'], ['support', 'Talk to a person']] as [Mode, string][]).map(([m, label]) => (
-              <button key={m} role="tab" aria-selected={mode === m} onClick={() => setMode(m)} className={`h-11 rounded-xl text-[15px] font-bold ${mode === m ? 'bg-white text-brand shadow-sm' : 'text-muted'}`}>{label}</button>
+              <button key={m} role="tab" aria-selected={mode === m} onClick={() => setMode(m)} className={`h-11 rounded-xl text-[15px] font-bold ${mode === m ? 'bg-card text-brand-ink shadow-sm' : 'text-muted'}`}>{label}</button>
             ))}
           </div>
         )}
@@ -37,7 +37,7 @@ export default function Chat() {
       {mode === 'ai'
         ? <AiChat />
         : <Thread loadPath="/chat" sendPath="/chat/messages" mine="student" empty="Say hello and tell us what you need. For KU offices and procedures, check the Guide first." />}
-      {user.role !== 'STUDENT' && <Link href="/admin/chat" className="border-t border-line bg-white py-2 text-center text-sm font-bold text-brand">Open the support inbox</Link>}
+      {user.role !== 'STUDENT' && <Link href="/admin/chat" className="border-t border-line bg-card py-2 text-center text-sm font-bold text-brand-ink">Open the support inbox</Link>}
     </main>
   );
 }

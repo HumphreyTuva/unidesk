@@ -6,9 +6,9 @@ import FaqList from '@/components/FaqList';
 import { FAQ } from '@/content/faq';
 
 const ACTIONS = [
-  { href: '/papers?request=1', label: 'Request', Icon: Plus, tone: 'bg-brand-soft text-brand' },
-  { href: '/guide/timetable', label: 'Timetable', Icon: CalendarDays, tone: 'bg-brand-soft text-brand' },
-  { href: '/guide/venues', label: 'Venues', Icon: MapPin, tone: 'bg-brand-soft text-brand' },
+  { href: '/papers?request=1', label: 'Request', Icon: Plus, tone: 'bg-brand-soft text-brand-ink' },
+  { href: '/guide/timetable', label: 'Timetable', Icon: CalendarDays, tone: 'bg-brand-soft text-brand-ink' },
+  { href: '/guide/venues', label: 'Venues', Icon: MapPin, tone: 'bg-brand-soft text-brand-ink' },
   { href: '/chat?ai=1', label: 'Ask AI', Icon: Sparkles, tone: 'bg-amber-soft text-amber-ink' },
 ];
 
@@ -25,9 +25,9 @@ export default function Home() {
 
       <Link
         href="/papers"
-        className="mt-4 flex h-[52px] items-center gap-2.5 rounded-2xl border-[1.5px] border-edge bg-white px-4 text-[15px] text-muted"
+        className="mt-4 flex h-[52px] items-center gap-2.5 rounded-2xl border-[1.5px] border-edge bg-card px-4 text-[15px] text-muted"
       >
-        <Search size={20} className="text-brand" aria-hidden />
+        <Search size={20} className="text-brand-ink" aria-hidden />
         Search a unit code or name
       </Link>
 
@@ -38,7 +38,7 @@ export default function Home() {
           <div className="absolute left-6 top-[26px] h-[108px] w-[84px] rounded-[10px] bg-[#9FB4E8]" style={{ transform: 'rotateY(-28deg) rotateX(8deg) rotateZ(6deg)' }} />
           <div className="absolute left-3.5 top-3.5 h-[108px] w-[84px] rounded-[10px] bg-[#DCE4F7]" style={{ transform: 'rotateY(-28deg) rotateX(8deg) rotateZ(2deg)' }} />
           <div
-            className="absolute left-1 top-0.5 flex h-[108px] w-[84px] flex-col gap-[7px] rounded-[10px] bg-white px-3 py-3.5 shadow-[10px_14px_24px_rgba(5,14,40,0.4)]"
+            className="absolute left-1 top-0.5 flex h-[108px] w-[84px] flex-col gap-[7px] rounded-[10px] bg-card px-3 py-3.5 shadow-[10px_14px_24px_rgba(5,14,40,0.4)]"
             style={{ transform: 'rotateY(-28deg) rotateX(8deg) rotateZ(-3deg)' }}
           >
             <div className="h-2 w-3/5 rounded bg-brand" />
@@ -60,7 +60,7 @@ export default function Home() {
       {/* Quick actions */}
       <section className="mt-[22px] grid grid-cols-4 gap-2.5 lg:gap-4">
         {ACTIONS.map(({ href, label, Icon, tone }) => (
-          <Link key={label} href={href} className="flex h-[92px] lg:h-[110px] flex-col items-center justify-center gap-2 rounded-[18px] border-[1.5px] border-line bg-white">
+          <Link key={label} href={href} className="flex h-[92px] lg:h-[110px] flex-col items-center justify-center gap-2 rounded-[18px] border-[1.5px] border-line bg-card">
             <span className={`flex h-10 w-10 items-center justify-center rounded-xl ${tone}`}>
               <Icon size={22} aria-hidden />
             </span>
@@ -73,12 +73,12 @@ export default function Home() {
       <section className="mt-[22px]">
         <div className="flex items-center justify-between">
           <h2 className="text-[17px] font-extrabold">Student guidance</h2>
-          <Link href="/guide" className="text-sm font-bold text-brand">See all</Link>
+          <Link href="/guide" className="text-sm font-bold text-brand-ink">See all</Link>
         </div>
         <div className="cols-lg mt-3 flex flex-col gap-2.5">
           {GUIDES.map(({ href, title, sub, Icon }) => (
-            <Link key={href} href={href} className="flex h-16 items-center gap-3.5 rounded-[18px] border-[1.5px] border-line bg-white px-4">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-soft text-brand">
+            <Link key={href} href={href} className="flex h-16 items-center gap-3.5 rounded-[18px] border-[1.5px] border-line bg-card px-4">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-soft text-brand-ink">
                 <Icon size={22} aria-hidden />
               </span>
               <span className="min-w-0 flex-1">
@@ -95,7 +95,7 @@ export default function Home() {
       <section className="mt-[22px]" aria-labelledby="quick-answers">
         <div className="flex items-center justify-between">
           <h2 id="quick-answers" className="text-[17px] font-extrabold">Quick answers</h2>
-          <Link href="/faq" className="text-sm font-bold text-brand">All questions</Link>
+          <Link href="/faq" className="text-sm font-bold text-brand-ink">All questions</Link>
         </div>
         <div className="mt-3 lg:max-w-[820px]"><FaqList items={FAQ.filter(f => /call off|Finance|find a Kenyatta|lecture hall/i.test(f.q))} /></div>
       </section>

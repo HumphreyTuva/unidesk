@@ -184,3 +184,6 @@ Late unit registration, late fee payment (with appeal), extra units/retakes (let
 ## Forgot password, school on requests
 - **Forgot password:** `/forgot-password` emails a link (valid 30 minutes, single use: it stops working once the password changes) to `/reset-password`. Needs `RESEND_API_KEY`, `MAIL_FROM` and `SITE_URL`. Accounts with only a username have no email, and admin emails use Google only, so neither gets a link.
 - **School:** new `school` columns on `User` and `PaperRequest` (migration `20261118120000_school_on_requests`, applied by Render's `db:deploy` on start). The request sheet asks for the school once and pre-fills it afterwards, and letter forms use it too. Admin → Paper requests → "Who asked" lists name, contact, school and time.
+
+## Light and dark theme
+Colours are CSS variables (`app/globals.css`) used through Tailwind tokens (`card`, `field`, `ink`, `muted`, `brand-ink`, `danger`, `ok`...). Light is the default and uses the original colours. Students choose Light / Dark / Auto in Your account (`components/ThemeSwitch.tsx`, saved in `localStorage` as `unidesk_theme`; a small script in `app/layout.tsx` applies it before first paint). Letters always print dark on white. Use `bg-card` instead of `bg-white`, and `text-brand-ink` instead of `text-brand`, in new code.

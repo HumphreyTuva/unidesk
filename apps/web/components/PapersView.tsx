@@ -13,10 +13,10 @@ type Page = { items: Paper[]; nextCursor: string | null };
 function PaperRow({ p, mine }: { p: Paper; mine?: boolean }) {
   return (
           <li>
-            <Link href={`/papers/${p.id}`} className="flex min-h-[68px] items-center gap-3.5 rounded-[18px] border-[1.5px] border-line bg-white px-4 py-3">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-soft text-brand"><FileText size={22} aria-hidden /></span>
+            <Link href={`/papers/${p.id}`} className="flex min-h-[68px] items-center gap-3.5 rounded-[18px] border-[1.5px] border-line bg-card px-4 py-3">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-soft text-brand-ink"><FileText size={22} aria-hidden /></span>
               <span className="min-w-0 flex-1">
-                <span className="block text-[15px] font-bold">{p.unitCode} <span className="font-medium text-muted">· {p.year}</span>{mine && <span className="ml-2 rounded-full bg-brand-soft px-2 py-0.5 text-[11px] font-bold text-brand">Your unit</span>}</span>
+                <span className="block text-[15px] font-bold">{p.unitCode} <span className="font-medium text-muted">· {p.year}</span>{mine && <span className="ml-2 rounded-full bg-brand-soft px-2 py-0.5 text-[11px] font-bold text-brand-ink">Your unit</span>}</span>
                 <span className="block truncate text-[13px] text-muted">{p.title}{p.sitting ? ` · ${p.sitting}` : ''}</span>
               </span>
               <ChevronRight size={20} className="shrink-0 text-muted" aria-hidden />
@@ -94,18 +94,18 @@ export default function PapersView({ initial }: { initial: Page | null }) {
 
       <label className="relative mt-4 block">
         <span className="sr-only">Search by unit code or name</span>
-        <Search size={20} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-brand" aria-hidden />
+        <Search size={20} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-brand-ink" aria-hidden />
         <input
           type="search"
           value={q}
           onChange={e => setQ(e.target.value)}
           placeholder="Search a unit code or name"
           autoCapitalize="none"
-          className="h-[52px] w-full rounded-2xl border-[1.5px] border-edge bg-white pl-12 pr-4 text-[15px] placeholder:text-muted"
+          className="h-[52px] w-full rounded-2xl border-[1.5px] border-edge bg-card pl-12 pr-4 text-[15px] placeholder:text-muted"
         />
       </label>
 
-      {error && <p role="alert" className="mt-4 rounded-xl bg-[#FDECEC] px-3.5 py-2.5 text-sm font-medium text-[#9B1C1C]">{error}</p>}
+      {error && <p role="alert" className="mt-4 rounded-xl bg-danger-soft px-3.5 py-2.5 text-sm font-medium text-danger">{error}</p>}
 
       <ul className="cols-lg mt-4 flex flex-col gap-2.5">
         {shown.map(p => (
@@ -113,17 +113,17 @@ export default function PapersView({ initial }: { initial: Page | null }) {
         ))}
       </ul>
 
-      {loading && <div className="flex justify-center py-6 text-brand"><Loader2 className="animate-spin" aria-label="Loading" /></div>}
+      {loading && <div className="flex justify-center py-6 text-brand-ink"><Loader2 className="animate-spin" aria-label="Loading" /></div>}
 
       {!loading && !error && shown.length === 0 && (
-        <div className="mt-6 rounded-[18px] border-[1.5px] border-dashed border-edge bg-white p-6 text-center">
+        <div className="mt-6 rounded-[18px] border-[1.5px] border-dashed border-edge bg-card p-6 text-center">
           <p className="text-[15px] font-bold">{q.trim() ? `No paper found for “${q.trim()}”` : 'No papers yet'}</p>
           <p className="mt-1 text-sm text-muted">Tell us which one you need and we will add it.</p>
         </div>
       )}
 
       {cursor && !loading && (
-        <button type="button" onClick={() => load(q, cursor)} className="mt-4 h-12 w-full rounded-2xl border-[1.5px] border-edge bg-white font-bold">Show more</button>
+        <button type="button" onClick={() => load(q, cursor)} className="mt-4 h-12 w-full rounded-2xl border-[1.5px] border-edge bg-card font-bold">Show more</button>
       )}
 
       <MyRequests />

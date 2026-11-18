@@ -33,17 +33,17 @@ export default function AdminCampus() {
       <Link href="/admin" aria-label="Back to admin" className="-ml-2 flex h-11 w-11 items-center justify-center rounded-full"><ArrowLeft size={24} aria-hidden /></Link>
       <h1 className="mt-2 text-2xl font-extrabold">Campus</h1>
       <div role="tablist" className="mt-4 grid grid-cols-2 gap-1 rounded-2xl bg-brand-soft p-1">
-        <button role="tab" aria-selected={tab === 'ads'} onClick={() => setTab('ads')} className={`h-11 rounded-xl text-[15px] font-bold ${tab === 'ads' ? 'bg-white text-brand shadow-sm' : 'text-muted'}`}>Ads to check{ads?.length ? ` (${ads.length})` : ''}</button>
-        <button role="tab" aria-selected={tab === 'clubs'} onClick={() => setTab('clubs')} className={`h-11 rounded-xl text-[15px] font-bold ${tab === 'clubs' ? 'bg-white text-brand shadow-sm' : 'text-muted'}`}>Clubs{pendingClubs ? ` (${pendingClubs})` : ''}</button>
+        <button role="tab" aria-selected={tab === 'ads'} onClick={() => setTab('ads')} className={`h-11 rounded-xl text-[15px] font-bold ${tab === 'ads' ? 'bg-card text-brand-ink shadow-sm' : 'text-muted'}`}>Ads to check{ads?.length ? ` (${ads.length})` : ''}</button>
+        <button role="tab" aria-selected={tab === 'clubs'} onClick={() => setTab('clubs')} className={`h-11 rounded-xl text-[15px] font-bold ${tab === 'clubs' ? 'bg-card text-brand-ink shadow-sm' : 'text-muted'}`}>Clubs{pendingClubs ? ` (${pendingClubs})` : ''}</button>
       </div>
-      {error && <p role="alert" className="mt-4 rounded-xl bg-[#FDECEC] px-3.5 py-2.5 text-sm font-medium text-[#9B1C1C]">{error}</p>}
-      {(!ads || !clubs) && !error && <div className="flex justify-center py-8 text-brand"><Loader2 className="animate-spin" aria-label="Loading" /></div>}
+      {error && <p role="alert" className="mt-4 rounded-xl bg-danger-soft px-3.5 py-2.5 text-sm font-medium text-danger">{error}</p>}
+      {(!ads || !clubs) && !error && <div className="flex justify-center py-8 text-brand-ink"><Loader2 className="animate-spin" aria-label="Loading" /></div>}
 
       {tab === 'ads' && (
         <ul className="mt-4 flex flex-col gap-3">
-          {ads?.length === 0 && <li className="rounded-[18px] border-[1.5px] border-dashed border-edge bg-white p-6 text-center text-[15px] text-muted">No paid ads waiting.</li>}
+          {ads?.length === 0 && <li className="rounded-[18px] border-[1.5px] border-dashed border-edge bg-card p-6 text-center text-[15px] text-muted">No paid ads waiting.</li>}
           {ads?.map(l => (
-            <li key={l.id} className="rounded-[18px] border-[1.5px] border-line bg-white p-4">
+            <li key={l.id} className="rounded-[18px] border-[1.5px] border-line bg-card p-4">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               {l.image && <img src={`/api/v1/campus/market/${l.id}/image`} alt="" className="mb-3 aspect-[4/3] w-full rounded-xl object-cover" />}
               <p className="text-[15px] font-bold">{l.title}{l.price != null ? ` · KSh ${l.price.toLocaleString()}` : ''}</p>
@@ -60,12 +60,12 @@ export default function AdminCampus() {
 
       {tab === 'clubs' && (
         <ul className="mt-4 flex flex-col gap-3">
-          {clubs?.length === 0 && <li className="rounded-[18px] border-[1.5px] border-dashed border-edge bg-white p-6 text-center text-[15px] text-muted">No clubs yet.</li>}
+          {clubs?.length === 0 && <li className="rounded-[18px] border-[1.5px] border-dashed border-edge bg-card p-6 text-center text-[15px] text-muted">No clubs yet.</li>}
           {clubs?.map(c => (
-            <li key={c.id} className="rounded-[18px] border-[1.5px] border-line bg-white p-4">
+            <li key={c.id} className="rounded-[18px] border-[1.5px] border-line bg-card p-4">
               <div className="flex items-start gap-2">
                 <div className="min-w-0 flex-1"><p className="text-[15px] font-bold">{c.name}</p><p className="text-[13px] text-muted">{[c.category, `${c.members} members`, c.contact].filter(Boolean).join(' · ')}</p></div>
-                <span className={`rounded-full px-2.5 py-1 text-[12px] font-bold ${c.approved ? 'bg-[#E3F6EA] text-[#116B35]' : 'bg-[#FFF4DB] text-[#6B4A00]'}`}>{c.approved ? 'Listed' : 'Waiting'}</span>
+                <span className={`rounded-full px-2.5 py-1 text-[12px] font-bold ${c.approved ? 'bg-ok-soft text-ok' : 'bg-amber-soft text-amber-ink'}`}>{c.approved ? 'Listed' : 'Waiting'}</span>
               </div>
               {c.description && <p className="mt-2 text-[14px]">{c.description}</p>}
               <div className="mt-3 flex gap-2">

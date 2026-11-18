@@ -52,6 +52,8 @@ const SITE_JSON_LD = {
   ],
 };
 
+const THEME_SCRIPT = `try{var t=localStorage.getItem('unidesk_theme');var d=t==='dark'||(t==='auto'&&window.matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.setAttribute('data-theme',d?'dark':'light')}catch(e){}`;
+
 export const viewport: Viewport = {
   themeColor: '#0B1F4D',
   width: 'device-width',
@@ -61,7 +63,11 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en-KE" className={jakarta.variable}>
+    <html lang="en-KE" className={jakarta.variable} suppressHydrationWarning>
+      <head>
+        {/* Applies the saved theme before the first paint so there is no flash. Light is the default. */}
+        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
+      </head>
       <body className="font-sans antialiased">
         <JsonLd data={SITE_JSON_LD} />
         <PwaRegister />

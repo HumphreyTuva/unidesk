@@ -16,8 +16,8 @@ export default function MyRequests() {
         {shown.map(r => {
           const ready = r.status === 'FULFILLED' && r.paperId && r.paper?.published;
           return (
-            <li key={r.id} className={`flex items-center gap-3 rounded-[16px] border-[1.5px] bg-white px-4 py-3 ${isNew(r) ? 'border-brand' : 'border-line'}`}>
-              <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${ready ? 'bg-[#DFF0E4] text-[#2F6B45]' : 'bg-brand-soft text-brand'}`}>
+            <li key={r.id} className={`flex items-center gap-3 rounded-[16px] border-[1.5px] bg-card px-4 py-3 ${isNew(r) ? 'border-brand' : 'border-line'}`}>
+              <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${ready ? 'bg-[#DFF0E4] text-[#2F6B45]' : 'bg-brand-soft text-brand-ink'}`}>
                 {ready ? <CheckCircle2 size={20} aria-hidden /> : <Clock size={20} aria-hidden />}
               </span>
               <span className="min-w-0 flex-1">

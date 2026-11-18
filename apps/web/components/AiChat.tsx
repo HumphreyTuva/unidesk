@@ -31,27 +31,27 @@ export default function AiChat() {
       <div className="flex-1 overflow-y-auto px-5 py-3" aria-live="polite">
         {turns.length === 0 && (
           <div className="mt-2">
-            <p className="flex items-center gap-2 text-[15px] font-bold"><Sparkles size={18} className="text-brand" aria-hidden /> Ask me about KU</p>
+            <p className="flex items-center gap-2 text-[15px] font-bold"><Sparkles size={18} className="text-brand-ink" aria-hidden /> Ask me about KU</p>
             <p className="mt-1 text-sm text-muted">I know the offices, the call-off steps and the venues in this app. I can make mistakes, so check anything important with the office.</p>
             <ul className="mt-4 flex flex-col gap-2">
-              {IDEAS.map(i => <li key={i}><button type="button" onClick={() => ask(i)} className="w-full rounded-2xl border-[1.5px] border-line bg-white px-4 py-3 text-left text-[15px] font-semibold">{i}</button></li>)}
+              {IDEAS.map(i => <li key={i}><button type="button" onClick={() => ask(i)} className="w-full rounded-2xl border-[1.5px] border-line bg-card px-4 py-3 text-left text-[15px] font-semibold">{i}</button></li>)}
             </ul>
           </div>
         )}
         <ul className="flex flex-col gap-2">
           {turns.map((t, i) => (
-            <li key={i} className={`max-w-[86%] whitespace-pre-wrap break-words rounded-2xl px-3.5 py-2.5 text-[15px] leading-snug ${t.role === 'user' ? 'self-end bg-brand text-white' : 'self-start border-[1.5px] border-line bg-white text-ink'}`}>{t.content}</li>
+            <li key={i} className={`max-w-[86%] whitespace-pre-wrap break-words rounded-2xl px-3.5 py-2.5 text-[15px] leading-snug ${t.role === 'user' ? 'self-end bg-brand text-white' : 'self-start border-[1.5px] border-line bg-card text-ink'}`}>{t.content}</li>
           ))}
-          {busy && <li className="self-start rounded-2xl border-[1.5px] border-line bg-white px-3.5 py-3 text-brand" aria-label="Thinking"><Loader2 size={18} className="animate-spin" aria-hidden /></li>}
+          {busy && <li className="self-start rounded-2xl border-[1.5px] border-line bg-card px-3.5 py-3 text-brand-ink" aria-label="Thinking"><Loader2 size={18} className="animate-spin" aria-hidden /></li>}
         </ul>
         <div ref={end} />
       </div>
-      {error && <p role="alert" className="mx-5 mb-2 rounded-xl bg-[#FDECEC] px-3.5 py-2 text-sm font-medium text-[#9B1C1C]">{error}</p>}
-      <form onSubmit={e => { e.preventDefault(); ask(text); }} className="flex items-end gap-2 border-t border-line bg-white px-4 py-3">
+      {error && <p role="alert" className="mx-5 mb-2 rounded-xl bg-danger-soft px-3.5 py-2 text-sm font-medium text-danger">{error}</p>}
+      <form onSubmit={e => { e.preventDefault(); ask(text); }} className="flex items-end gap-2 border-t border-line bg-card px-4 py-3">
         <label className="flex-1"><span className="sr-only">Your question</span>
           <textarea value={text} onChange={e => setText(e.target.value)} rows={1} maxLength={800} placeholder="Ask a question"
             onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey && window.matchMedia('(min-width: 768px)').matches) { e.preventDefault(); e.currentTarget.form?.requestSubmit(); } }}
-            className="max-h-28 min-h-[48px] w-full resize-none rounded-2xl border-[1.5px] border-edge bg-[#F8FAFE] px-4 py-3 text-[15px] placeholder:text-muted" />
+            className="max-h-28 min-h-[48px] w-full resize-none rounded-2xl border-[1.5px] border-edge bg-field px-4 py-3 text-[15px] placeholder:text-muted" />
         </label>
         <button type="submit" disabled={busy || !text.trim()} aria-label="Send" className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-brand text-white disabled:opacity-50"><Send size={20} aria-hidden /></button>
       </form>

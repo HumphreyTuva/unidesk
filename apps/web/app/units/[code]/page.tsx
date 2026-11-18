@@ -66,8 +66,8 @@ export default async function UnitPage({ params }: Props) {
       <ul className="cols-lg mt-5 flex flex-col gap-2.5">
         {list.map(p => (
           <li key={p.id}>
-            <Link href={`/papers/${p.id}`} className="flex min-h-[64px] items-center gap-3.5 rounded-[18px] border-[1.5px] border-line bg-white px-4 py-2">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-soft text-brand"><FileText size={22} aria-hidden /></span>
+            <Link href={`/papers/${p.id}`} className="flex min-h-[64px] items-center gap-3.5 rounded-[18px] border-[1.5px] border-line bg-card px-4 py-2">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-soft text-brand-ink"><FileText size={22} aria-hidden /></span>
               <span className="min-w-0 flex-1">
                 <span className="block text-[15px] font-bold">{p.year}{p.sitting ? ` · ${p.sitting}` : ''}</span>
                 <span className="block truncate text-[13px] text-muted">{[p.school, p.pageCount ? `${p.pageCount} page${p.pageCount === 1 ? '' : 's'}` : null].filter(Boolean).join(' · ') || p.title}</span>
@@ -78,7 +78,7 @@ export default async function UnitPage({ params }: Props) {
         ))}
       </ul>
 
-      <section className="mt-8 rounded-[18px] border-[1.5px] border-dashed border-edge bg-white p-5 text-center">
+      <section className="mt-8 rounded-[18px] border-[1.5px] border-dashed border-edge bg-card p-5 text-center">
         <p className="text-[15px] font-bold">Missing a year?</p>
         <p className="mt-1 text-[13px] text-muted">Request it and we will mark it done when it is added.</p>
         <Link href="/papers?request=1" className="mt-3 inline-flex h-11 items-center justify-center gap-2 rounded-2xl bg-brand px-5 text-[14px] font-bold text-white"><Plus size={18} aria-hidden /> Request a paper</Link>

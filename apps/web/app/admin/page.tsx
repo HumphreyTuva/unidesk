@@ -35,8 +35,8 @@ export default function Admin() {
         {TOOLS.filter(t => user?.role === 'ADMIN' || ('support' in t && t.support)).map(({ href, title, sub, Icon, ...rest }) => {
           const n = 'badge' in rest && counts ? counts[rest.badge as 'chat' | 'requests' | 'campus'] : 0;
           return (
-          <Link key={href} href={href} className="flex h-[68px] items-center gap-3.5 rounded-[18px] border-[1.5px] border-line bg-white px-4">
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-soft text-brand"><Icon size={22} aria-hidden /></span>
+          <Link key={href} href={href} className="flex h-[68px] items-center gap-3.5 rounded-[18px] border-[1.5px] border-line bg-card px-4">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-soft text-brand-ink"><Icon size={22} aria-hidden /></span>
             <span className="min-w-0 flex-1">
               <span className="block text-[15px] font-bold">{title}</span>
               <span className="block text-[13px] text-muted">{sub}</span>
@@ -48,7 +48,7 @@ export default function Admin() {
         })}
       </div>
 
-      <Link href="/" className="mt-6 flex h-12 items-center justify-center rounded-2xl border-[1.5px] border-edge bg-white font-bold">Back to the app</Link>
+      <Link href="/" className="mt-6 flex h-12 items-center justify-center rounded-2xl border-[1.5px] border-edge bg-card font-bold">Back to the app</Link>
     </main>
   );
 }

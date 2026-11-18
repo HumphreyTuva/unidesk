@@ -21,7 +21,7 @@ export default function BottomNav() {
   return (
     <nav
       aria-label="Main"
-      className="fixed inset-x-0 bottom-0 z-40 mx-auto grid lg:hidden max-w-[480px] md:max-w-[640px] grid-cols-5 border-t border-line bg-white px-2 pt-2"
+      className="fixed inset-x-0 bottom-0 z-40 mx-auto grid lg:hidden max-w-[480px] md:max-w-[640px] grid-cols-5 border-t border-line bg-card px-2 pt-2"
       style={{ paddingBottom: 'max(8px, env(safe-area-inset-bottom))' }}
     >
       {TABS.map(({ href, label, Icon }) => {
@@ -31,7 +31,7 @@ export default function BottomNav() {
             key={href}
             href={href}
             aria-current={on ? 'page' : undefined}
-            className={`flex flex-col items-center gap-0.5 text-[11px] font-bold ${on ? 'text-brand' : 'text-muted'}`}
+            className={`flex flex-col items-center gap-0.5 text-[11px] font-bold ${on ? 'text-brand-ink' : 'text-muted'}`}
           >
             <span className="relative flex h-8 w-[52px] items-center justify-center">
               {on && <motion.span layoutId="nav-pill" className="absolute inset-0 rounded-2xl bg-brand-soft" transition={{ type: 'spring', stiffness: 500, damping: 36 }} />}

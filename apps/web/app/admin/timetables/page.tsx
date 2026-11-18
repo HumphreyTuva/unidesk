@@ -8,7 +8,7 @@ import { useToast } from '@/lib/toast';
 
 type Report = { sessions: number; units: number; programmes?: number; examDays?: number; firstDate?: string; lastDate?: string; noVenue?: number; headings: string[]; warnings: string[]; unreadable: { row: number; text: string; count: number }[] };
 type Source = { id: string; kind: 'CLASS' | 'EXAM'; label: string; published: boolean; active: boolean; parseReport: Report | null; createdAt: string };
-const field = 'h-[50px] w-full rounded-2xl border-[1.5px] border-edge bg-[#F8FAFE] px-4 text-[15px] text-ink placeholder:text-[#6B7794]';
+const field = 'h-[50px] w-full rounded-2xl border-[1.5px] border-edge bg-field px-4 text-[15px] text-ink placeholder:text-faint';
 
 export default function AdminTimetables() {
   const ok = useRequireAdmin();
@@ -46,11 +46,11 @@ export default function AdminTimetables() {
       <h1 className="mt-2 text-2xl font-extrabold">Timetables</h1>
       <p className="mt-1 text-sm text-muted">Upload the sheet saved from Google Sheets as “Web page (.html)”. Check the report, then publish. Students only see the published one.</p>
 
-      {error && <p role="alert" className="mt-4 rounded-xl bg-[#FDECEC] px-3.5 py-2.5 text-sm font-medium text-[#9B1C1C]">{error}</p>}
+      {error && <p role="alert" className="mt-4 rounded-xl bg-danger-soft px-3.5 py-2.5 text-sm font-medium text-danger">{error}</p>}
 
-      <form onSubmit={upload} className="mt-5 flex flex-col gap-3.5 rounded-[20px] border-[1.5px] border-line bg-white p-4">
+      <form onSubmit={upload} className="mt-5 flex flex-col gap-3.5 rounded-[20px] border-[1.5px] border-line bg-card p-4">
         <div className="grid grid-cols-2 gap-1 rounded-2xl bg-brand-soft p-1">
-          {(['class', 'exam'] as const).map(k => <button key={k} type="button" onClick={() => setKind(k)} aria-pressed={kind === k} className={`h-11 rounded-xl text-[15px] font-bold ${kind === k ? 'bg-white text-brand shadow-sm' : 'text-muted'}`}>{k === 'class' ? 'Class' : 'Exam'}</button>)}
+          {(['class', 'exam'] as const).map(k => <button key={k} type="button" onClick={() => setKind(k)} aria-pressed={kind === k} className={`h-11 rounded-xl text-[15px] font-bold ${kind === k ? 'bg-card text-brand-ink shadow-sm' : 'text-muted'}`}>{k === 'class' ? 'Class' : 'Exam'}</button>)}
         </div>
         <div className="flex flex-col gap-1.5">
           <label htmlFor="tl" className="text-[13px] font-bold">Name</label>
@@ -65,24 +65,24 @@ export default function AdminTimetables() {
         </button>
       </form>
 
-      {!list && !error && <div className="flex justify-center py-8 text-brand"><Loader2 className="animate-spin" aria-label="Loading" /></div>}
+      {!list && !error && <div className="flex justify-center py-8 text-brand-ink"><Loader2 className="animate-spin" aria-label="Loading" /></div>}
       <ul className="cols-lg mt-6 flex flex-col gap-3">
         {list?.map(s => {
           const r = s.parseReport;
           return (
-            <li key={s.id} className="rounded-[18px] border-[1.5px] border-line bg-white p-4">
+            <li key={s.id} className="rounded-[18px] border-[1.5px] border-line bg-card p-4">
               <div className="flex items-start gap-2">
                 <div className="min-w-0 flex-1">
                   <p className="text-[15px] font-bold">{s.label}</p>
                   <p className="text-[13px] text-muted">{s.kind === 'CLASS' ? 'Class' : 'Exam'} · {new Date(s.createdAt).toLocaleDateString('en-GB')}</p>
                 </div>
-                {s.active && <span className="flex items-center gap-1 rounded-full bg-[#E3F6EA] px-2.5 py-1 text-[12px] font-bold text-[#116B35]"><Check size={14} aria-hidden /> Live</span>}
+                {s.active && <span className="flex items-center gap-1 rounded-full bg-ok-soft px-2.5 py-1 text-[12px] font-bold text-ok"><Check size={14} aria-hidden /> Live</span>}
               </div>
               {r && (
                 <div className="mt-2 text-[13px] text-ink">
                   <p>{r.sessions} {s.kind === 'CLASS' ? 'classes' : 'exams'} · {r.units} units{r.programmes ? ` · ${r.programmes} programmes` : ''}{r.examDays ? ` · ${r.examDays} days (${r.firstDate} to ${r.lastDate})` : ''}</p>
                   {r.headings.length > 0 && <p className="text-muted">{r.headings.join(' · ')}</p>}
-                  {r.warnings.map(w => <p key={w} className="mt-1 font-bold text-[#9B1C1C]">{w}</p>)}
+                  {r.warnings.map(w => <p key={w} className="mt-1 font-bold text-danger">{w}</p>)}
                   {r.unreadable.length > 0 && (
                     <details className="mt-1"><summary className="cursor-pointer font-bold">{r.unreadable.length} cells were not read</summary>
                       <ul className="mt-1 text-muted">{r.unreadable.map(u => <li key={u.text}>Row {u.row}: “{u.text}”{u.count > 1 ? ` ×${u.count}` : ''}</li>)}</ul>

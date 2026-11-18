@@ -27,8 +27,8 @@ export default function Guide() {
       <ul className="cols-lg mt-4 flex flex-col gap-2.5">
         {ITEMS.map(({ href, title, sub, Icon }) => (
           <li key={href}>
-            <Link href={href} className="flex h-16 items-center gap-3.5 rounded-[18px] border-[1.5px] border-line bg-white px-4">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-soft text-brand"><Icon size={22} aria-hidden /></span>
+            <Link href={href} className="flex h-16 items-center gap-3.5 rounded-[18px] border-[1.5px] border-line bg-card px-4">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-soft text-brand-ink"><Icon size={22} aria-hidden /></span>
               <span className="min-w-0 flex-1">
                 <span className="block text-[15px] font-bold">{title}</span>
                 <span className="block text-[13px] text-muted">{sub}</span>
@@ -44,8 +44,8 @@ export default function Guide() {
         <ul className="cols-lg mt-3 flex flex-col gap-2.5">
           {PROCEDURES.map(p => (
             <li key={p.id}>
-              <Link href={`/guide/procedures/${p.id}`} className="flex min-h-16 items-center gap-3.5 rounded-[18px] border-[1.5px] border-line bg-white px-4 py-2.5">
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-soft text-brand"><ClipboardList size={22} aria-hidden /></span>
+              <Link href={`/guide/procedures/${p.id}`} className="flex min-h-16 items-center gap-3.5 rounded-[18px] border-[1.5px] border-line bg-card px-4 py-2.5">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-soft text-brand-ink"><ClipboardList size={22} aria-hidden /></span>
                 <span className="min-w-0 flex-1">
                   <span className="block text-[15px] font-bold">{p.title}</span>
                   <span className="block text-[13px] text-muted">{p.sub}</span>
@@ -63,7 +63,7 @@ export default function Guide() {
           <ul className="cols-lg mt-3 flex flex-col gap-2.5">
             {links.map(l => (
               <li key={l.id}>
-                <a href={l.url} target="_blank" rel="noopener noreferrer" className="flex h-16 items-center gap-3.5 rounded-[18px] border-[1.5px] border-line bg-white px-4">
+                <a href={l.url} target="_blank" rel="noopener noreferrer" className="flex h-16 items-center gap-3.5 rounded-[18px] border-[1.5px] border-line bg-card px-4">
                   <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-soft text-amber-ink"><ExternalLink size={20} aria-hidden /></span>
                   <span className="min-w-0 flex-1">
                     <span className="block text-[15px] font-bold">{l.title}</span>

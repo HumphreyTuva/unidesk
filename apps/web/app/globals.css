@@ -2,9 +2,34 @@
 @tailwind components;
 @tailwind utilities;
 
-:root { color-scheme: light; }
+:root {
+  color-scheme: light;
+  /* Light theme: the original colours, as "R G B" so Tailwind can add opacity. */
+  --c-surface: 244 246 251; --c-card: 255 255 255; --c-field: 248 250 254;
+  --c-ink: 14 27 51; --c-muted: 74 88 120; --c-faint: 107 119 148;
+  --c-line: 221 227 240; --c-edge: 201 210 230;
+  --c-brand: 27 58 138; --c-brand-soft: 230 236 251; --c-brand-ink: 27 58 138;
+  --c-amber-soft: 253 241 208; --c-amber-ink: 138 90 0;
+  --c-danger: 155 28 28; --c-danger-soft: 253 236 236;
+  --c-ok: 20 83 45; --c-ok-soft: 231 246 236;
+}
+/* Dark theme: chosen by the student in Your account (see components/ThemeSwitch.tsx). */
+html[data-theme='dark'] {
+  color-scheme: dark;
+  --c-surface: 11 18 32; --c-card: 19 28 48; --c-field: 15 23 40;
+  --c-ink: 232 237 248; --c-muted: 154 168 199; --c-faint: 122 135 166;
+  --c-line: 36 48 80; --c-edge: 52 66 104;
+  --c-brand: 63 99 201; --c-brand-soft: 28 42 79; --c-brand-ink: 140 166 240;
+  --c-amber-soft: 58 43 8; --c-amber-ink: 245 199 107;
+  --c-danger: 255 138 128; --c-danger-soft: 58 22 25;
+  --c-ok: 134 239 172; --c-ok-soft: 17 51 34;
+}
 
-html, body { background: #F4F6FB; color: #0E1B33; }
+/* Coloured timetable blocks: pastel in light, deep tone in dark (set per block through --p-bg / --p-dbg). */
+.pastel { background: var(--p-bg); }
+html[data-theme='dark'] .pastel { background: var(--p-dbg); }
+
+html, body { background: rgb(var(--c-surface)); color: rgb(var(--c-ink)); }
 body { -webkit-tap-highlight-color: transparent; overscroll-behavior-y: none; }
 
 /* Keep content clear of the bottom bar and of phone home indicators. */
@@ -27,6 +52,8 @@ body { -webkit-tap-highlight-color: transparent; overscroll-behavior-y: none; }
   .print-area, .print-area * { visibility: visible; }
   .print-area { position: absolute; left: 0; top: 0; width: 100%; border: 0 !important; padding: 0 !important; font-size: 12pt; }
   html, body { background: #fff !important; }
+  /* Letters always print dark on white, whatever theme is on screen. */
+  html[data-theme='dark'] { --c-ink: 14 27 51; --c-card: 255 255 255; --c-surface: 255 255 255; --c-muted: 74 88 120; color-scheme: light; }
 }
 
 /* Every tap gives a small press response, so the app feels alive on a phone. */

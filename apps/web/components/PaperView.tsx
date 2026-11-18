@@ -54,7 +54,7 @@ function Zoom({ paper, start, onClose }: { paper: Paper; start: ZoomAt; onClose:
         <span className="px-2 text-[14px] font-semibold">{paper.unitCode} · Page {n} of {paper.pageCount}<span className="ml-2 hidden text-[12px] font-medium text-white/70 sm:inline">Double-tap the page to zoom out</span></span>
         <button type="button" onClick={onClose} aria-label="Close" className="flex h-11 w-11 items-center justify-center rounded-full bg-white/15"><X size={22} aria-hidden /></button>
       </div>
-      <div ref={box} className="min-h-0 flex-1 overflow-auto bg-white" onContextMenu={e => e.preventDefault()}>
+      <div ref={box} className="min-h-0 flex-1 overflow-auto bg-card" onContextMenu={e => e.preventDefault()}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img key={n} src={`/api/v1/papers/${paper.id}/pages/${n}`} alt={`Page ${n}. Double-tap to zoom out`} onLoad={settle} onClick={e => { if (isDoubleTap(lastTap, e)) onClose(); }} draggable={false} style={{ width: 'max(200%, 900px)', maxWidth: 'none', touchAction: 'manipulation' }} className="block cursor-zoom-out select-none" />
       </div>
@@ -122,7 +122,7 @@ export default function PaperView({ id, initial, related }: { id: string; initia
       </main>
     );
   }
-  if (!paper) return <div className="flex justify-center pt-24 text-brand"><Loader2 className="animate-spin" aria-label="Loading" /></div>;
+  if (!paper) return <div className="flex justify-center pt-24 text-brand-ink"><Loader2 className="animate-spin" aria-label="Loading" /></div>;
 
   return (
     <main className="wide px-5 pt-[calc(16px+env(safe-area-inset-top))]">
@@ -135,10 +135,10 @@ export default function PaperView({ id, initial, related }: { id: string; initia
       {paper.pageCount > 0 ? (
         // The whole paper, page by page. These are images; the PDF itself is only handed out by Download below.
         // On a phone the pages run edge to edge (the screen is the page); on a desktop they sit in a wide centred column.
-        <div className="-mx-5 mt-4 flex flex-col gap-2 bg-[#E9EDF5] py-2 lg:mx-auto lg:max-w-[860px] lg:gap-4 lg:rounded-[22px] lg:p-5" onContextMenu={e => e.preventDefault()}>
+        <div className="-mx-5 mt-4 flex flex-col gap-2 bg-surface py-2 lg:mx-auto lg:max-w-[860px] lg:gap-4 lg:rounded-[22px] lg:p-5" onContextMenu={e => e.preventDefault()}>
           <p className="px-5 pb-0.5 text-center text-[12px] text-muted lg:px-0">Double-tap a page to zoom in there</p>
           {Array.from({ length: paper.readablePages }, (_, i) => (
-            <figure key={i} className="relative bg-white shadow-sm lg:overflow-hidden lg:rounded-xl">
+            <figure key={i} className="relative bg-card shadow-sm lg:overflow-hidden lg:rounded-xl">
               <button type="button" aria-label={`Zoom page ${i + 1}`} className="block w-full cursor-zoom-in" style={{ touchAction: 'manipulation' }} onClick={e => {
                 if (!isDoubleTap(lastTap, e)) return;
                 // Zoom in on the spot that was double-tapped. A keyboard press has no position, so it opens near the top.
@@ -154,7 +154,7 @@ export default function PaperView({ id, initial, related }: { id: string; initia
             </figure>
           ))}
           {paper.readablePages < paper.pageCount && (
-            <div className="mx-5 rounded-[18px] border-[1.5px] border-dashed border-edge bg-white p-5 text-center lg:mx-0">
+            <div className="mx-5 rounded-[18px] border-[1.5px] border-dashed border-edge bg-card p-5 text-center lg:mx-0">
               <p className="text-[15px] font-bold">{paper.pageCount - paper.readablePages} more page{paper.pageCount - paper.readablePages === 1 ? '' : 's'}</p>
               <p className="mt-1 text-[13px] text-muted">The rest of this paper opens when you download it.</p>
               <button type="button" onClick={download} disabled={busy} className="mt-3 inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-brand px-6 font-bold text-white disabled:opacity-70"><Download size={18} aria-hidden /> Download to read it all</button>
@@ -162,7 +162,7 @@ export default function PaperView({ id, initial, related }: { id: string; initia
           )}
         </div>
       ) : (
-      <div className="mt-5 overflow-hidden rounded-[22px] border-[1.5px] border-line bg-white">
+      <div className="mt-5 overflow-hidden rounded-[22px] border-[1.5px] border-line bg-card">
         {paper.hasPreview && previewOk ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={`/api/v1/papers/${paper.id}/preview`} alt={`First page of ${paper.unitCode} ${paper.year}`} className="w-full" onError={() => setPreviewOk(false)} />
@@ -184,13 +184,13 @@ export default function PaperView({ id, initial, related }: { id: string; initia
             <ul className="mt-2 flex flex-wrap gap-2">
               {related.filter(r => r.id !== paper.id).map(r => (
                 <li key={r.id}>
-                  <Link href={`/papers/${r.id}`} className="inline-flex h-10 items-center rounded-xl border-[1.5px] border-line bg-white px-4 text-[14px] font-bold">{r.year}{r.sitting ? ` · ${r.sitting}` : ''}</Link>
+                  <Link href={`/papers/${r.id}`} className="inline-flex h-10 items-center rounded-xl border-[1.5px] border-line bg-card px-4 text-[14px] font-bold">{r.year}{r.sitting ? ` · ${r.sitting}` : ''}</Link>
                 </li>
               ))}
             </ul>
           </>
         )}
-        <p className="mt-4"><Link href={`/units/${paper.unitCode}`} className="text-[14px] font-bold text-brand">All {paper.unitCode} past papers</Link></p>
+        <p className="mt-4"><Link href={`/units/${paper.unitCode}`} className="text-[14px] font-bold text-brand-ink">All {paper.unitCode} past papers</Link></p>
       </section>
 
       {message && <p role="alert" className="mt-4 rounded-xl bg-amber-soft px-3.5 py-3 text-sm font-medium text-amber-ink">{message}</p>}

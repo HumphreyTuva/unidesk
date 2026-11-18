@@ -12,7 +12,7 @@ export default function ProcedureTabs({ p }: { p: Procedure }) {
   return (
     <>
       {hasLetter && (
-        <div role="tablist" aria-label={p.title} className="mt-4 grid grid-cols-2 rounded-2xl bg-white p-1 print:hidden lg:max-w-[820px]">
+        <div role="tablist" aria-label={p.title} className="mt-4 grid grid-cols-2 rounded-2xl bg-card p-1 print:hidden lg:max-w-[820px]">
           {([['steps', 'Steps'], ['letter', 'My letter']] as const).map(([k, label]) => (
             <button key={k} role="tab" type="button" aria-selected={tab === k} onClick={() => setTab(k)} className={`h-10 rounded-xl text-sm font-bold ${tab === k ? 'bg-brand text-white' : 'text-muted'}`}>{label}</button>
           ))}
@@ -23,8 +23,8 @@ export default function ProcedureTabs({ p }: { p: Procedure }) {
         <div className="print:hidden">
           <ol className="mt-5 flex flex-col gap-2.5 lg:max-w-[820px]">
             {p.steps.map((s, i) => (
-              <li key={i} id={`step-${i + 1}`} className="flex gap-3 rounded-[18px] border-[1.5px] border-line bg-white p-4">
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-soft text-[14px] font-extrabold text-brand" aria-hidden>{i + 1}</span>
+              <li key={i} id={`step-${i + 1}`} className="flex gap-3 rounded-[18px] border-[1.5px] border-line bg-card p-4">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-soft text-[14px] font-extrabold text-brand-ink" aria-hidden>{i + 1}</span>
                 <span className="min-w-0">
                   <span className="block text-[15px] font-bold">{s.title}</span>
                   <span className="mt-0.5 block text-[14px] leading-relaxed text-muted">{s.body}</span>

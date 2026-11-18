@@ -8,7 +8,7 @@ export default function NotFound() {
       <p className="mt-2 text-[15px] text-muted">The link may be old, or the paper may have been removed.</p>
       <div className="mx-auto mt-6 flex max-w-xs flex-col gap-2.5">
         <Link href="/papers" className="flex h-12 items-center justify-center rounded-2xl bg-brand font-bold text-white">Browse past papers</Link>
-        <Link href="/" className="flex h-12 items-center justify-center rounded-2xl border-[1.5px] border-edge bg-white font-bold">Go home</Link>
+        <Link href="/" className="flex h-12 items-center justify-center rounded-2xl border-[1.5px] border-edge bg-card font-bold">Go home</Link>
       </div>
     </main>
   );

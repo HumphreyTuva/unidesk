@@ -38,8 +38,8 @@ export default function InstallButton() {
   }
   if (ios) {
     return (
-      <div className="flex items-start gap-3 rounded-2xl border border-line bg-white p-4 text-sm text-muted">
-        <Share size={20} className="mt-0.5 shrink-0 text-brand" aria-hidden />
+      <div className="flex items-start gap-3 rounded-2xl border border-line bg-card p-4 text-sm text-muted">
+        <Share size={20} className="mt-0.5 shrink-0 text-brand-ink" aria-hidden />
         <p>To install UniDesk, tap <b className="text-ink">Share</b> then <b className="text-ink">Add to Home Screen</b>.</p>
       </div>
     );

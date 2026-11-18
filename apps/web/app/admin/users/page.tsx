@@ -56,7 +56,7 @@ export default function Users() {
   };
 
   const max = Math.max(1, ...(sum?.byDay.map(d => d.count) ?? [1]));
-  const chip = (on: boolean) => `h-10 rounded-full border-[1.5px] px-4 text-[14px] font-bold ${on ? 'border-brand bg-brand text-white' : 'border-edge bg-white'}`;
+  const chip = (on: boolean) => `h-10 rounded-full border-[1.5px] px-4 text-[14px] font-bold ${on ? 'border-brand bg-brand text-white' : 'border-edge bg-card'}`;
 
   return (
     <main className="wide px-5 pt-[calc(16px+env(safe-area-inset-top))] pb-10">
@@ -68,11 +68,11 @@ export default function Users() {
         <>
           <section className="mt-4 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
             {[['Total', sum.total], ['Today', sum.today], ['Last 7 days', sum.last7], ['Last 30 days', sum.last30]].map(([k, v]) => (
-              <div key={k as string} className="rounded-[18px] border-[1.5px] border-line bg-white p-3.5"><p className="text-[24px] font-extrabold leading-none">{v}</p><p className="mt-1 text-[12px] font-semibold text-muted">{k}</p></div>
+              <div key={k as string} className="rounded-[18px] border-[1.5px] border-line bg-card p-3.5"><p className="text-[24px] font-extrabold leading-none">{v}</p><p className="mt-1 text-[12px] font-semibold text-muted">{k}</p></div>
             ))}
           </section>
           <p className="mt-2 text-[12px] text-muted">{sum.google} with Google, {sum.password} with a password (some have both) · {sum.staff} staff · {sum.blocked} blocked</p>
-          <section className="mt-3 rounded-[18px] border-[1.5px] border-line bg-white p-3.5" aria-label="Signups in the last 14 days">
+          <section className="mt-3 rounded-[18px] border-[1.5px] border-line bg-card p-3.5" aria-label="Signups in the last 14 days">
             <p className="text-[13px] font-bold">Signups, last 14 days</p>
             <div className="mt-2 flex h-24 items-end gap-1">
               {sum.byDay.map(d => (
@@ -90,28 +90,28 @@ export default function Users() {
       <label className="relative mt-4 block">
         <span className="sr-only">Search users</span>
         <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted" aria-hidden />
-        <input value={q} onChange={e => setQ(e.target.value)} placeholder="Search name, email or username" className="h-[52px] w-full rounded-2xl border-[1.5px] border-edge bg-white pl-11 pr-4 text-[15px]" />
+        <input value={q} onChange={e => setQ(e.target.value)} placeholder="Search name, email or username" className="h-[52px] w-full rounded-2xl border-[1.5px] border-edge bg-card pl-11 pr-4 text-[15px]" />
       </label>
       <div className="mt-3 flex gap-2">
         {(['all', 'staff', 'blocked'] as Filter[]).map(f => <button key={f} type="button" className={chip(filter === f)} onClick={() => setFilter(f)}>{f === 'all' ? 'All' : f === 'staff' ? 'Staff' : 'Blocked'}</button>)}
       </div>
 
-      {error && <p role="alert" className="mt-4 rounded-xl bg-[#FDECEC] px-3.5 py-2.5 text-sm font-medium text-[#9B1C1C]">{error}</p>}
+      {error && <p role="alert" className="mt-4 rounded-xl bg-danger-soft px-3.5 py-2.5 text-sm font-medium text-danger">{error}</p>}
       <p className="mt-4 text-[13px] text-muted">{total} {total === 1 ? 'account' : 'accounts'}</p>
 
       <ul className="cols-lg mt-2 flex flex-col gap-2.5">
         {rows.map(r => {
           const self = r.id === me?.id;
           return (
-            <li key={r.id} className={`rounded-[18px] border-[1.5px] bg-white p-4 ${r.blocked ? 'border-[#E2574C]/50 opacity-80' : 'border-line'}`}>
+            <li key={r.id} className={`rounded-[18px] border-[1.5px] bg-card p-4 ${r.blocked ? 'border-[#E2574C]/50 opacity-80' : 'border-line'}`}>
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <p className="truncate text-[16px] font-extrabold">{r.name || r.username || r.email || 'No name'}{self && <span className="ml-2 text-[12px] font-bold text-brand">You</span>}</p>
+                  <p className="truncate text-[16px] font-extrabold">{r.name || r.username || r.email || 'No name'}{self && <span className="ml-2 text-[12px] font-bold text-brand-ink">You</span>}</p>
                   <p className="truncate text-[13px] text-muted">{r.email || (r.username ? `@${r.username}` : '')}</p>
                   <p className="mt-0.5 text-[12px] text-muted">Joined {fmt(r.joined)} · {r.via}{r.blocked ? ' · Blocked' : ''}</p>
                 </div>
                 {!self && (
-                  <button type="button" onClick={() => toggleBlock(r)} className={`flex h-10 shrink-0 items-center gap-1.5 rounded-xl border-[1.5px] px-3 text-[13px] font-bold ${r.blocked ? 'border-brand text-brand' : 'border-edge text-[#9B1C1C]'}`}>
+                  <button type="button" onClick={() => toggleBlock(r)} className={`flex h-10 shrink-0 items-center gap-1.5 rounded-xl border-[1.5px] px-3 text-[13px] font-bold ${r.blocked ? 'border-brand text-brand-ink' : 'border-edge text-danger'}`}>
                     {r.blocked ? <><RotateCcw size={15} aria-hidden /> Unblock</> : <><Ban size={15} aria-hidden /> Block</>}
                   </button>
                 )}
@@ -119,7 +119,7 @@ export default function Users() {
               <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-[13px]">
                 <span><b>{r.requests}</b> requests</span><span><b>{r.downloads}</b> downloads</span><span><b>{r.payments}</b> payments</span><span><b>{r.chats}</b> chats</span>
                 <label className="ml-auto flex items-center gap-2"><span className="text-muted">Role</span>
-                  <select value={r.role} disabled={self} onChange={e => setRole(r, e.target.value as Role)} className="h-10 rounded-xl border-[1.5px] border-edge bg-white px-2 text-[14px] font-semibold disabled:opacity-50">
+                  <select value={r.role} disabled={self} onChange={e => setRole(r, e.target.value as Role)} className="h-10 rounded-xl border-[1.5px] border-edge bg-card px-2 text-[14px] font-semibold disabled:opacity-50">
                     <option value="STUDENT">Student</option><option value="SUPPORT">Support</option><option value="ADMIN">Admin</option>
                   </select>
                 </label>
@@ -128,9 +128,9 @@ export default function Users() {
           );
         })}
       </ul>
-      {!busy && rows.length === 0 && !error && <p className="mt-4 rounded-[18px] border-[1.5px] border-dashed border-edge bg-white p-6 text-center text-[15px] text-muted">No accounts match.</p>}
-      {busy && <div className="flex justify-center py-6 text-brand"><Loader2 className="animate-spin" aria-label="Loading" /></div>}
-      {!busy && rows.length < total && <button type="button" onClick={() => load(rows.length, false)} className="mt-4 h-12 w-full rounded-2xl border-[1.5px] border-edge bg-white font-bold">Load more</button>}
+      {!busy && rows.length === 0 && !error && <p className="mt-4 rounded-[18px] border-[1.5px] border-dashed border-edge bg-card p-6 text-center text-[15px] text-muted">No accounts match.</p>}
+      {busy && <div className="flex justify-center py-6 text-brand-ink"><Loader2 className="animate-spin" aria-label="Loading" /></div>}
+      {!busy && rows.length < total && <button type="button" onClick={() => load(rows.length, false)} className="mt-4 h-12 w-full rounded-2xl border-[1.5px] border-edge bg-card font-bold">Load more</button>}
     </main>
   );
 }

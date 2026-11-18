@@ -7,7 +7,7 @@ import { api } from '@/lib/api';
 type Phase = 'form' | 'waiting' | 'success' | 'failed' | 'timeout';
 type Status = { status: 'PENDING' | 'SUCCESS' | 'FAILED'; reason?: string };
 
-const field = 'h-[50px] w-full rounded-2xl border-[1.5px] border-edge bg-[#F8FAFE] px-4 text-[15px] text-ink placeholder:text-[#6B7794]';
+const field = 'h-[50px] w-full rounded-2xl border-[1.5px] border-edge bg-field px-4 text-[15px] text-ink placeholder:text-faint';
 const PHONE_KEY = 'unidesk-mpesa-phone';
 const POLL_MS = 4000;
 const GIVE_UP_MS = 2 * 60_000;
@@ -71,7 +71,7 @@ export default function PaymentSheet({ open, paperId, label, amount, note, onClo
             role="dialog"
             aria-modal="true"
             aria-label="Pay with M-Pesa"
-            className="w-full max-w-[480px] rounded-t-[28px] lg:rounded-[28px] bg-white p-5 shadow-card"
+            className="w-full max-w-[480px] rounded-t-[28px] lg:rounded-[28px] bg-card p-5 shadow-card"
             style={{ paddingBottom: 'max(20px, env(safe-area-inset-bottom))' }}
             initial={{ y: 80 }} animate={{ y: 0 }} exit={{ y: 80 }}
             transition={{ type: 'spring', stiffness: 380, damping: 36 }}
@@ -86,14 +86,14 @@ export default function PaymentSheet({ open, paperId, label, amount, note, onClo
               <form onSubmit={pay} className="mt-2 flex flex-col gap-3.5">
                 {note && <p className="rounded-xl bg-amber-soft px-3.5 py-3 text-[14px] font-medium leading-relaxed text-amber-ink">{note}</p>}
                 <div className="flex items-baseline justify-between rounded-2xl bg-brand-soft px-4 py-3">
-                  <span className="text-[13px] font-bold text-brand">Price</span>
-                  <span className="text-2xl font-extrabold text-brand">KSh {amount}</span>
+                  <span className="text-[13px] font-bold text-brand-ink">Price</span>
+                  <span className="text-2xl font-extrabold text-brand-ink">KSh {amount}</span>
                 </div>
                 <div className="flex flex-col gap-1.5">
                   <label htmlFor="mpesa-phone" className="text-[13px] font-bold">M-Pesa number</label>
                   <input id="mpesa-phone" type="tel" inputMode="tel" autoComplete="tel" value={phone} onChange={e => setPhone(e.target.value)} placeholder="0712 345 678" required className={field} />
                 </div>
-                {error && <p role="alert" className="rounded-xl bg-[#FDECEC] px-3.5 py-2.5 text-sm font-medium text-[#9B1C1C]">{error}</p>}
+                {error && <p role="alert" className="rounded-xl bg-danger-soft px-3.5 py-2.5 text-sm font-medium text-danger">{error}</p>}
                 <button type="submit" disabled={busy} className="flex h-[54px] items-center justify-center gap-2 rounded-2xl bg-brand text-base font-bold text-white disabled:opacity-70">
                   {busy && <Loader2 size={20} className="animate-spin" aria-hidden />}
                   Pay KSh {amount} with M-Pesa
@@ -104,16 +104,16 @@ export default function PaymentSheet({ open, paperId, label, amount, note, onClo
 
             {phase === 'waiting' && (
               <div className="py-8 text-center" role="status">
-                <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-brand-soft text-brand"><Smartphone size={28} aria-hidden /></span>
+                <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-brand-soft text-brand-ink"><Smartphone size={28} aria-hidden /></span>
                 <p className="mt-4 text-[17px] font-extrabold">Check your phone</p>
                 <p className="mt-1 text-[15px] text-muted">Enter your M-Pesa PIN to pay KSh {amount}.</p>
-                <Loader2 className="mx-auto mt-5 animate-spin text-brand" aria-hidden />
+                <Loader2 className="mx-auto mt-5 animate-spin text-brand-ink" aria-hidden />
               </div>
             )}
 
             {phase === 'success' && (
               <div className="py-6 text-center" role="status">
-                <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[#E7F6EC] text-[#14532D]"><Check size={28} aria-hidden /></span>
+                <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-ok-soft text-ok"><Check size={28} aria-hidden /></span>
                 <p className="mt-4 text-[17px] font-extrabold">Payment received</p>
                 <a href={`/api/v1/papers/${paperId}/download`} onClick={close} className="mt-4 flex h-[54px] items-center justify-center gap-2 rounded-2xl bg-brand text-base font-bold text-white"><Download size={20} aria-hidden /> Download PDF</a>
               </div>
@@ -131,7 +131,7 @@ export default function PaymentSheet({ open, paperId, label, amount, note, onClo
               <div className="py-6 text-center">
                 <p className="text-[17px] font-extrabold">Still waiting</p>
                 <p className="mt-1 text-[15px] text-muted">If you already entered your PIN, the paper unlocks by itself within a minute or two. You can close this and come back to it.</p>
-                <button type="button" onClick={close} className="mt-5 h-[54px] w-full rounded-2xl border-[1.5px] border-edge bg-white text-base font-bold">Close</button>
+                <button type="button" onClick={close} className="mt-5 h-[54px] w-full rounded-2xl border-[1.5px] border-edge bg-card text-base font-bold">Close</button>
               </div>
             )}
           </motion.div>

@@ -28,21 +28,21 @@ export default function Offices() {
 
       <label className="relative mt-4 block">
         <span className="sr-only">Search offices</span>
-        <Search size={20} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-brand" aria-hidden />
-        <input type="search" value={q} onChange={e => setQ(e.target.value)} placeholder="Try “fees”, “transcript” or “password”" className="h-[52px] w-full rounded-2xl border-[1.5px] border-edge bg-white pl-12 pr-4 text-[15px] placeholder:text-muted" />
+        <Search size={20} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-brand-ink" aria-hidden />
+        <input type="search" value={q} onChange={e => setQ(e.target.value)} placeholder="Try “fees”, “transcript” or “password”" className="h-[52px] w-full rounded-2xl border-[1.5px] border-edge bg-card pl-12 pr-4 text-[15px] placeholder:text-muted" />
       </label>
 
       <ul className="cols-lg mt-4 flex flex-col gap-2.5">
         {shown.map(o => (
-          <li key={o.id} className="rounded-[18px] border-[1.5px] border-line bg-white p-4">
+          <li key={o.id} className="rounded-[18px] border-[1.5px] border-line bg-card p-4">
             <p className="text-[15px] font-bold leading-snug">{o.name}</p>
-            <p className="mt-2 flex items-center gap-1.5 text-[14px] font-bold text-brand">
+            <p className="mt-2 flex items-center gap-1.5 text-[14px] font-bold text-brand-ink">
               <MapPin size={16} aria-hidden /> {o.building}, {o.room}
             </p>
             {(o.tel || o.email) && (
               <p className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1 text-[13px] text-muted">
-                {o.tel && <a href={`tel:${o.tel.replace(/\s/g, '')}`} className="font-semibold text-brand">Call {o.tel}</a>}
-                {o.email?.map(m => m.includes('@') ? <a key={m} href={`mailto:${m}`} className="break-all font-semibold text-brand">{m}</a> : <span key={m} className="break-all">{m}</span>)}
+                {o.tel && <a href={`tel:${o.tel.replace(/\s/g, '')}`} className="font-semibold text-brand-ink">Call {o.tel}</a>}
+                {o.email?.map(m => m.includes('@') ? <a key={m} href={`mailto:${m}`} className="break-all font-semibold text-brand-ink">{m}</a> : <span key={m} className="break-all">{m}</span>)}
               </p>
             )}
           </li>
@@ -50,7 +50,7 @@ export default function Offices() {
       </ul>
 
       {shown.length === 0 && (
-        <p className="mt-6 rounded-[18px] border-[1.5px] border-dashed border-edge bg-white p-6 text-center text-[15px] text-muted">
+        <p className="mt-6 rounded-[18px] border-[1.5px] border-dashed border-edge bg-card p-6 text-center text-[15px] text-muted">
           No office matches “{q.trim()}”. Try another word, or ask in Chat.
         </p>
       )}

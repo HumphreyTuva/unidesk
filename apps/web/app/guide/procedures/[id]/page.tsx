@@ -48,7 +48,7 @@ export default function ProcedurePage({ params }: { params: { id: string } }) {
       <ProcedureTabs p={p} />
 
       <p className="mt-6 text-[12px] leading-relaxed text-muted lg:max-w-[820px]">
-        These steps come from information shared by students and the university, and rooms, fees and rules can change. Confirm with the office before you go. See <Link href="/guide/offices" className="font-semibold text-brand underline">Important KU offices</Link> for where to go. UniDesk is an independent student app, not the official KU portal.
+        These steps come from information shared by students and the university, and rooms, fees and rules can change. Confirm with the office before you go. See <Link href="/guide/offices" className="font-semibold text-brand-ink underline">Important KU offices</Link> for where to go. UniDesk is an independent student app, not the official KU portal.
       </p>
     </main>
   );

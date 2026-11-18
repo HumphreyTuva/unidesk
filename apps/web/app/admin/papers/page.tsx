@@ -6,7 +6,7 @@ import { api } from '@/lib/api';
 import { useRequireAdmin } from '@/lib/useRequireAdmin';
 import { guessUnitCode, makePages, makePreview } from '@/lib/pdfPreview';
 
-const field = 'h-[50px] w-full rounded-2xl border-[1.5px] border-edge bg-[#F8FAFE] px-4 text-[15px] text-ink placeholder:text-[#6B7794]';
+const field = 'h-[50px] w-full rounded-2xl border-[1.5px] border-edge bg-field px-4 text-[15px] text-ink placeholder:text-faint';
 const thisYear = new Date().getFullYear();
 
 export default function UploadPaper() {
@@ -68,12 +68,12 @@ export default function UploadPaper() {
       <Link href="/admin" aria-label="Back to admin" className="-ml-2 flex h-11 w-11 items-center justify-center rounded-full"><ArrowLeft size={24} aria-hidden /></Link>
       <div className="mt-2 flex items-center justify-between gap-3">
         <h1 className="text-2xl font-extrabold">Upload a paper</h1>
-        <Link href="/admin/papers/manage" className="inline-flex h-10 items-center rounded-xl border-[1.5px] border-edge bg-white px-4 text-[13px] font-bold">Manage papers</Link>
+        <Link href="/admin/papers/manage" className="inline-flex h-10 items-center rounded-xl border-[1.5px] border-edge bg-card px-4 text-[13px] font-bold">Manage papers</Link>
       </div>
 
       <form onSubmit={submit} className="mt-5 flex flex-col gap-3.5">
-        <label className="flex min-h-[96px] cursor-pointer flex-col items-center justify-center gap-1.5 rounded-[18px] border-2 border-dashed border-edge bg-white p-4 text-center">
-          <FileUp size={26} className="text-brand" aria-hidden />
+        <label className="flex min-h-[96px] cursor-pointer flex-col items-center justify-center gap-1.5 rounded-[18px] border-2 border-dashed border-edge bg-card p-4 text-center">
+          <FileUp size={26} className="text-brand-ink" aria-hidden />
           <span className="text-[15px] font-bold">{file ? file.name : 'Choose the PDF'}</span>
           <span className="text-xs text-muted">PDF, up to 20 MB</span>
           <input type="file" accept="application/pdf" className="sr-only" onChange={e => pick(e.target.files?.[0] ?? null)} />
@@ -102,8 +102,8 @@ export default function UploadPaper() {
           <input id="school" value={school} onChange={e => setSchool(e.target.value)} placeholder="School of Computing" className={field} />
         </div>
 
-        {error && <p role="alert" className="rounded-xl bg-[#FDECEC] px-3.5 py-2.5 text-sm font-medium text-[#9B1C1C]">{error}</p>}
-        {done && <p role="status" className="flex items-center gap-2 rounded-xl bg-[#E7F6EC] px-3.5 py-2.5 text-sm font-medium text-[#14532D]"><Check size={18} aria-hidden /> {done}</p>}
+        {error && <p role="alert" className="rounded-xl bg-danger-soft px-3.5 py-2.5 text-sm font-medium text-danger">{error}</p>}
+        {done && <p role="status" className="flex items-center gap-2 rounded-xl bg-ok-soft px-3.5 py-2.5 text-sm font-medium text-ok"><Check size={18} aria-hidden /> {done}</p>}
 
         <button type="submit" disabled={busy || !file} className="flex h-[54px] items-center justify-center gap-2 rounded-2xl bg-brand text-base font-bold text-white disabled:opacity-60">
           {busy && <Loader2 size={20} className="animate-spin" aria-hidden />}

@@ -13,10 +13,10 @@ export default function Sidebar() {
   const { user, ready } = useAuth();
   const { newCount } = useMyRequests();
   const active = (href: string) => (href === '/' ? path === '/' : path.startsWith(href));
-  const link = (on: boolean) => `flex h-12 items-center gap-3 rounded-2xl px-4 text-[15px] font-bold ${on ? 'bg-brand-soft text-brand' : 'text-ink hover:bg-surface'}`;
+  const link = (on: boolean) => `flex h-12 items-center gap-3 rounded-2xl px-4 text-[15px] font-bold ${on ? 'bg-brand-soft text-brand-ink' : 'text-ink hover:bg-surface'}`;
 
   return (
-    <aside aria-label="Sidebar" className="fixed inset-y-0 left-0 z-40 hidden w-[260px] flex-col border-r border-line bg-white px-4 py-6 lg:flex">
+    <aside aria-label="Sidebar" className="fixed inset-y-0 left-0 z-40 hidden w-[260px] flex-col border-r border-line bg-card px-4 py-6 lg:flex">
       <Link href="/" className="flex items-center gap-3 px-2" aria-label="UniDesk home">
         <Logo />
         <span className="text-xl font-extrabold">UniDesk</span>

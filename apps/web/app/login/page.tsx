@@ -10,7 +10,7 @@ import GoogleButton from '@/components/GoogleButton';
 
 type Mode = 'signin' | 'signup';
 
-const field = 'h-[50px] w-full rounded-2xl border-[1.5px] border-edge bg-[#F8FAFE] px-4 text-[15px] text-ink placeholder:text-[#6B7794]';
+const field = 'h-[50px] w-full rounded-2xl border-[1.5px] border-edge bg-field px-4 text-[15px] text-ink placeholder:text-faint';
 
 export default function Login() {
   const router = useRouter();
@@ -78,7 +78,7 @@ export default function Login() {
         <p className="relative mt-2 text-[15px] text-[#DCE4F7]">Past papers, guidance and campus help in one place.</p>
       </header>
 
-      <section className="relative -mt-9 mx-5 rounded-3xl bg-white p-5 shadow-card">
+      <section className="relative -mt-9 mx-5 rounded-3xl bg-card p-5 shadow-card">
         <GoogleButton onCredential={google} />
 
         <div className="my-4 flex items-center gap-3 text-[13px] text-muted">
@@ -93,7 +93,7 @@ export default function Login() {
               type="button"
               aria-selected={mode === m}
               onClick={() => { setMode(m); setError(''); }}
-              className={`h-10 rounded-xl text-sm font-bold ${mode === m ? 'bg-white text-brand shadow-sm' : 'text-muted'}`}
+              className={`h-10 rounded-xl text-sm font-bold ${mode === m ? 'bg-card text-brand-ink shadow-sm' : 'text-muted'}`}
             >
               {m === 'signin' ? 'Sign in' : 'Create account'}
             </button>
@@ -145,15 +145,15 @@ export default function Login() {
                 onClick={() => setShowPw(s => !s)}
                 aria-label={showPw ? 'Hide password' : 'Show password'}
                 aria-pressed={showPw}
-                className="absolute right-1 top-[3px] flex h-11 w-11 items-center justify-center text-brand"
+                className="absolute right-1 top-[3px] flex h-11 w-11 items-center justify-center text-brand-ink"
               >
                 {showPw ? <EyeOff size={22} aria-hidden /> : <Eye size={22} aria-hidden />}
               </button>
             </div>
-            {mode === 'signin' && <Link href="/forgot-password" className="self-end py-1 text-[13px] font-bold text-brand">Forgot password?</Link>}
+            {mode === 'signin' && <Link href="/forgot-password" className="self-end py-1 text-[13px] font-bold text-brand-ink">Forgot password?</Link>}
           </div>
 
-          {error && <p role="alert" className="rounded-xl bg-[#FDECEC] px-3.5 py-2.5 text-sm font-medium text-[#9B1C1C]">{error}</p>}
+          {error && <p role="alert" className="rounded-xl bg-danger-soft px-3.5 py-2.5 text-sm font-medium text-danger">{error}</p>}
 
           <button type="submit" disabled={busy} className="mt-1 flex h-[54px] items-center justify-center gap-2 rounded-2xl bg-brand text-base font-bold text-white disabled:opacity-70">
             {busy && <Loader2 size={20} className="animate-spin" aria-hidden />}
