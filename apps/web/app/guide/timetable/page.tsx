@@ -405,34 +405,36 @@ function ExportDialog({ days, kind, onClose }: { days: ExDay[]; kind: Kind; onCl
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(a.href), 2000);
   };
-  // Joined tabs in one tray, like Ask AI / Talk to a person. Scrolls sideways when there are many.
-  const tabs = ({ label, items, value, onPick }: { label: string; items: { id: string; label: string; note?: string }[]; value: string; onPick: (id: string) => void }) => (
-    <div role="tablist" aria-label={label} className="flex gap-1 overflow-x-auto rounded-2xl bg-brand-soft p-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-      {items.map(i => (
-        <button key={i.id} type="button" role="tab" aria-selected={value === i.id} title={i.note} onClick={() => onPick(i.id)}
-          className={`h-11 shrink-0 grow whitespace-nowrap rounded-xl px-3.5 text-[14px] font-bold ${value === i.id ? 'bg-card text-brand-ink shadow-sm' : 'text-muted'}`}>{i.label}</button>
-      ))}
-    </div>
-  );
+  const chip = (on: boolean) => `h-10 rounded-full border-[1.5px] px-3.5 text-[14px] font-bold ${on ? 'border-brand bg-brand text-white' : 'border-edge bg-card'}`;
+  const [pane, setPane] = useState<'size' | 'design'>('size');
 
   return (
     <Modal title="Save as image" onClose={onClose} wide>
       <div className="grid gap-5 md:grid-cols-[1fr_1fr]">
         <div className="flex flex-col gap-4">
-          <div>
-            <p className="mb-1 text-[13px] font-bold text-muted">Size</p>
-            {tabs({ label: 'Size', value: preset, items: [...SIZE_PRESETS.map(p => ({ id: p.id, label: p.label })), { id: 'custom', label: 'Custom' }],
-              onPick: id => { const p = SIZE_PRESETS.find(x => x.id === id); if (p) { setPreset(p.id); setW(String(p.width)); setH(String(p.height)); } else setPreset('custom'); } })}
-            <div className="mt-2 grid grid-cols-2 gap-3">
-              <Field label="Width (px)"><input className={inputCls} inputMode="numeric" value={w} onChange={e => { setW(e.target.value.replace(/\D/g, '')); setPreset('custom'); }} /></Field>
-              <Field label="Height (px)"><input className={inputCls} inputMode="numeric" value={h} onChange={e => { setH(e.target.value.replace(/\D/g, '')); setPreset('custom'); }} /></Field>
+          <div role="tablist" className="grid grid-cols-2 gap-1 rounded-2xl bg-brand-soft p-1">
+            {([['size', 'Size'], ['design', 'Design']] as const).map(([k, label]) => (
+              <button key={k} type="button" role="tab" aria-selected={pane === k} onClick={() => setPane(k)} className={`h-11 rounded-xl text-[15px] font-bold ${pane === k ? 'bg-card text-brand-ink shadow-sm' : 'text-muted'}`}>{label}</button>
+            ))}
+          </div>
+          {pane === 'size' ? (
+            <div>
+              <div className="flex flex-wrap gap-2">
+                {SIZE_PRESETS.map(p => <button key={p.id} type="button" className={chip(preset === p.id)} onClick={() => { setPreset(p.id); setW(String(p.width)); setH(String(p.height)); }}>{p.label}</button>)}
+                <button type="button" className={chip(preset === 'custom')} onClick={() => setPreset('custom')}>Custom</button>
+              </div>
+              <div className="mt-3 grid grid-cols-2 gap-3">
+                <Field label="Width (px)"><input className={inputCls} inputMode="numeric" value={w} onChange={e => { setW(e.target.value.replace(/\D/g, '')); setPreset('custom'); }} /></Field>
+                <Field label="Height (px)"><input className={inputCls} inputMode="numeric" value={h} onChange={e => { setH(e.target.value.replace(/\D/g, '')); setPreset('custom'); }} /></Field>
+              </div>
+              <p className="mt-1 text-[12px] text-muted">{width} × {height}. Allowed {MIN_SIDE} to {MAX_SIDE}.</p>
             </div>
-            <p className="mt-1 text-[12px] text-muted">{width} × {height}. Allowed {MIN_SIDE} to {MAX_SIDE}.</p>
-          </div>
-          <div>
-            <p className="mb-1 text-[13px] font-bold text-muted">Design</p>
-            {tabs({ label: 'Design', value: design, items: DESIGNS.filter(d => kind === 'class' || d.id !== 'grid'), onPick: id => setDesign(id as Design) })}
-          </div>
+          ) : (
+            <div>
+              <div className="flex flex-wrap gap-2">{DESIGNS.filter(d => kind === 'class' || d.id !== 'grid').map(d => <button key={d.id} type="button" className={chip(design === d.id)} onClick={() => setDesign(d.id)}>{d.label}</button>)}</div>
+              <p className="mt-2 text-[12px] text-muted">{DESIGNS.find(d => d.id === design)?.note}</p>
+            </div>
+          )}
           <Field label="Title"><input className={inputCls} value={text.title} maxLength={40} onChange={e => setText({ ...text, title: e.target.value })} /></Field>
           <Field label="Subtitle"><input className={inputCls} value={text.subtitle} maxLength={50} onChange={e => setText({ ...text, subtitle: e.target.value })} /></Field>
           <Field label="Footer line"><input className={inputCls} value={text.footer} maxLength={70} onChange={e => setText({ ...text, footer: e.target.value })} /></Field>
