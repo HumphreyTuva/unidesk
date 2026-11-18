@@ -55,12 +55,11 @@ export default function Timetable() {
   const [exporting, setExporting] = useState(false);
   const [allUnits, setAllUnits] = useState(false);
   // Floating buttons: show while the person swipes up the screen (reading further down), hide when they swipe back down.
-  const [barOn, setBarOn] = useState(true);
+  const [barOn, setBarOn] = useState(false); // hidden until the person scrolls
   useEffect(() => {
     let last = window.scrollY;
     const onScroll = () => {
       const y = window.scrollY, dy = y - last;
-      if (y < 80) { setBarOn(true); last = y; return; }
       if (Math.abs(dy) < 8) return;
       setBarOn(dy > 0); // finger swipes up (page moves down) = show; swipes down = hide
       last = y;
