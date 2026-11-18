@@ -22,3 +22,12 @@ export class LoginDto {
 export class GoogleDto {
   @IsString() @MinLength(20) credential: string;
 }
+
+export class ForgotDto {
+  @IsString() @MinLength(3) @MaxLength(120) identifier: string;
+}
+
+export class ResetDto {
+  @IsString() @MinLength(20) @MaxLength(2000) token: string;
+  @IsString() @MinLength(8, { message: 'Password must be at least 8 characters' }) @MaxLength(100) password: string;
+}

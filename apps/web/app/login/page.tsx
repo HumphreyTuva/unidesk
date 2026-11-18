@@ -1,5 +1,6 @@
 'use client';
 import { useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
@@ -149,6 +150,7 @@ export default function Login() {
                 {showPw ? <EyeOff size={22} aria-hidden /> : <Eye size={22} aria-hidden />}
               </button>
             </div>
+            {mode === 'signin' && <Link href="/forgot-password" className="self-end py-1 text-[13px] font-bold text-brand">Forgot password?</Link>}
           </div>
 
           {error && <p role="alert" className="rounded-xl bg-[#FDECEC] px-3.5 py-2.5 text-sm font-medium text-[#9B1C1C]">{error}</p>}

@@ -4,19 +4,22 @@ import { PrismaService } from '../prisma.service';
 import { hashPassword, verifyPassword } from '../common/password';
 import { USERNAME_RE, adminEmails, looksLikeEmail, normalizeEmail, normalizeUsername } from '../common/identity';
 import { LoginDto, RegisterDto } from './dto';
+import { createHash } from 'crypto';
+import { MailService } from '../mail/mail.service';
+import { passwordResetEmail } from '../mail/templates';
 
 // One fixed hash so a login for a name that does not exist takes about as long as one that does.
 const DUMMY_HASH = 'scrypt$00000000000000000000000000000000$' + '00'.repeat(64);
 
 @Injectable()
 export class AuthService {
-  constructor(private db: PrismaService, private jwt: JwtService) {}
+  constructor(private db: PrismaService, private jwt: JwtService, private mail: MailService) {}
 
-  private publicUser(u: { id: string; name: string | null; email: string | null; username: string | null; usernameDisplay: string | null; role: string }) {
-    return { id: u.id, name: u.name, email: u.email, username: u.usernameDisplay || u.username, role: u.role };
+  private publicUser(u: { id: string; name: string | null; email: string | null; username: string | null; usernameDisplay: string | null; role: string; school?: string | null }) {
+    return { id: u.id, name: u.name, email: u.email, username: u.usernameDisplay || u.username, role: u.role, school: u.school ?? null };
   }
 
-  async session(user: { id: string; role: string; name: string | null; email: string | null; username: string | null; usernameDisplay: string | null }) {
+  async session(user: { id: string; role: string; name: string | null; email: string | null; username: string | null; usernameDisplay: string | null; school?: string | null }) {
     const token = await this.jwt.signAsync({ sub: user.id, role: user.role });
     return { token, user: this.publicUser(user) };
   }
@@ -123,4 +126,38 @@ export class AuthService {
     if (!u || u.deletedAt) throw new UnauthorizedException();
     return this.publicUser(u);
   }
+
+  // ---- forgot password ----
+  // The link holds a signed token that expires in 30 minutes and stops working once the password changes
+  // (it carries a fingerprint of the current password). It is signed with its own secret, so it can never be used as a login cookie.
+  private resetSecret() { return (process.env.JWT_SECRET || 'dev-secret') + ':reset'; }
+  private fingerprint(hash: string | null) { return createHash('sha256').update(hash ?? '').digest('hex').slice(0, 16); }
+
+  // Always answers the same way, so nobody can use this to find out who has an account.
+  async forgotPassword(identifierRaw: string) {
+    const id = identifierRaw.trim();
+    const user = looksLikeEmail(id)
+      ? await this.db.user.findUnique({ where: { email: normalizeEmail(id) } })
+      : await this.db.user.findUnique({ where: { username: normalizeUsername(id) } });
+    // Admin addresses sign in with Google only, so they never get a password link.
+    if (user && !user.deletedAt && user.email && !adminEmails().includes(user.email)) {
+      const token = await this.jwt.signAsync({ sub: user.id, purpose: 'reset', fp: this.fingerprint(user.passwordHash) }, { secret: this.resetSecret(), expiresIn: '30m' });
+      const site = (process.env.SITE_URL || 'https://unidesk.co.ke').replace(/\/$/, '');
+      const link = `${site}/reset-password?token=${encodeURIComponent(token)}`;
+      void this.mail.sendMany([{ to: user.email, ...passwordResetEmail({ hi: (user.name || '').split(' ')[0] || 'there', link, site }) }]);
+    }
+    return { ok: true };
+  }
+
+  async resetPassword(token: string, password: string) {
+    const bad = new BadRequestException('This reset link is invalid or has expired. Please ask for a new one.');
+    let payload: { sub: string; purpose: string; fp: string };
+    try { payload = await this.jwt.verifyAsync(token, { secret: this.resetSecret() }); } catch { throw bad; }
+    if (payload.purpose !== 'reset') throw bad;
+    const user = await this.db.user.findUnique({ where: { id: payload.sub } });
+    if (!user || user.deletedAt || payload.fp !== this.fingerprint(user.passwordHash)) throw bad;
+    const updated = await this.db.user.update({ where: { id: user.id }, data: { passwordHash: await hashPassword(password), emailVerified: true } });
+    return this.session(updated);
+  }
 }
+

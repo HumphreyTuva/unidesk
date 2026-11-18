@@ -5,12 +5,15 @@ import { ArrowLeft, Loader2, Upload, X } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useRequireAdmin } from '@/lib/useRequireAdmin';
 
-type Group = { unitCode: string; count: number; latest: string; notes: string[] };
+type Who = { name: string; contact: string; school: string | null; at: string; note: string | null };
+type Group = { unitCode: string; count: number; latest: string; notes: string[]; who: Who[] };
+const when = (d: string) => new Date(d).toLocaleString('en-KE', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit', timeZone: 'Africa/Nairobi' });
 
 export default function Requests() {
   const ok = useRequireAdmin(['ADMIN', 'SUPPORT']);
   const [groups, setGroups] = useState<Group[] | null>(null);
   const [error, setError] = useState('');
+  const [open, setOpen] = useState<string | null>(null);
 
   const load = useCallback(() => {
     api<Group[]>('/admin/paper-requests').then(setGroups).catch(e => setError(e.message));
@@ -40,14 +43,26 @@ export default function Requests() {
             <div className="flex items-center justify-between gap-3">
               <div>
                 <p className="text-[17px] font-extrabold">{g.unitCode}</p>
-                <p className="text-[13px] text-muted">{g.count} {g.count === 1 ? 'student' : 'students'}</p>
+                <p className="text-[13px] text-muted">{g.count} {g.count === 1 ? 'student' : 'students'} · latest {when(g.latest)}</p>
               </div>
               <div className="flex gap-2">
                 <Link href="/admin/papers" className="flex h-11 items-center gap-1.5 rounded-xl bg-brand px-4 text-sm font-bold text-white"><Upload size={16} aria-hidden /> Upload</Link>
                 <button type="button" onClick={() => dismiss(g.unitCode)} aria-label={`Dismiss requests for ${g.unitCode}`} className="flex h-11 w-11 items-center justify-center rounded-xl border-[1.5px] border-edge text-muted"><X size={18} aria-hidden /></button>
               </div>
             </div>
-            {g.notes.length > 0 && <ul className="mt-2 list-disc pl-5 text-[13px] text-muted">{g.notes.map((n, i) => <li key={i}>{n}</li>)}</ul>}
+            <button type="button" onClick={() => setOpen(open === g.unitCode ? null : g.unitCode)} aria-expanded={open === g.unitCode} className="mt-2 text-[13px] font-bold text-brand">{open === g.unitCode ? 'Hide who asked' : 'Who asked'}</button>
+            {open === g.unitCode && (
+              <ul className="mt-2 flex flex-col divide-y divide-line rounded-xl border-[1.5px] border-line">
+                {g.who.map((w, i) => (
+                  <li key={i} className="px-3 py-2.5">
+                    <p className="text-[14px] font-bold">{w.name} <span className="font-medium text-muted">· {w.school || 'School not given'}</span></p>
+                    <p className="break-all text-[13px] text-muted">{w.contact}</p>
+                    <p className="text-[12px] text-muted">{when(w.at)}{w.note ? ` · “${w.note}”` : ''}</p>
+                  </li>
+                ))}
+                {g.count > g.who.length && <li className="px-3 py-2 text-[12px] text-muted">and {g.count - g.who.length} more</li>}
+              </ul>
+            )}
           </li>
         ))}
       </ul>

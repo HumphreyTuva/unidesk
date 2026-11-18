@@ -19,6 +19,7 @@ export function useSavedProfile(fill: (p: SavedProfile) => void) {
     const p: SavedProfile = { ...saved };
     if (!p.name && user?.name) p.name = user.name;
     if (!p.email && user?.email) p.email = user.email;
+    if (!p.school && user?.school) p.school = user.school;
     fill(p);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ready, uid]);

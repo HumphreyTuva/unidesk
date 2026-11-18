@@ -3,7 +3,7 @@ import { createContext, useCallback, useContext, useEffect, useState } from 'rea
 import { api } from './api';
 import { clearSavedProfiles } from './profileStore';
 
-export type User = { id: string; name: string | null; email: string | null; username: string | null; role: 'STUDENT' | 'SUPPORT' | 'ADMIN' };
+export type User = { id: string; name: string | null; email: string | null; username: string | null; role: 'STUDENT' | 'SUPPORT' | 'ADMIN'; school?: string | null };
 type AuthState = { user: User | null; ready: boolean; setUser: (u: User | null) => void; logout: () => Promise<void> };
 
 const Ctx = createContext<AuthState>({ user: null, ready: false, setUser: () => {}, logout: async () => {} });

@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { Check, Loader2, X } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
+import { SCHOOLS } from '@/lib/schools';
 
 const field = 'h-[50px] w-full rounded-2xl border-[1.5px] border-edge bg-[#F8FAFE] px-4 text-[15px] text-ink placeholder:text-[#6B7794]';
 
@@ -12,17 +13,19 @@ type Result = { status: 'REQUESTED' | 'ALREADY_REQUESTED' | 'EXISTS'; paperId?: 
 
 // Bottom sheet: "Can't find your paper? Ask for it." Signed-out students are sent to sign in first.
 export default function RequestSheet({ open, onClose, initialCode = '' }: { open: boolean; onClose: () => void; initialCode?: string }) {
-  const { user } = useAuth();
+  const { user, setUser } = useAuth();
   const router = useRouter();
   const [code, setCode] = useState(initialCode);
   const [note, setNote] = useState('');
+  const [school, setSchool] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [result, setResult] = useState<Result | null>(null);
 
   useEffect(() => {
-    if (open) { setCode(initialCode); setNote(''); setError(''); setResult(null); }
-  }, [open, initialCode]);
+    // The school they gave last time is filled in for them.
+    if (open) { setCode(initialCode); setNote(''); setSchool(user?.school || ''); setError(''); setResult(null); }
+  }, [open, initialCode, user?.school]);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,7 +33,8 @@ export default function RequestSheet({ open, onClose, initialCode = '' }: { open
     setBusy(true);
     setError('');
     try {
-      setResult(await api<Result>('/paper-requests', 'POST', { unitCode: code, note: note || undefined }));
+      setResult(await api<Result>('/paper-requests', 'POST', { unitCode: code, note: note || undefined, school }));
+      if (user) setUser({ ...user, school: school.trim() });
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -77,6 +81,11 @@ export default function RequestSheet({ open, onClose, initialCode = '' }: { open
                 <div className="flex flex-col gap-1.5">
                   <label htmlFor="req-code" className="text-[13px] font-bold">Unit code</label>
                   <input id="req-code" value={code} onChange={e => setCode(e.target.value)} placeholder="e.g. ICS2201" autoCapitalize="characters" required className={field} />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <label htmlFor="req-school" className="text-[13px] font-bold">Your school</label>
+                  <input id="req-school" list="req-schools" value={school} onChange={e => setSchool(e.target.value)} maxLength={80} placeholder="e.g. Pure and Applied Sciences" required minLength={2} className={field} />
+                  <datalist id="req-schools">{SCHOOLS.map(x => <option key={x} value={x} />)}</datalist>
                 </div>
                 <div className="flex flex-col gap-1.5">
                   <label htmlFor="req-note" className="text-[13px] font-bold">Anything we should know? <span className="font-medium text-muted">(optional)</span></label>

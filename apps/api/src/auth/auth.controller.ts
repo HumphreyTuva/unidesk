@@ -3,7 +3,7 @@ import { Throttle } from '@nestjs/throttler';
 import type { Response } from 'express';
 import { AuthService } from './auth.service';
 import { COOKIE, JwtGuard } from './guards';
-import { GoogleDto, LoginDto, RegisterDto } from './dto';
+import { ForgotDto, GoogleDto, LoginDto, RegisterDto, ResetDto } from './dto';
 
 const cookieOptions = () => ({
   httpOnly: true, // JavaScript on the page can never read this cookie
@@ -35,6 +35,16 @@ export class AuthController {
   @Post('google') @HttpCode(200) @Throttle({ default: { limit: 20, ttl: 60_000 } })
   async google(@Body() dto: GoogleDto, @Res({ passthrough: true }) res: Response) {
     return this.send(res, await this.auth.googleSignIn(dto.credential));
+  }
+
+  @Post('forgot-password') @HttpCode(200) @Throttle({ default: { limit: 5, ttl: 600_000 } })
+  forgot(@Body() dto: ForgotDto) {
+    return this.auth.forgotPassword(dto.identifier);
+  }
+
+  @Post('reset-password') @HttpCode(200) @Throttle({ default: { limit: 10, ttl: 600_000 } })
+  async reset(@Body() dto: ResetDto, @Res({ passthrough: true }) res: Response) {
+    return this.send(res, await this.auth.resetPassword(dto.token, dto.password));
   }
 
   @Post('logout') @HttpCode(200)

@@ -69,3 +69,39 @@ export function paperReadyEmail(opts: { hi: string; paper: ReadyPaper; link: str
 </body></html>`;
   return { text, html };
 }
+
+export function passwordResetEmail(opts: { hi: string; link: string; site: string }) {
+  const { hi, link, site } = opts;
+  const text = [
+    `Hi ${hi},`,
+    '',
+    'We got a request to reset your UniDesk password. Open this link to choose a new one (it works for 30 minutes):',
+    link,
+    '',
+    'If you did not ask for this, you can ignore this email. Your password stays the same.',
+    '',
+    `UniDesk (${site}) is an independent student app, not the official KU portal.`,
+  ].join('\n');
+  const html = `<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light"><title>Reset your UniDesk password</title></head>
+<body style="margin:0;padding:0;background:#EEF2FA;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#EEF2FA" style="background:#EEF2FA;">
+<tr><td align="center" style="padding:28px 12px;">
+  <table role="presentation" width="560" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:560px;">
+    <tr><td align="left" style="padding:0 4px 14px;"><a href="${site}" style="text-decoration:none;"><img src="${site}/icons/email-logo.png" width="150" alt="UniDesk" style="display:block;width:150px;height:auto;border:0;"></a></td></tr>
+    <tr><td bgcolor="#FFFFFF" style="background:#FFFFFF;border-radius:18px;border:1px solid #DDE3F0;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr><td height="6" bgcolor="#F5A200" style="height:6px;line-height:6px;font-size:0;background:#F5A200;border-radius:18px 18px 0 0;">&nbsp;</td></tr>
+        <tr><td style="padding:30px;font-family:Arial,Helvetica,sans-serif;color:#0F1F4D;">
+          <h1 style="margin:0 0 14px;font-size:24px;line-height:1.25;color:#0F1F4D;">Reset your password</h1>
+          <p style="margin:0 0 20px;font-size:16px;line-height:1.55;color:#33415F;">Hi ${esc(hi)}, we got a request to reset your UniDesk password. The link below works for 30 minutes.</p>
+          <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td bgcolor="#1B3A8A" style="background:#1B3A8A;border-radius:12px;"><a href="${esc(link)}" style="display:inline-block;padding:14px 26px;font-size:16px;font-weight:bold;color:#FFFFFF;text-decoration:none;">Choose a new password</a></td></tr></table>
+          <p style="margin:22px 0 0;font-size:13px;line-height:1.5;color:#5B6785;">If you did not ask for this, ignore this email and your password stays the same.</p>
+        </td></tr>
+      </table>
+    </td></tr>
+    <tr><td style="padding:16px 4px;font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:1.5;color:#6B7794;">UniDesk is an independent student app, not the official KU portal. <a href="${site}" style="color:#1B3A8A;">${site.replace(/^https?:\/\//, '')}</a></td></tr>
+  </table>
+</td></tr></table></body></html>`;
+  return { subject: 'Reset your UniDesk password', html, text };
+}

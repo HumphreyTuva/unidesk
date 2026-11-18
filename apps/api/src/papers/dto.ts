@@ -34,6 +34,7 @@ export class AdminListQuery {
 export class CreateRequestDto {
   @IsString() @MinLength(4) @MaxLength(14) unitCode: string;
   @IsOptional() @IsString() @MaxLength(300) note?: string;
+  @IsString() @MinLength(2, { message: 'Tell us your school' }) @MaxLength(80) school: string;
 }
 
 export class UpdateRequestDto {

@@ -127,10 +127,13 @@ export class PapersService {
   }
 
   // ---- requests ----
-  async createRequest(userId: string, unitCodeRaw: string, note?: string) {
+  async createRequest(userId: string, unitCodeRaw: string, note?: string, schoolRaw?: string) {
     const unitCode = normalizeUnitCode(unitCodeRaw);
     if (!UNIT_CODE_RE.test(unitCode)) throw new BadRequestException('Enter a unit code like ICS2201');
     const universityId = await this.uni.defaultId();
+    const school = schoolRaw?.trim().replace(/\s+/g, ' ').slice(0, 80) || null;
+    // Remember it on the account so the next form is pre-filled.
+    if (school) await this.db.user.update({ where: { id: userId }, data: { school } });
 
     // Already have this paper? Say so instead of creating a request.
     const have = await this.db.paper.findFirst({ where: { universityId, unitCode, published: true }, select: { id: true } });
@@ -138,7 +141,7 @@ export class PapersService {
 
     const open = await this.db.paperRequest.findFirst({ where: { userId, unitCode, status: 'OPEN' } });
     if (open) return { status: 'ALREADY_REQUESTED' as const };
-    await this.db.paperRequest.create({ data: { universityId, userId, unitCode, note: note?.trim() || null } });
+    await this.db.paperRequest.create({ data: { universityId, userId, unitCode, note: note?.trim() || null, school } });
     return { status: 'REQUESTED' as const };
   }
 
@@ -270,15 +273,18 @@ export class PapersService {
       where: { status: 'OPEN' },
       orderBy: { createdAt: 'desc' },
       take: 300,
-      include: { user: { select: { name: true, username: true, email: true } } },
+      include: { user: { select: { name: true, username: true, usernameDisplay: true, email: true, school: true } } },
     });
     // Group by unit so the admin sees which papers are wanted most.
-    type Group = { unitCode: string; count: number; latest: Date; notes: string[] };
+    type Who = { name: string; contact: string; school: string | null; at: Date; note: string | null };
+    type Group = { unitCode: string; count: number; latest: Date; notes: string[]; who: Who[] };
     const byUnit = new Map<string, Group>();
     for (const r of rows) {
-      const g: Group = byUnit.get(r.unitCode) ?? { unitCode: r.unitCode, count: 0, latest: r.createdAt, notes: [] };
+      const g: Group = byUnit.get(r.unitCode) ?? { unitCode: r.unitCode, count: 0, latest: r.createdAt, notes: [], who: [] };
       g.count++;
       if (r.note && g.notes.length < 3) g.notes.push(r.note);
+      // Who asked, newest first (rows are already newest first). Capped so a popular unit does not make a huge response.
+      if (g.who.length < 25) g.who.push({ name: r.user.name || r.user.usernameDisplay || r.user.username || 'Student', contact: r.user.email || r.user.usernameDisplay || r.user.username || '', school: r.school || r.user.school || null, at: r.createdAt, note: r.note });
       byUnit.set(r.unitCode, g);
     }
     return [...byUnit.values()].sort((a, b) => b.count - a.count || +b.latest - +a.latest);

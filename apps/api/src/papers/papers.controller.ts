@@ -69,7 +69,7 @@ export class PapersController {
 
   @Post('paper-requests') @UseGuards(JwtGuard) @Throttle({ default: { limit: 10, ttl: 600_000 } })
   request(@Req() req: any, @Body() dto: CreateRequestDto) {
-    return this.papers.createRequest(req.user.id, dto.unitCode, dto.note);
+    return this.papers.createRequest(req.user.id, dto.unitCode, dto.note, dto.school);
   }
 
   @Get('paper-requests/mine') @UseGuards(JwtGuard)

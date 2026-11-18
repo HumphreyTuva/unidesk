@@ -88,6 +88,7 @@ model User {
   role          Role       @default(STUDENT)
   createdAt     DateTime   @default(now())
   deletedAt     DateTime?
+  school        String? // set the first time they request a paper; used to pre-fill forms
 
   paperRequests PaperRequest[]
   paperAccess   PaperAccess[]
@@ -148,6 +149,7 @@ model PaperRequest {
   user         User          @relation(fields: [userId], references: [id])
   unitCode     String
   note         String?
+  school       String? // the requester's school, so the admin knows who needs the paper
   status       RequestStatus @default(OPEN)
   paperId      String? // set when the admin uploads the paper
   paper        Paper?        @relation(fields: [paperId], references: [id])

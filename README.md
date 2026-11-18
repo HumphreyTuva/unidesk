@@ -180,3 +180,7 @@ Step-by-step guides (graduation, unit registration, resuming studies, missed exa
 
 ### More procedures (Nov 2026)
 Late unit registration, late fee payment (with appeal), extra units/retakes (letters via `lib/letters.ts`) and Eduroam Wi-Fi setup were added to `content/procedures.ts`. Run `npm run sync:content` after editing it.
+
+## Forgot password, school on requests
+- **Forgot password:** `/forgot-password` emails a link (valid 30 minutes, single use: it stops working once the password changes) to `/reset-password`. Needs `RESEND_API_KEY`, `MAIL_FROM` and `SITE_URL`. Accounts with only a username have no email, and admin emails use Google only, so neither gets a link.
+- **School:** new `school` columns on `User` and `PaperRequest` (migration `20261118120000_school_on_requests`, applied by Render's `db:deploy` on start). The request sheet asks for the school once and pre-fills it afterwards, and letter forms use it too. Admin → Paper requests → "Who asked" lists name, contact, school and time.
