@@ -191,10 +191,11 @@ export default function Timetable() {
     const rows = classes.map(r => ({ code: r.code, day: r.day, startHour: r.startHour, endHour: r.endHour, venue: r.venue, elearning: r.elearning, note: notes[noteKeyOf(r)] }));
     const blob = new Blob([buildIcs(rows, { remindMins: remind.on ? remind.mins : null, weeks: remind.weeks })], { type: 'text/calendar;charset=utf-8' });
     const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob); a.download = 'unidesk-classes.ics';
+    const t = new Date(); const tag = `${String(t.getHours()).padStart(2, '0')}${String(t.getMinutes()).padStart(2, '0')}${String(t.getSeconds()).padStart(2, '0')}`;
+    a.href = URL.createObjectURL(blob); a.download = `unidesk-classes-${tag}.ics`;
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(a.href), 3000);
-    toast.ok(remind.on ? `Opening your calendar. Each class will remind you ${remind.mins} minutes before.` : 'Opening your calendar.');
+    toast.ok('Calendar file downloaded. Open it (tap the download notice) and choose Calendar to add your classes.');
   };
 
   const hasRows = kind === 'class' ? classes.length > 0 : exams.length > 0;
@@ -309,7 +310,7 @@ export default function Timetable() {
                     </div>
                   </div>
                   <button type="button" onClick={downloadCalendar} className="mt-3 flex h-12 w-full items-center justify-center gap-2 rounded-2xl bg-brand text-[15px] font-bold text-white"><CalendarPlus size={18} aria-hidden /> Add to my calendar</button>
-                  <p className="mt-2 text-[12px] text-muted">Opens in your phone's calendar. If you change the timetable, add it again. Tap a class to write a note; it shows in the reminder.</p>
+                  <p className="mt-2 text-[12px] text-muted">Downloads a calendar file. Open it and your phone's calendar adds the classes. If you change the timetable, add it again. Tap a class to write a note; it shows in the reminder.</p>
                 </div>
               )}
 
