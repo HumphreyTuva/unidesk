@@ -25,7 +25,7 @@ const editKey = (k: Kind) => `unidesk_edits_${k}`;
 const NOTES_KEY = 'unidesk_class_notes';
 const REMIND_KEY = 'unidesk_class_reminders';
 const noteKeyOf = (r: { code: string; day: string; startHour: number }) => `${r.code}|${r.day}|${r.startHour}`;
-type Remind = { on: boolean; mins: number; weeks: number };
+type Remind = { on: boolean; mins: number; weeks: number; custom: boolean };
 const catOf = (r: ClassRow): Cat => (r.elearning ? 'elearning' : !r.venue ? 'other' : /LAB/i.test(r.venue) ? 'lab' : 'campus');
 const applyEdits = <T extends { id: string }>(base: T[], e: Edits<T>): T[] => [...base.filter(r => !e.del.includes(r.id)).map(r => ({ ...r, ...(e.mod[r.id] ?? {}) })), ...e.add];
 const classClashes = (rows: ClassRow[]) => {
@@ -75,11 +75,13 @@ export default function Timetable() {
   const seq = useRef(0);
   // Notes on classes and the reminder choice stay on this phone. Reminders are on by default.
   const [notes, setNotes] = useState<Record<string, string>>({});
-  const [remind, setRemind] = useState<Remind>({ on: true, mins: 30, weeks: 10 });
+  const [remind, setRemind] = useState<Remind>({ on: true, mins: 30, weeks: 10, custom: false });
   const [prefsLoaded, setPrefsLoaded] = useState(false);
+  const [customText, setCustomText] = useState('30');
+  useEffect(() => { setCustomText(String(remind.mins)); }, [prefsLoaded]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     try { const n = JSON.parse(localStorage.getItem(NOTES_KEY) || '{}'); if (n && typeof n === 'object') setNotes(n); } catch {}
-    try { const r = JSON.parse(localStorage.getItem(REMIND_KEY) || 'null'); if (r && typeof r.on === 'boolean') setRemind({ on: r.on, mins: REMIND_CHOICES.includes(r.mins) ? r.mins : 30, weeks: WEEK_CHOICES.includes(r.weeks) ? r.weeks : 10 }); } catch {}
+    try { const r = JSON.parse(localStorage.getItem(REMIND_KEY) || 'null'); if (r && typeof r.on === 'boolean') { const m = Number.isInteger(r.mins) && r.mins >= 1 && r.mins <= 1440 ? r.mins : 30; setRemind({ on: r.on, mins: m, weeks: WEEK_CHOICES.includes(r.weeks) ? r.weeks : 10, custom: !REMIND_CHOICES.includes(m) }); } } catch {}
     setPrefsLoaded(true);
   }, []);
   useEffect(() => { if (prefsLoaded) try { localStorage.setItem(NOTES_KEY, JSON.stringify(notes)); } catch {} }, [notes, prefsLoaded]);
@@ -282,15 +284,22 @@ export default function Timetable() {
                 <div className="mb-4 rounded-2xl border-[1.5px] border-line bg-card p-3.5 print:hidden">
                   <div className="flex items-center gap-3">
                     <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-soft text-brand-ink"><Bell size={19} aria-hidden /></span>
-                    <span className="min-w-0 flex-1"><span className="block text-[15px] font-bold">Class reminders</span><span className="block text-[13px] text-muted">{remind.on ? `A reminder ${remind.mins} minutes before each class, from your phone's calendar.` : 'Off. Your calendar will not remind you.'}</span></span>
+                    <span className="min-w-0 flex-1"><span className="block text-[15px] font-bold">Class reminders</span><span className="block text-[13px] text-muted">{remind.on ? `A reminder ${remind.mins === 1 ? '1 minute' : `${remind.mins} minutes`} before each class, from your phone's calendar.` : 'Off. Your calendar will not remind you.'}</span></span>
                     <button type="button" role="switch" aria-checked={remind.on} aria-label="Class reminders" onClick={() => setRemind(r => ({ ...r, on: !r.on }))} className={`relative h-8 w-[52px] shrink-0 rounded-full transition-colors ${remind.on ? 'bg-brand' : 'bg-edge'}`}><span className={`absolute top-1 h-6 w-6 rounded-full bg-white shadow transition-all ${remind.on ? 'left-[24px]' : 'left-1'}`} /></button>
                   </div>
                   {remind.on && (
                     <div className="mt-3">
                       <p className="mb-1.5 text-[13px] font-bold text-muted">Remind me before class</p>
                       <div className="flex flex-wrap gap-2">
-                        {REMIND_CHOICES.map(m => <button key={m} type="button" onClick={() => setRemind(r => ({ ...r, mins: m }))} className={`h-10 rounded-full border-[1.5px] px-3.5 text-[14px] font-bold ${remind.mins === m ? 'border-brand bg-brand text-white' : 'border-edge bg-card'}`}>{m === 60 ? '1 hour' : `${m} min`}</button>)}
+                        {REMIND_CHOICES.map(m => <button key={m} type="button" onClick={() => setRemind(r => ({ ...r, mins: m, custom: false }))} className={`h-10 rounded-full border-[1.5px] px-3.5 text-[14px] font-bold ${!remind.custom && remind.mins === m ? 'border-brand bg-brand text-white' : 'border-edge bg-card'}`}>{m === 60 ? '1 hour' : `${m} min`}</button>)}
+                        <button type="button" onClick={() => setRemind(r => ({ ...r, custom: true }))} className={`h-10 rounded-full border-[1.5px] px-3.5 text-[14px] font-bold ${remind.custom ? 'border-brand bg-brand text-white' : 'border-edge bg-card'}`}>Custom</button>
                       </div>
+                      {remind.custom && (
+                        <label className="mt-2 flex items-center gap-2 text-[14px] font-semibold">
+                          <input className="h-11 w-24 rounded-xl border-[1.5px] border-edge bg-card px-3 text-center text-[15px]" inputMode="numeric" aria-label="Minutes before class" value={customText} onChange={e => { const t = e.target.value.replace(/\D/g, '').slice(0, 4); setCustomText(t); const n = Number(t); if (n >= 1 && n <= 1440) setRemind(r => ({ ...r, mins: n })); }} onBlur={() => setCustomText(String(remind.mins))} />
+                          minutes before class (1 to 1440)
+                        </label>
+                      )}
                     </div>
                   )}
                   <div className="mt-3">
