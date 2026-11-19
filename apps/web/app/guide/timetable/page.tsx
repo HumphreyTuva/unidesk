@@ -1,9 +1,10 @@
 'use client';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
-import { AlertTriangle, ArrowLeft, Download, ImageIcon, Loader2, Pencil, Plus, Printer, RotateCcw, Trash2, X } from 'lucide-react';
+import { AlertTriangle, ArrowLeft, Bell, CalendarPlus, Download, ImageIcon, Loader2, Pencil, Plus, Printer, RotateCcw, StickyNote, Trash2, X } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useToast } from '@/lib/toast';
+import { REMIND_CHOICES, WEEK_CHOICES, buildIcs } from '@/lib/timetableIcs';
 import { CAT, CLASH, DESIGNS, MAX_SIDE, MIN_SIDE, SIZE_PRESETS, clampSide, hourLabel, renderTimetablePng, type Cat, type Design, type ExDay, type ExText } from '@/lib/timetableExport';
 
 type Kind = 'class' | 'exam';
@@ -21,6 +22,10 @@ const HOURS = Array.from({ length: 16 }, (_, i) => 6 + i);
 type Edits<T> = { del: string[]; mod: Record<string, Partial<T>>; add: T[] };
 const noEdits = <T,>(): Edits<T> => ({ del: [], mod: {}, add: [] });
 const editKey = (k: Kind) => `unidesk_edits_${k}`;
+const NOTES_KEY = 'unidesk_class_notes';
+const REMIND_KEY = 'unidesk_class_reminders';
+const noteKeyOf = (r: { code: string; day: string; startHour: number }) => `${r.code}|${r.day}|${r.startHour}`;
+type Remind = { on: boolean; mins: number; weeks: number };
 const catOf = (r: ClassRow): Cat => (r.elearning ? 'elearning' : !r.venue ? 'other' : /LAB/i.test(r.venue) ? 'lab' : 'campus');
 const applyEdits = <T extends { id: string }>(base: T[], e: Edits<T>): T[] => [...base.filter(r => !e.del.includes(r.id)).map(r => ({ ...r, ...(e.mod[r.id] ?? {}) })), ...e.add];
 const classClashes = (rows: ClassRow[]) => {
@@ -36,7 +41,7 @@ const examClashes = (rows: ExamRow[]) => {
 const dayIdx = (d: string) => { const i = DAYS.indexOf(d); return i < 0 ? 99 : i; };
 
 
-type Draft = { id: string; isNew: boolean; code: string; day: string; start: string; end: string; venue: string; elearning: boolean; date: string; slot: string };
+type Draft = { note: string; noteKey: string; id: string; isNew: boolean; code: string; day: string; start: string; end: string; venue: string; elearning: boolean; date: string; slot: string };
 
 export default function Timetable() {
   const [kind, setKind] = useState<Kind>('class');
@@ -68,6 +73,17 @@ export default function Timetable() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
   const seq = useRef(0);
+  // Notes on classes and the reminder choice stay on this phone. Reminders are on by default.
+  const [notes, setNotes] = useState<Record<string, string>>({});
+  const [remind, setRemind] = useState<Remind>({ on: true, mins: 30, weeks: 10 });
+  const [prefsLoaded, setPrefsLoaded] = useState(false);
+  useEffect(() => {
+    try { const n = JSON.parse(localStorage.getItem(NOTES_KEY) || '{}'); if (n && typeof n === 'object') setNotes(n); } catch {}
+    try { const r = JSON.parse(localStorage.getItem(REMIND_KEY) || 'null'); if (r && typeof r.on === 'boolean') setRemind({ on: r.on, mins: REMIND_CHOICES.includes(r.mins) ? r.mins : 30, weeks: WEEK_CHOICES.includes(r.weeks) ? r.weeks : 10 }); } catch {}
+    setPrefsLoaded(true);
+  }, []);
+  useEffect(() => { if (prefsLoaded) try { localStorage.setItem(NOTES_KEY, JSON.stringify(notes)); } catch {} }, [notes, prefsLoaded]);
+  useEffect(() => { if (prefsLoaded) try { localStorage.setItem(REMIND_KEY, JSON.stringify(remind)); } catch {} }, [remind, prefsLoaded]);
 
   useEffect(() => { api('/timetable/info').then(setInfo).catch(() => setInfo({ class: null, exam: null })); }, []);
   // Remember each student's units and changes on this phone only.
@@ -119,8 +135,8 @@ export default function Timetable() {
   const changed = kind === 'class' ? cEdits.del.length + cEdits.add.length + Object.keys(cEdits.mod).length > 0 : eEdits.del.length + eEdits.add.length + Object.keys(eEdits.mod).length > 0;
 
   const openEdit = (r?: ClassRow | ExamRow) => {
-    const base: Draft = { id: '', isNew: !r, code: '', day: 'Monday', start: '8', end: '10', venue: '', elearning: false, date: new Date().toISOString().slice(0, 10), slot: '' };
-    if (r && 'day' in r) setDraft({ ...base, id: r.id, code: r.code, day: r.day, start: String(r.startHour), end: String(r.endHour), venue: r.venue ?? '', elearning: r.elearning });
+    const base: Draft = { note: '', noteKey: '', id: '', isNew: !r, code: '', day: 'Monday', start: '8', end: '10', venue: '', elearning: false, date: new Date().toISOString().slice(0, 10), slot: '' };
+    if (r && 'day' in r) setDraft({ ...base, note: notes[noteKeyOf(r)] ?? '', noteKey: noteKeyOf(r), id: r.id, code: r.code, day: r.day, start: String(r.startHour), end: String(r.endHour), venue: r.venue ?? '', elearning: r.elearning });
     else if (r) setDraft({ ...base, id: r.id, code: r.code, date: r.date, slot: r.slot, venue: r.venues.join(', ') });
     else setDraft(base);
   };
@@ -138,6 +154,8 @@ export default function Timetable() {
       const s = Number(draft.start), e = Number(draft.end);
       if (!(e > s)) { setError('The end time must be after the start time.'); return; }
       const row: ClassRow = { id: draft.isNew ? `x${Date.now()}` : draft.id, code, day: draft.day, startHour: s, endHour: e, venue: draft.elearning ? null : draft.venue.trim() || null, elearning: draft.elearning };
+      const nk = noteKeyOf(row), text = draft.note.trim().slice(0, 200);
+      setNotes(n => { const m = { ...n }; if (draft.noteKey && draft.noteKey !== nk) delete m[draft.noteKey]; if (text) m[nk] = text; else delete m[nk]; return m; });
       setCEdits(ed => draft.isNew ? { ...ed, add: [...ed.add, row] } : ed.add.some(a => a.id === row.id) ? { ...ed, add: ed.add.map(a => (a.id === row.id ? row : a)) } : { ...ed, mod: { ...ed.mod, [row.id]: row } });
     } else {
       const row: ExamRow = { id: draft.isNew ? `x${Date.now()}` : draft.id, code, date: draft.date, slot: draft.slot.trim() || 'Time not set', students: null, venues: draft.venue.split(',').map(v => v.trim()).filter(Boolean) };
@@ -166,6 +184,16 @@ export default function Timetable() {
       <button type="button" onClick={() => { if (window.confirm(`Remove ${r.code} from your timetable?`)) del(id); }} aria-label={`Remove ${r.code}`} className="flex h-10 w-10 items-center justify-center rounded-full text-danger"><Trash2 size={17} aria-hidden /></button>
     </span>
   );
+
+  const downloadCalendar = () => {
+    const rows = classes.map(r => ({ code: r.code, day: r.day, startHour: r.startHour, endHour: r.endHour, venue: r.venue, elearning: r.elearning, note: notes[noteKeyOf(r)] }));
+    const blob = new Blob([buildIcs(rows, { remindMins: remind.on ? remind.mins : null, weeks: remind.weeks })], { type: 'text/calendar;charset=utf-8' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob); a.download = 'unidesk-classes.ics';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 3000);
+    toast.ok(remind.on ? `Opening your calendar. Each class will remind you ${remind.mins} minutes before.` : 'Opening your calendar.');
+  };
 
   const hasRows = kind === 'class' ? classes.length > 0 : exams.length > 0;
   const clashCount = kind === 'class' ? cClash.length : eClash.length;
@@ -251,6 +279,32 @@ export default function Timetable() {
               </div>
 
               {cls && classes.length > 0 && (
+                <div className="mb-4 rounded-2xl border-[1.5px] border-line bg-card p-3.5 print:hidden">
+                  <div className="flex items-center gap-3">
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-soft text-brand-ink"><Bell size={19} aria-hidden /></span>
+                    <span className="min-w-0 flex-1"><span className="block text-[15px] font-bold">Class reminders</span><span className="block text-[13px] text-muted">{remind.on ? `A reminder ${remind.mins} minutes before each class, from your phone's calendar.` : 'Off. Your calendar will not remind you.'}</span></span>
+                    <button type="button" role="switch" aria-checked={remind.on} aria-label="Class reminders" onClick={() => setRemind(r => ({ ...r, on: !r.on }))} className={`relative h-8 w-[52px] shrink-0 rounded-full transition-colors ${remind.on ? 'bg-brand' : 'bg-edge'}`}><span className={`absolute top-1 h-6 w-6 rounded-full bg-white shadow transition-all ${remind.on ? 'left-[24px]' : 'left-1'}`} /></button>
+                  </div>
+                  {remind.on && (
+                    <div className="mt-3">
+                      <p className="mb-1.5 text-[13px] font-bold text-muted">Remind me before class</p>
+                      <div className="flex flex-wrap gap-2">
+                        {REMIND_CHOICES.map(m => <button key={m} type="button" onClick={() => setRemind(r => ({ ...r, mins: m }))} className={`h-10 rounded-full border-[1.5px] px-3.5 text-[14px] font-bold ${remind.mins === m ? 'border-brand bg-brand text-white' : 'border-edge bg-card'}`}>{m === 60 ? '1 hour' : `${m} min`}</button>)}
+                      </div>
+                    </div>
+                  )}
+                  <div className="mt-3">
+                    <p className="mb-1.5 text-[13px] font-bold text-muted">Repeat every week for</p>
+                    <div className="flex flex-wrap gap-2">
+                      {WEEK_CHOICES.map(w => <button key={w} type="button" onClick={() => setRemind(r => ({ ...r, weeks: w }))} className={`h-10 rounded-full border-[1.5px] px-3.5 text-[14px] font-bold ${remind.weeks === w ? 'border-brand bg-brand text-white' : 'border-edge bg-card'}`}>{w} weeks</button>)}
+                    </div>
+                  </div>
+                  <button type="button" onClick={downloadCalendar} className="mt-3 flex h-12 w-full items-center justify-center gap-2 rounded-2xl bg-brand text-[15px] font-bold text-white"><CalendarPlus size={18} aria-hidden /> Add to my calendar</button>
+                  <p className="mt-2 text-[12px] text-muted">Opens in your phone's calendar. If you change the timetable, add it again. Tap a class to write a note; it shows in the reminder.</p>
+                </div>
+              )}
+
+              {cls && classes.length > 0 && (
                 <div className="mb-5 hidden md:block print:hidden">
                   <div className="overflow-x-auto rounded-2xl border-[1.5px] border-line bg-card p-2">
                     <div style={{ minWidth: 96 + gridCols * 84 }}>
@@ -273,7 +327,7 @@ export default function Timetable() {
                                   <button key={r.id} type="button" onClick={() => openEdit(r)} aria-label={`Edit ${r.code}`} className="pastel absolute overflow-hidden rounded-lg border-2 px-2 py-1 text-left"
                                     style={{ left: `${((r.startHour - gridFrom) / gridCols) * 100}%`, width: `${((r.endHour - r.startHour) / gridCols) * 100}%`, top: lane * 58 + 3, height: 52, ['--p-bg' as string]: c.bg, ['--p-dbg' as string]: c.dbg, borderColor: c.border }}>
                                     <span className="block truncate text-[13px] font-extrabold leading-tight">{r.code}</span>
-                                    <span className="block truncate text-[11px] font-semibold text-muted">{r.elearning ? 'Online' : r.venue ?? 'Venue not listed'}</span>
+                                    <span className="block truncate text-[11px] font-semibold text-muted">{notes[noteKeyOf(r)] ? '📝 ' : ''}{r.elearning ? 'Online' : r.venue ?? 'Venue not listed'}</span>
                                   </button>
                                 );
                               })}
@@ -300,7 +354,7 @@ export default function Timetable() {
                         return (
                           <li key={r.id} className="flex items-center gap-2 rounded-[16px] border-[1.5px] bg-card py-2 pl-4 pr-1" style={{ borderColor: c.border, borderLeftWidth: 6 }}>
                             <span className="w-[74px] shrink-0 text-[13px] font-bold text-brand-ink">{hr(r.startHour)}-{hr(r.endHour)}</span>
-                            <span className="min-w-0 flex-1"><span className="block text-[15px] font-bold">{r.code}</span><span className="block text-[13px] text-muted">{r.elearning ? 'E-learning (online)' : r.venue ? <Link href={`/guide/venues?q=${encodeURIComponent(r.venue)}`} className="font-semibold text-brand-ink underline print:no-underline">{r.venue}</Link> : 'Venue not listed'}</span></span>
+                            <span className="min-w-0 flex-1"><span className="block text-[15px] font-bold">{r.code}</span><span className="block text-[13px] text-muted">{r.elearning ? 'E-learning (online)' : r.venue ? <Link href={`/guide/venues?q=${encodeURIComponent(r.venue)}`} className="font-semibold text-brand-ink underline print:no-underline">{r.venue}</Link> : 'Venue not listed'}</span>{notes[noteKeyOf(r)] && <span className="mt-0.5 flex items-start gap-1 text-[13px] font-medium text-ink"><StickyNote size={13} className="mt-[3px] shrink-0 text-muted" aria-hidden /><span className="min-w-0 break-words">{notes[noteKeyOf(r)]}</span></span>}</span>
                             {rowButtons(r.id, r)}
                           </li>
                         );
@@ -386,6 +440,7 @@ function EditDialog({ kind, draft, setDraft, onSave }: { kind: Kind; draft: Draf
             </div>
             <label className="flex items-center gap-2 text-[15px] font-semibold"><input type="checkbox" className="h-5 w-5" checked={draft.elearning} onChange={e => set({ elearning: e.target.checked })} /> E-learning (online)</label>
             {!draft.elearning && <Field label="Venue"><input className={inputCls} value={draft.venue} onChange={e => set({ venue: e.target.value })} placeholder="e.g. SOE6" /></Field>}
+            <Field label="Note (optional)"><textarea className={`${inputCls} !h-auto min-h-[76px] py-3`} value={draft.note} maxLength={200} onChange={e => set({ note: e.target.value })} placeholder="e.g. Bring calculator. CAT today." /></Field>
           </>
         ) : (
           <>

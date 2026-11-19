@@ -193,3 +193,6 @@ Poster and dark designs lay the days out in rows that stretch to use the whole p
 
 ### Two more timetable designs
 **Vivid** (a colour per weekday on dark) and **Colour bands** (light, coloured day headers) are in `lib/timetableExport.ts` next to Auto, Weekly grid, Poster and Dark poster. Both put the time in a pill beside the unit, show clashes with a red outline, and fill the picture like the other poster designs.
+
+### Class reminders and notes (Timetable only)
+In **Guide → Timetable → Classes**, once a timetable is made, a "Class reminders" card appears (reminders on by default, switch to turn off). The student picks 15 / 30 / 60 minutes before and how many weeks to repeat (8, 10 or 12), then taps **Add to my calendar**. `lib/timetableIcs.ts` builds a `.ics` file: one weekly event per class with a built-in reminder, the venue, and the student's note. The phone's own calendar rings the reminder, so it works offline and with UniDesk closed. Re-adding updates the same events (stable UID). Notes and the reminder choice stay on the phone (`unidesk_class_notes`, `unidesk_class_reminders`); a note is written in the class's Edit dialog. Nothing is added to the homepage and no server change is needed. Real push notifications would need the timetable saved per account on the server plus a scheduler; not built.
