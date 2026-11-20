@@ -30,7 +30,7 @@ self.addEventListener('push', e => {
   e.waitUntil(self.registration.showNotification(d.title || 'UniDesk', {
     body: d.body || '',
     icon: '/icons/icon-192.png',
-    badge: '/icons/icon-192.png',
+    badge: '/icons/badge-96.png', // small status-bar icon: Android needs a plain white shape on transparent
     tag: d.tag || undefined,
     data: { url: d.url || '/' },
   }));
