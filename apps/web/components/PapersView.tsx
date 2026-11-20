@@ -6,17 +6,20 @@ import { api } from '@/lib/api';
 import RequestSheet from '@/components/RequestSheet';
 import MyRequests from '@/components/MyRequests';
 import { useAuth } from '@/lib/auth';
+import { SCHOOLS } from '@/lib/schools';
+
+const SCHOOL_KEY = 'unidesk_papers_school';
 
 type Paper = { id: string; unitCode: string; title: string; year: number; sitting: string | null; school: string | null; hasPreview: boolean };
 type Page = { items: Paper[]; nextCursor: string | null };
 
-function PaperRow({ p, mine }: { p: Paper; mine?: boolean }) {
+function PaperRow({ p, mine, school }: { p: Paper; mine?: boolean; school?: boolean }) {
   return (
           <li>
             <Link href={`/papers/${p.id}`} className="flex min-h-[68px] items-center gap-3.5 rounded-[18px] border-[1.5px] border-line bg-card px-4 py-3">
               <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-soft text-brand-ink"><FileText size={22} aria-hidden /></span>
               <span className="min-w-0 flex-1">
-                <span className="block text-[15px] font-bold">{p.unitCode} <span className="font-medium text-muted">· {p.year}</span>{mine && <span className="ml-2 rounded-full bg-brand-soft px-2 py-0.5 text-[11px] font-bold text-brand-ink">Your unit</span>}</span>
+                <span className="block text-[15px] font-bold">{p.unitCode} <span className="font-medium text-muted">· {p.year}</span>{mine && <span className="ml-2 rounded-full bg-brand-soft px-2 py-0.5 text-[11px] font-bold text-brand-ink">Your unit</span>}{!mine && school && <span className="ml-2 rounded-full bg-brand-soft px-2 py-0.5 text-[11px] font-bold text-brand-ink">Your school</span>}</span>
                 <span className="block truncate text-[13px] text-muted">{p.title}{p.sitting ? ` · ${p.sitting}` : ''}</span>
               </span>
               <ChevronRight size={20} className="shrink-0 text-muted" aria-hidden />
@@ -37,6 +40,31 @@ export default function PapersView({ initial }: { initial: Page | null }) {
   const [error, setError] = useState('');
   const [sheet, setSheet] = useState(false);
   const seq = useRef(0);
+  // School first: papers of the chosen school are listed ahead of the rest. Nothing is hidden.
+  const [school, setSchool] = useState('');
+  const [schoolItems, setSchoolItems] = useState<Paper[]>([]);
+  const pickedSchool = useRef(false);
+
+  useEffect(() => {
+    try { const v = localStorage.getItem(SCHOOL_KEY); if (v !== null) { pickedSchool.current = true; setSchool(v); } } catch {}
+  }, []);
+  useEffect(() => {
+    if (!pickedSchool.current && user?.school) setSchool(user.school);
+  }, [user]);
+  const chooseSchool = (v: string) => {
+    pickedSchool.current = true; setSchool(v);
+    try { localStorage.setItem(SCHOOL_KEY, v); } catch {}
+  };
+  useEffect(() => {
+    if (!school) { setSchoolItems([]); return; }
+    let live = true;
+    const t = setTimeout(() => {
+      const qs = new URLSearchParams({ school });
+      if (q.trim()) qs.set('q', q.trim());
+      api<Page>(`/papers?${qs}`).then(r => { if (live) setSchoolItems(r.items); }).catch(() => { if (live) setSchoolItems([]); });
+    }, 250);
+    return () => { live = false; clearTimeout(t); };
+  }, [school, q]);
 
   const load = useCallback(async (term: string, after?: string | null) => {
     const my = ++seq.current;
@@ -86,7 +114,9 @@ export default function PapersView({ initial }: { initial: Page | null }) {
   // One list: the student's own units first (when not searching), then everything else.
   const lead = q.trim() ? [] : mine;
   const mineIds = new Set(lead.map(p => p.id));
-  const shown = [...lead, ...items.filter(p => !mineIds.has(p.id))];
+  const schoolIds = new Set(schoolItems.filter(p => !mineIds.has(p.id)).map(p => p.id));
+  const schoolFirst = schoolItems.filter(p => schoolIds.has(p.id));
+  const shown = [...lead, ...schoolFirst, ...items.filter(p => !mineIds.has(p.id) && !schoolIds.has(p.id))];
 
   return (
     <main className="wide px-5 pt-[calc(24px+env(safe-area-inset-top))]">
@@ -105,11 +135,20 @@ export default function PapersView({ initial }: { initial: Page | null }) {
         />
       </label>
 
+      <label className="mt-3 flex items-center gap-3">
+        <span className="shrink-0 text-sm font-bold text-muted">School first</span>
+        <select value={school} onChange={e => chooseSchool(e.target.value)} className="h-11 min-w-0 flex-1 rounded-xl border-[1.5px] border-edge bg-card px-3 text-[15px]">
+          <option value="">All schools</option>
+          {SCHOOLS.map(s => <option key={s} value={s}>{s}</option>)}
+          {school && !SCHOOLS.includes(school) && <option value={school}>{school}</option>}
+        </select>
+      </label>
+
       {error && <p role="alert" className="mt-4 rounded-xl bg-danger-soft px-3.5 py-2.5 text-sm font-medium text-danger">{error}</p>}
 
       <ul className="cols-lg mt-4 flex flex-col gap-2.5">
         {shown.map(p => (
-          <PaperRow key={p.id} p={p} mine={mineIds.has(p.id)} />
+          <PaperRow key={p.id} p={p} mine={mineIds.has(p.id)} school={schoolIds.has(p.id)} />
         ))}
       </ul>
 
