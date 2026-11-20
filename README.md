@@ -206,3 +206,6 @@ Setup (once):
 2. Push the code. Render installs `web-push` and `npm run db:deploy` runs the `class_reminders` migration at start.
 3. Keep the API awake (UptimeRobot on `/api/v1/health`), because the minute check only runs while the server is up. A paid Render plan is the real fix.
 Without the keys the feature stays hidden ("coming soon") and nothing else changes. Android Chrome works straight away; on iPhone the app must be added to the Home Screen first.
+
+### School field everywhere
+Every school input offers the same suggestion list (`components/SchoolDatalist.tsx`, names in `lib/schools.ts`): paper requests, all letters, the call-off letter, and the admin paper upload and edit. People can still type their own. Add or rename a school in `lib/schools.ts` and it changes everywhere.

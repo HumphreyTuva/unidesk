@@ -1,4 +1,5 @@
 'use client';
+import SchoolDatalist, { SCHOOL_LIST_ID } from '@/components/SchoolDatalist';
 import { useState } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Check, FileUp, Loader2 } from 'lucide-react';
@@ -99,7 +100,8 @@ export default function UploadPaper() {
         </div>
         <div className="flex flex-col gap-1.5">
           <label htmlFor="school" className="text-[13px] font-bold">School <span className="font-medium text-muted">(optional)</span></label>
-          <input id="school" value={school} onChange={e => setSchool(e.target.value)} placeholder="School of Computing" className={field} />
+          <input id="school" list={SCHOOL_LIST_ID} value={school} onChange={e => setSchool(e.target.value)} placeholder="Choose or type a school" className={field} />
+          <SchoolDatalist />
         </div>
 
         {error && <p role="alert" className="rounded-xl bg-danger-soft px-3.5 py-2.5 text-sm font-medium text-danger">{error}</p>}

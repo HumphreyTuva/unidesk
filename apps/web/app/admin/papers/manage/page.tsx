@@ -1,4 +1,5 @@
 'use client';
+import SchoolDatalist, { SCHOOL_LIST_ID } from '@/components/SchoolDatalist';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Eye, EyeOff, FileUp, Loader2, Pencil, Search, Trash2 } from 'lucide-react';
@@ -117,7 +118,8 @@ export default function ManagePapers() {
                     <input value={form.year} onChange={e => setForm({ ...form, year: e.target.value })} type="number" inputMode="numeric" placeholder="Year" aria-label="Year" className={field} />
                     <input value={form.sitting} onChange={e => setForm({ ...form, sitting: e.target.value })} placeholder="Sitting" aria-label="Sitting" className={field} />
                   </div>
-                  <input value={form.school} onChange={e => setForm({ ...form, school: e.target.value })} placeholder="School" aria-label="School" className={field} />
+                  <input list={SCHOOL_LIST_ID} value={form.school} onChange={e => setForm({ ...form, school: e.target.value })} placeholder="School" aria-label="School" className={field} />
+                  <SchoolDatalist />
                   <div className="flex gap-2">
                     <button type="button" onClick={() => save(r.id)} disabled={busy === r.id} className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-brand text-[14px] font-bold text-white disabled:opacity-60">{busy === r.id && <Loader2 size={16} className="animate-spin" aria-hidden />} Save</button>
                     <button type="button" onClick={() => setEditing(null)} className="h-11 rounded-xl border-[1.5px] border-edge px-5 text-[14px] font-bold">Cancel</button>

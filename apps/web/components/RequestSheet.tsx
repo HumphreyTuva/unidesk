@@ -5,7 +5,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { Check, Loader2, X } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
-import { SCHOOLS } from '@/lib/schools';
+import SchoolDatalist, { SCHOOL_LIST_ID } from '@/components/SchoolDatalist';
 
 const field = 'h-[50px] w-full rounded-2xl border-[1.5px] border-edge bg-field px-4 text-[15px] text-ink placeholder:text-faint';
 
@@ -84,8 +84,8 @@ export default function RequestSheet({ open, onClose, initialCode = '' }: { open
                 </div>
                 <div className="flex flex-col gap-1.5">
                   <label htmlFor="req-school" className="text-[13px] font-bold">Your school</label>
-                  <input id="req-school" list="req-schools" value={school} onChange={e => setSchool(e.target.value)} maxLength={80} placeholder="e.g. Pure and Applied Sciences" required minLength={2} className={field} />
-                  <datalist id="req-schools">{SCHOOLS.map(x => <option key={x} value={x} />)}</datalist>
+                  <input id="req-school" list={SCHOOL_LIST_ID} value={school} onChange={e => setSchool(e.target.value)} maxLength={80} placeholder="e.g. Pure and Applied Sciences" required minLength={2} className={field} />
+                  <SchoolDatalist />
                 </div>
                 <div className="flex flex-col gap-1.5">
                   <label htmlFor="req-note" className="text-[13px] font-bold">Anything we should know? <span className="font-medium text-muted">(optional)</span></label>

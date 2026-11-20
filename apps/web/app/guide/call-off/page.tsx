@@ -1,4 +1,5 @@
 'use client';
+import SchoolDatalist, { SCHOOL_LIST_ID } from '@/components/SchoolDatalist';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Check, Copy, MapPin, Printer } from 'lucide-react';
@@ -121,7 +122,8 @@ export default function CallOff() {
             <Field id="co-adm" label="Admission number"><input id="co-adm" value={f.adm} onChange={set('adm')} autoCapitalize="characters" required className={field} /></Field>
             <Field id="co-phone" label="Phone number"><input id="co-phone" type="tel" inputMode="tel" value={f.phone} onChange={set('phone')} autoComplete="tel" required className={field} /></Field>
             <Field id="co-email" label="Email" hint="optional"><input id="co-email" type="email" value={f.email} onChange={set('email')} autoComplete="email" className={field} /></Field>
-            <Field id="co-school" label="School"><input id="co-school" value={f.school} onChange={set('school')} placeholder="e.g. Pure and Applied Sciences" required className={field} /></Field>
+            <Field id="co-school" label="School"><input id="co-school" list={SCHOOL_LIST_ID} value={f.school} onChange={set('school')} placeholder="e.g. Pure and Applied Sciences" required className={field} /></Field>
+            <SchoolDatalist />
             <Field id="co-course" label="Course"><input id="co-course" value={f.course} onChange={set('course')} placeholder="e.g. BSc Computer Science" required className={field} /></Field>
             <div className="grid grid-cols-2 gap-3">
               <Field id="co-sem" label="Semester">

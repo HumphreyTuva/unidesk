@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Check, Copy, Printer } from 'lucide-react';
 import { useToast } from '@/lib/toast';
 import { useSavedProfile } from '@/lib/useSavedProfile';
+import SchoolDatalist, { SCHOOL_LIST_ID } from '@/components/SchoolDatalist';
 import { LETTERS, formatYear, today, type FieldDef, type LetterKind } from '@/lib/letters';
 
 const field = 'h-[50px] w-full rounded-2xl border-[1.5px] border-edge bg-field px-4 text-[15px] text-ink placeholder:text-faint';
@@ -35,7 +36,7 @@ export default function LetterForm({ kind }: { kind: LetterKind }) {
     if (f.type === 'textarea') return <textarea id={id} value={val} onChange={on} rows={3} maxLength={500} placeholder={f.placeholder} required={!f.optional} className="w-full rounded-2xl border-[1.5px] border-edge bg-field px-4 py-3 text-[15px] text-ink placeholder:text-faint" />;
     if (f.type === 'year') return <input id={id} value={val} onChange={e => setV(p => ({ ...p, [f.id]: formatYear(e.target.value, p[f.id] ?? '') }))} inputMode="numeric" maxLength={9} pattern="\d{4}/\d{4}" title="Like 2026/2027" placeholder="2026/2027" required className={field} />;
     const type = f.type === 'tel' ? 'tel' : f.type === 'email' ? 'email' : 'text';
-    return <input id={id} type={type} inputMode={f.type === 'tel' ? 'tel' : undefined} value={val} onChange={on} placeholder={f.placeholder} required={!f.optional} autoCapitalize={f.id === 'adm' ? 'characters' : undefined} autoComplete={f.id === 'name' ? 'name' : f.id === 'phone' ? 'tel' : f.id === 'email' ? 'email' : 'off'} className={field} />;
+    return <input id={id} type={type} inputMode={f.type === 'tel' ? 'tel' : undefined} value={val} onChange={on} placeholder={f.placeholder} required={!f.optional} autoCapitalize={f.id === 'adm' ? 'characters' : undefined} list={f.id === 'school' ? SCHOOL_LIST_ID : undefined} autoComplete={f.id === 'name' ? 'name' : f.id === 'phone' ? 'tel' : f.id === 'email' ? 'email' : 'off'} className={field} />;
   };
 
   const rows: FieldDef[][] = [];
@@ -47,6 +48,7 @@ export default function LetterForm({ kind }: { kind: LetterKind }) {
   return (
     <>
       <form onSubmit={make} className="mt-5 flex flex-col gap-3.5 print:hidden">
+        <SchoolDatalist />
         <p className="text-[14px] text-muted">{spec.intro} {loggedIn ? 'Your details are remembered on this phone so the next letter is pre-filled.' : 'Log in and your details will be remembered for your next letter.'} Nothing is sent anywhere.</p>
         {rows.map((row, i) => (
           <div key={i} className={row.length > 1 ? 'grid grid-cols-2 gap-3' : ''}>
