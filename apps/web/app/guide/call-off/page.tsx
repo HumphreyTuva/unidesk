@@ -1,4 +1,5 @@
 'use client';
+import { rememberSchool } from '@/lib/schools';
 import SchoolDatalist, { SCHOOL_LIST_ID } from '@/components/SchoolDatalist';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
@@ -62,7 +63,7 @@ export default function CallOff() {
   const [made, setMade] = useState(0);
   // After each "Write my letter", bring the letter into view once it has rendered.
   useEffect(() => { if (made) letterRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, [made]);
-  const set = (k: keyof Form) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => setF(p => ({ ...p, [k]: e.target.value }));
+  const set = (k: keyof Form) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => { if (k === 'school') rememberSchool(e.target.value); setF(p => ({ ...p, [k]: e.target.value })); };
 
   const text = useMemo(() => (lines ? lines.join('\n') : ''), [lines]);
 

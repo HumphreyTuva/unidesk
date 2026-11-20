@@ -211,4 +211,4 @@ Without the keys the feature stays hidden ("coming soon") and nothing else chang
 Every school input offers the same suggestion list (`components/SchoolDatalist.tsx`, names in `lib/schools.ts`): paper requests, all letters, the call-off letter, and the admin paper upload and edit. People can still type their own. Add or rename a school in `lib/schools.ts` and it changes everywhere.
 
 ### Papers: school first
-The Papers page has a "School first" dropdown. The chosen school's papers are listed right after the student's own units, then everything else, so nothing is hidden. It defaults to the student's saved school and is remembered on the phone.
+The Papers page has no school picker. The school is learned automatically (request form, letters, or the unit searched). That school's papers are listed right after the student's own units, then everything else, so nothing is hidden. It defaults to the student's saved school and is remembered on the phone.

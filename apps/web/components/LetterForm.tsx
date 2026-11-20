@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Check, Copy, Printer } from 'lucide-react';
 import { useToast } from '@/lib/toast';
 import { useSavedProfile } from '@/lib/useSavedProfile';
+import { rememberSchool } from '@/lib/schools';
 import SchoolDatalist, { SCHOOL_LIST_ID } from '@/components/SchoolDatalist';
 import { LETTERS, formatYear, today, type FieldDef, type LetterKind } from '@/lib/letters';
 
@@ -31,7 +32,7 @@ export default function LetterForm({ kind }: { kind: LetterKind }) {
   const input = (f: FieldDef) => {
     const id = `lt-${f.id}`;
     const val = v[f.id] ?? '';
-    const on = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => setV(p => ({ ...p, [f.id]: e.target.value }));
+    const on = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => { if (f.id === 'school') rememberSchool(e.target.value); setV(p => ({ ...p, [f.id]: e.target.value })); };
     if (f.type === 'select') return <select id={id} value={val} onChange={on} className={field}>{f.options!.map(([k, l]) => <option key={k} value={k}>{l}</option>)}</select>;
     if (f.type === 'textarea') return <textarea id={id} value={val} onChange={on} rows={3} maxLength={500} placeholder={f.placeholder} required={!f.optional} className="w-full rounded-2xl border-[1.5px] border-edge bg-field px-4 py-3 text-[15px] text-ink placeholder:text-faint" />;
     if (f.type === 'year') return <input id={id} value={val} onChange={e => setV(p => ({ ...p, [f.id]: formatYear(e.target.value, p[f.id] ?? '') }))} inputMode="numeric" maxLength={9} pattern="\d{4}/\d{4}" title="Like 2026/2027" placeholder="2026/2027" required className={field} />;

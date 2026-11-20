@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { Check, Loader2, X } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
+import { rememberSchool } from '@/lib/schools';
 import SchoolDatalist, { SCHOOL_LIST_ID } from '@/components/SchoolDatalist';
 
 const field = 'h-[50px] w-full rounded-2xl border-[1.5px] border-edge bg-field px-4 text-[15px] text-ink placeholder:text-faint';
@@ -34,6 +35,7 @@ export default function RequestSheet({ open, onClose, initialCode = '' }: { open
     setError('');
     try {
       setResult(await api<Result>('/paper-requests', 'POST', { unitCode: code, note: note || undefined, school }));
+      rememberSchool(school);
       if (user) setUser({ ...user, school: school.trim() });
     } catch (err: any) {
       setError(err.message);

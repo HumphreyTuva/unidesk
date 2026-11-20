@@ -6,9 +6,7 @@ import { api } from '@/lib/api';
 import RequestSheet from '@/components/RequestSheet';
 import MyRequests from '@/components/MyRequests';
 import { useAuth } from '@/lib/auth';
-import { SCHOOLS } from '@/lib/schools';
-
-const SCHOOL_KEY = 'unidesk_papers_school';
+import { SCHOOL_KEY, rememberSchool } from '@/lib/schools';
 
 type Paper = { id: string; unitCode: string; title: string; year: number; sitting: string | null; school: string | null; hasPreview: boolean };
 type Page = { items: Paper[]; nextCursor: string | null };
@@ -43,18 +41,21 @@ export default function PapersView({ initial }: { initial: Page | null }) {
   // School first: papers of the chosen school are listed ahead of the rest. Nothing is hidden.
   const [school, setSchool] = useState('');
   const [schoolItems, setSchoolItems] = useState<Paper[]>([]);
-  const pickedSchool = useRef(false);
 
+  // The school comes from what the student entered elsewhere (requests, letters) or from the unit they searched. Nothing to pick.
   useEffect(() => {
-    try { const v = localStorage.getItem(SCHOOL_KEY); if (v !== null) { pickedSchool.current = true; setSchool(v); } } catch {}
-  }, []);
-  useEffect(() => {
-    if (!pickedSchool.current && user?.school) setSchool(user.school);
+    let v = '';
+    try { v = localStorage.getItem(SCHOOL_KEY) || ''; } catch {}
+    setSchool(v || user?.school || '');
   }, [user]);
-  const chooseSchool = (v: string) => {
-    pickedSchool.current = true; setSchool(v);
-    try { localStorage.setItem(SCHOOL_KEY, v); } catch {}
-  };
+  // A search that lands on one school's paper teaches us the student's school.
+  useEffect(() => {
+    if (!q.trim() || loading) return;
+    const count: Record<string, number> = {};
+    for (const p of items) if (p.school) count[p.school] = (count[p.school] || 0) + 1;
+    const top = Object.entries(count).sort((x, y) => y[1] - x[1])[0]?.[0];
+    if (top && top !== school) { rememberSchool(top); setSchool(top); }
+  }, [items, loading]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (!school) { setSchoolItems([]); return; }
     let live = true;
@@ -135,14 +136,6 @@ export default function PapersView({ initial }: { initial: Page | null }) {
         />
       </label>
 
-      <label className="mt-3 flex items-center gap-3">
-        <span className="shrink-0 text-sm font-bold text-muted">School first</span>
-        <select value={school} onChange={e => chooseSchool(e.target.value)} className="h-11 min-w-0 flex-1 rounded-xl border-[1.5px] border-edge bg-card px-3 text-[15px]">
-          <option value="">All schools</option>
-          {SCHOOLS.map(s => <option key={s} value={s}>{s}</option>)}
-          {school && !SCHOOLS.includes(school) && <option value={school}>{school}</option>}
-        </select>
-      </label>
 
       {error && <p role="alert" className="mt-4 rounded-xl bg-danger-soft px-3.5 py-2.5 text-sm font-medium text-danger">{error}</p>}
 

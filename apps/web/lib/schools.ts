@@ -13,3 +13,10 @@ export const SCHOOLS = [
   'Creative and Performing Arts, Film and Media Studies',
   'Medicine',
 ];
+
+export const SCHOOL_KEY = 'unidesk_papers_school';
+// Remember the school a student typed anywhere, so the Papers page can list that school's papers first.
+export function rememberSchool(value: string) {
+  const hit = SCHOOLS.find(s => s.toLowerCase() === value.trim().toLowerCase());
+  if (hit) { try { localStorage.setItem(SCHOOL_KEY, hit); } catch {} }
+}
