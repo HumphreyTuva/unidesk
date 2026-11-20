@@ -196,3 +196,13 @@ Poster and dark designs lay the days out in rows that stretch to use the whole p
 
 ### Class reminders and notes (Timetable only)
 In **Guide → Timetable → Classes**, once a timetable is made, a "Class reminders" card appears (reminders on by default, switch to turn off). The student picks 15 / 30 / 60 minutes before and how many weeks to repeat (8, 10 or 12), then taps **Add to my calendar**. `lib/timetableIcs.ts` builds a `.ics` file: one weekly event per class with a built-in reminder, the venue, and the student's note. The phone's own calendar rings the reminder, so it works offline and with UniDesk closed. Re-adding updates the same events (stable UID). Notes and the reminder choice stay on the phone (`unidesk_class_notes`, `unidesk_class_reminders`); a note is written in the class's Edit dialog. Nothing is added to the homepage and no server change is needed. Real push notifications would need the timetable saved per account on the server plus a scheduler; not built.
+
+
+### Push class reminders (logged-in students)
+Timetable → Classes → **Class reminders**: a switch turns on notifications. The phone is subscribed to Web Push, and the student's weekly classes, notes and reminder time are saved on the server (`PUT /reminders/schedule`, kept in step whenever they edit). Every minute the API (`apps/api/src/reminders`) checks each student's classes and sends a push when one is about to start (`due.ts` has the timing rules; a reminder is never sent twice, and never more than 10 minutes late). The calendar file (`lib/timetableIcs.ts`) stays under "More ways".
+
+Setup (once):
+1. `node scripts/vapid-keys.mjs` prints `VAPID_PUBLIC_KEY` and `VAPID_PRIVATE_KEY`. Add both (and optionally `VAPID_SUBJECT=mailto:you@yourdomain`) to the **API** environment on Render. Never change them later, or every phone must turn reminders on again.
+2. Push the code. Render installs `web-push` and `npm run db:deploy` runs the `class_reminders` migration at start.
+3. Keep the API awake (UptimeRobot on `/api/v1/health`), because the minute check only runs while the server is up. A paid Render plan is the real fix.
+Without the keys the feature stays hidden ("coming soon") and nothing else changes. Android Chrome works straight away; on iPhone the app must be added to the Home Screen first.

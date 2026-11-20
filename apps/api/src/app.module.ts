@@ -29,6 +29,8 @@ import { VenuesController, AdminVenuesController } from './venues/venues.control
 import { MailService } from './mail/mail.service';
 import { AdminUsersController } from './users/admin-users.controller';
 import { AdminOverviewController } from './users/admin-overview.controller';
+import { RemindersService } from './reminders/reminders.service';
+import { RemindersController } from './reminders/reminders.controller';
 import { TimetableService } from './timetable/timetable.service';
 import { TimetableController, AdminTimetableController } from './timetable/timetable.controller';
 
@@ -43,9 +45,9 @@ import { TimetableController, AdminTimetableController } from './timetable/timet
     // Default limit for every route; sign-in and sign-up have stricter limits of their own.
     ThrottlerModule.forRoot([{ ttl: 60_000, limit: 120 }]),
   ],
-  controllers: [AuthController, HealthController, PapersController, AdminPapersController, PaymentsController, AdminPaymentsController, LinksController, TimetableController, AdminTimetableController, VenuesController, AdminVenuesController, ChatController, AdminChatController, AiController, CampusController, AdminCampusController, AdminUsersController, AdminOverviewController],
+  controllers: [AuthController, HealthController, PapersController, AdminPapersController, PaymentsController, AdminPaymentsController, LinksController, TimetableController, AdminTimetableController, VenuesController, AdminVenuesController, ChatController, AdminChatController, AiController, CampusController, AdminCampusController, AdminUsersController, AdminOverviewController, RemindersController],
   providers: [
-    PrismaService, AuthService, MailService, PapersService, StorageService, SettingsService, UniversityService, MpesaService, PaymentsService, TimetableService, VenuesService, ChatService, AiService, CampusService, JwtGuard,
+    PrismaService, AuthService, MailService, PapersService, StorageService, SettingsService, UniversityService, MpesaService, PaymentsService, TimetableService, RemindersService, VenuesService, ChatService, AiService, CampusService, JwtGuard,
     { provide: APP_GUARD, useClass: ThrottlerGuard },
   ],
   exports: [PrismaService, StorageService, SettingsService, UniversityService],

@@ -97,6 +97,8 @@ model User {
   messages      ChatMessage[]
   memberships   ClubMember[]
   listings      Listing[]
+  pushSubscriptions PushSubscription[]
+  classReminder ClassReminder?
 }
 
 // Admin-controlled settings: payments_enabled ("true"/"false"), paper_price (KES), listing_fee (KES), listing_days.
@@ -331,4 +333,37 @@ model ExamSession {
   venues   String[] // an exam can use several rooms
 
   @@index([sourceId, code])
+}
+
+// Class reminders (push notifications). One row per phone/browser that allowed notifications.
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+// A student's weekly classes as they set them in the Timetable (with their own notes), the reminder time and the last day.
+model ClassReminder {
+  userId     String   @id
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  enabled    Boolean  @default(true)
+  minsBefore Int      @default(30)
+  endsOn     DateTime
+  classes    Json
+  updatedAt  DateTime @updatedAt
+}
+
+// One row per reminder already sent (userId|class|date), so a reminder is never sent twice.
+model ReminderSent {
+  key    String   @id
+  sentAt DateTime @default(now())
+
+  @@index([sentAt])
 }
