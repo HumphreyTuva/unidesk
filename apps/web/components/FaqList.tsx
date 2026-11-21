@@ -2,12 +2,12 @@ import Link from 'next/link';
 import { ChevronDown } from 'lucide-react';
 import type { Faq } from '@/content/faq';
 
-// Plain <details>: works without JavaScript, and the answers are in the page for search engines and AI to read.
+// Plain <details> sharing one name, so opening one closes the others (no JavaScript needed): works without JavaScript, and the answers are in the page for search engines and AI to read.
 export default function FaqList({ items }: { items: Faq[] }) {
   return (
     <div className="flex flex-col gap-2.5">
       {items.map(f => (
-        <details key={f.q} className="group rounded-[18px] border-[1.5px] border-line bg-card px-4 py-3">
+        <details key={f.q} name="faq" className="group rounded-[18px] border-[1.5px] border-line bg-card px-4 py-3">
           <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-[15px] font-bold [&::-webkit-details-marker]:hidden">
             <h3 className="text-[15px] font-bold">{f.q}</h3>
             <ChevronDown size={20} className="shrink-0 text-muted transition-transform group-open:rotate-180" aria-hidden />
