@@ -61,6 +61,7 @@ export default function Timetable() {
   const [eEdits, setEEdits] = useState<Edits<ExamRow>>(noEdits());
   const [draft, setDraft] = useState<Draft | null>(null);
   const [exporting, setExporting] = useState(false);
+  const [remOpen, setRemOpen] = useState(false);
   const [allUnits, setAllUnits] = useState(false);
   // Floating buttons: show while the person swipes up the screen (reading further down), hide when they swipe back down.
   const [barOn, setBarOn] = useState(false); // hidden until the person scrolls
@@ -342,54 +343,6 @@ export default function Timetable() {
               </div>
 
               {cls && classes.length > 0 && (
-                <div className="mb-4 rounded-2xl border-[1.5px] border-line bg-card p-3.5 print:hidden">
-                  <div className="flex items-center gap-3">
-                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-soft text-brand-ink"><Bell size={19} aria-hidden /></span>
-                    <span className="min-w-0 flex-1">
-                      <span className="block text-[15px] font-bold">Class reminders</span>
-                      <span className="block text-[13px] text-muted">{push.on ? `We notify you ${remind.mins === 1 ? '1 minute' : `${remind.mins} minutes`} before each class.` : 'Get a notification before each class.'}</span>
-                    </span>
-                    {user && push.supported && push.publicKey && (
-                      <button type="button" role="switch" aria-checked={push.on} aria-label="Class reminders" disabled={push.busy} onClick={() => (push.on ? turnOffPush() : turnOnPush())} className={`relative h-8 w-[52px] shrink-0 rounded-full transition-colors disabled:opacity-60 ${push.on ? 'bg-brand' : 'bg-edge'}`}><span className={`absolute top-1 h-6 w-6 rounded-full bg-white shadow transition-all ${push.on ? 'left-[24px]' : 'left-1'}`} /></button>
-                    )}
-                  </div>
-
-                  {!user && <p className="mt-3 rounded-xl bg-brand-soft px-3.5 py-2.5 text-[13px] font-medium text-brand-ink">Log in to get reminders. <Link href="/login" className="font-bold underline">Log in</Link></p>}
-                  {user && push.ready && push.needsInstall && <p className="mt-3 rounded-xl bg-amber-soft px-3.5 py-2.5 text-[13px] font-medium text-amber-ink">On iPhone, first add UniDesk to your Home Screen: tap Share, then Add to Home Screen. Open UniDesk from there and turn reminders on.</p>}
-                  {user && push.ready && !push.supported && !push.needsInstall && <p className="mt-3 rounded-xl bg-amber-soft px-3.5 py-2.5 text-[13px] font-medium text-amber-ink">This browser cannot show reminders. Use Chrome on Android, or add your classes to your calendar below.</p>}
-                  {user && push.ready && push.supported && !push.publicKey && <p className="mt-3 rounded-xl bg-brand-soft px-3.5 py-2.5 text-[13px] font-medium text-brand-ink">Notification reminders are coming soon. You can add your classes to your calendar below.</p>}
-                  {user && push.on && <button type="button" onClick={sendTest} className="mt-3 h-10 rounded-full border-[1.5px] border-edge bg-card px-4 text-[14px] font-bold">Send me a test notification</button>}
-
-                  <div className="mt-3">
-                    <p className="mb-1.5 text-[13px] font-bold text-muted">Remind me before class</p>
-                    <div className="flex flex-wrap gap-2">
-                      {REMIND_CHOICES.map(m => <button key={m} type="button" onClick={() => setRemind(r => ({ ...r, mins: m, custom: false }))} className={`h-10 rounded-full border-[1.5px] px-3.5 text-[14px] font-bold ${!remind.custom && remind.mins === m ? 'border-brand bg-brand text-white' : 'border-edge bg-card'}`}>{m === 60 ? '1 hour' : `${m} min`}</button>)}
-                      <button type="button" onClick={() => setRemind(r => ({ ...r, custom: true }))} className={`h-10 rounded-full border-[1.5px] px-3.5 text-[14px] font-bold ${remind.custom ? 'border-brand bg-brand text-white' : 'border-edge bg-card'}`}>Custom</button>
-                    </div>
-                    {remind.custom && (
-                      <label className="mt-2 flex items-center gap-2 text-[14px] font-semibold">
-                        <input className="h-11 w-24 rounded-xl border-[1.5px] border-edge bg-card px-3 text-center text-[15px]" inputMode="numeric" aria-label="Minutes before class" value={customText} onChange={e => { const t = e.target.value.replace(/\D/g, '').slice(0, 4); setCustomText(t); const n = Number(t); if (n >= 1 && n <= 1440) setRemind(r => ({ ...r, mins: n })); }} onBlur={() => setCustomText(String(remind.mins))} />
-                        minutes before class (1 to 1440)
-                      </label>
-                    )}
-                  </div>
-                  <div className="mt-3">
-                    <p className="mb-1.5 text-[13px] font-bold text-muted">Keep reminding me for</p>
-                    <div className="flex flex-wrap gap-2">
-                      {WEEK_CHOICES.map(w => <button key={w} type="button" onClick={() => setRemind(r => ({ ...r, weeks: w }))} className={`h-10 rounded-full border-[1.5px] px-3.5 text-[14px] font-bold ${remind.weeks === w ? 'border-brand bg-brand text-white' : 'border-edge bg-card'}`}>{w} weeks</button>)}
-                    </div>
-                  </div>
-                  <p className="mt-2 text-[12px] text-muted">Tap a class to write a note. It shows in the reminder.</p>
-
-                  <details className="mt-3 border-t border-line pt-3">
-                    <summary className="cursor-pointer text-[14px] font-bold text-brand-ink">More ways: add to your calendar</summary>
-                    <p className="mt-2 text-[13px] text-muted">Downloads a calendar file. Open it and your phone's calendar adds your classes, with a reminder, even offline. If you change the timetable, add it again.</p>
-                    <button type="button" onClick={downloadCalendar} className="mt-2 flex h-11 w-full items-center justify-center gap-2 rounded-2xl border-[1.5px] border-brand bg-card text-[14px] font-bold text-brand-ink"><CalendarPlus size={18} aria-hidden /> Add to my calendar</button>
-                  </details>
-                </div>
-              )}
-
-              {cls && classes.length > 0 && (
                 <div className="mb-5 hidden md:block print:hidden">
                   <div className="overflow-x-auto rounded-2xl border-[1.5px] border-line bg-card p-2">
                     <div style={{ minWidth: 96 + gridCols * 84 }}>
@@ -448,6 +401,57 @@ export default function Timetable() {
                   </div>
                 ))}
               </div>
+
+              {cls && classes.length > 0 && (
+                <div className="mb-4 mt-2 rounded-2xl border-[1.5px] border-line bg-card p-3.5 print:hidden">
+                  <div className="flex items-center gap-3">
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-soft text-brand-ink"><Bell size={19} aria-hidden /></span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-[15px] font-bold">Class reminders</span>
+                      <span className="block text-[13px] text-muted">{push.on ? `We notify you ${remind.mins === 1 ? '1 minute' : `${remind.mins} minutes`} before each class.` : 'Get a notification before each class.'}</span>
+                      <button type="button" onClick={() => setRemOpen(v => !v)} aria-expanded={remOpen} className="mt-0.5 h-8 text-[13px] font-bold text-brand-ink">{remOpen ? 'Hide options' : 'Options'}</button>
+                    </span>
+                    {user && push.supported && push.publicKey && (
+                      <button type="button" role="switch" aria-checked={push.on} aria-label="Class reminders" disabled={push.busy} onClick={() => (push.on ? turnOffPush() : turnOnPush())} className={`relative h-8 w-[52px] shrink-0 rounded-full transition-colors disabled:opacity-60 ${push.on ? 'bg-brand' : 'bg-edge'}`}><span className={`absolute top-1 h-6 w-6 rounded-full bg-white shadow transition-all ${push.on ? 'left-[24px]' : 'left-1'}`} /></button>
+                    )}
+                  </div>
+
+                  {!user && <p className="mt-3 rounded-xl bg-brand-soft px-3.5 py-2.5 text-[13px] font-medium text-brand-ink">Log in to get reminders. <Link href="/login" className="font-bold underline">Log in</Link></p>}
+                  {user && push.ready && push.needsInstall && <p className="mt-3 rounded-xl bg-amber-soft px-3.5 py-2.5 text-[13px] font-medium text-amber-ink">On iPhone, first add UniDesk to your Home Screen: tap Share, then Add to Home Screen. Open UniDesk from there and turn reminders on.</p>}
+                  {user && push.ready && !push.supported && !push.needsInstall && <p className="mt-3 rounded-xl bg-amber-soft px-3.5 py-2.5 text-[13px] font-medium text-amber-ink">This browser cannot show reminders. Use Chrome on Android, or add your classes to your calendar below.</p>}
+                  {user && push.ready && push.supported && !push.publicKey && <p className="mt-3 rounded-xl bg-brand-soft px-3.5 py-2.5 text-[13px] font-medium text-brand-ink">Notification reminders are coming soon. You can add your classes to your calendar below.</p>}
+                  {remOpen && <>
+                  {user && push.on && <button type="button" onClick={sendTest} className="mt-3 h-10 rounded-full border-[1.5px] border-edge bg-card px-4 text-[14px] font-bold">Send me a test notification</button>}
+
+                  <div className="mt-3">
+                    <p className="mb-1.5 text-[13px] font-bold text-muted">Remind me before class</p>
+                    <div className="flex flex-wrap gap-2">
+                      {REMIND_CHOICES.map(m => <button key={m} type="button" onClick={() => setRemind(r => ({ ...r, mins: m, custom: false }))} className={`h-10 rounded-full border-[1.5px] px-3.5 text-[14px] font-bold ${!remind.custom && remind.mins === m ? 'border-brand bg-brand text-white' : 'border-edge bg-card'}`}>{m === 60 ? '1 hour' : `${m} min`}</button>)}
+                      <button type="button" onClick={() => setRemind(r => ({ ...r, custom: true }))} className={`h-10 rounded-full border-[1.5px] px-3.5 text-[14px] font-bold ${remind.custom ? 'border-brand bg-brand text-white' : 'border-edge bg-card'}`}>Custom</button>
+                    </div>
+                    {remind.custom && (
+                      <label className="mt-2 flex items-center gap-2 text-[14px] font-semibold">
+                        <input className="h-11 w-24 rounded-xl border-[1.5px] border-edge bg-card px-3 text-center text-[15px]" inputMode="numeric" aria-label="Minutes before class" value={customText} onChange={e => { const t = e.target.value.replace(/\D/g, '').slice(0, 4); setCustomText(t); const n = Number(t); if (n >= 1 && n <= 1440) setRemind(r => ({ ...r, mins: n })); }} onBlur={() => setCustomText(String(remind.mins))} />
+                        minutes before class (1 to 1440)
+                      </label>
+                    )}
+                  </div>
+                  <div className="mt-3">
+                    <p className="mb-1.5 text-[13px] font-bold text-muted">Keep reminding me for</p>
+                    <div className="flex flex-wrap gap-2">
+                      {WEEK_CHOICES.map(w => <button key={w} type="button" onClick={() => setRemind(r => ({ ...r, weeks: w }))} className={`h-10 rounded-full border-[1.5px] px-3.5 text-[14px] font-bold ${remind.weeks === w ? 'border-brand bg-brand text-white' : 'border-edge bg-card'}`}>{w} weeks</button>)}
+                    </div>
+                  </div>
+                  <p className="mt-2 text-[12px] text-muted">Tap a class to write a note. It shows in the reminder.</p>
+
+                  <details className="mt-3 border-t border-line pt-3">
+                    <summary className="cursor-pointer text-[14px] font-bold text-brand-ink">More ways: add to your calendar</summary>
+                    <p className="mt-2 text-[13px] text-muted">Downloads a calendar file. Open it and your phone's calendar adds your classes, with a reminder, even offline. If you change the timetable, add it again.</p>
+                    <button type="button" onClick={downloadCalendar} className="mt-2 flex h-11 w-full items-center justify-center gap-2 rounded-2xl border-[1.5px] border-brand bg-card text-[14px] font-bold text-brand-ink"><CalendarPlus size={18} aria-hidden /> Add to my calendar</button>
+                  </details>
+                  </>}
+                </div>
+              )}
 
               {dates.map(d => (
                 <div key={d} className="mb-4">
