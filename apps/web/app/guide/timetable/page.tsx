@@ -581,20 +581,20 @@ function ExportDialog({ days, kind, onClose }: { days: ExDay[]; kind: Kind; onCl
     setTimeout(() => URL.revokeObjectURL(a.href), 2000);
   };
   const chip = (on: boolean) => `h-10 rounded-full border-[1.5px] px-3.5 text-[14px] font-bold ${on ? 'border-brand bg-brand text-white' : 'border-edge bg-card'}`;
-  const [pane, setPane] = useState<'size' | 'design'>('size');
+  const [pane, setPane] = useState<'size' | 'design' | 'text'>('size');
 
   return (
     <Modal title="Save as image" onClose={onClose} wide>
       <div className="grid gap-5 md:grid-cols-[1fr_1fr]">
         <div className="flex flex-col gap-4">
-          <div role="tablist" className="grid grid-cols-2 gap-1 rounded-2xl bg-brand-soft p-1">
-            {([['size', 'Size'], ['design', 'Design']] as const).map(([k, label]) => (
+          <div role="tablist" className="grid grid-cols-3 gap-1 rounded-2xl bg-brand-soft p-1">
+            {([['size', 'Size'], ['design', 'Design'], ['text', 'Text']] as const).map(([k, label]) => (
               <button key={k} type="button" role="tab" aria-selected={pane === k} onClick={() => setPane(k)} className={`h-11 rounded-xl text-[15px] font-bold ${pane === k ? 'bg-card text-brand-ink shadow-sm' : 'text-muted'}`}>{label}</button>
             ))}
           </div>
           {pane === 'size' ? (
             <div>
-              <div className="flex flex-wrap gap-2">
+              <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden [&>button]:shrink-0 [&>button]:whitespace-nowrap">
                 {SIZE_PRESETS.map(p => <button key={p.id} type="button" className={chip(preset === p.id)} onClick={() => { setPreset(p.id); setW(String(p.width)); setH(String(p.height)); }}>{p.label}</button>)}
                 <button type="button" className={chip(preset === 'custom')} onClick={() => setPreset('custom')}>Custom</button>
               </div>
@@ -604,15 +604,18 @@ function ExportDialog({ days, kind, onClose }: { days: ExDay[]; kind: Kind; onCl
               </div>
               <p className="mt-1 text-[12px] text-muted">{width} × {height}. Allowed {MIN_SIDE} to {MAX_SIDE}.</p>
             </div>
-          ) : (
+          ) : pane === 'design' ? (
             <div>
-              <div className="flex flex-wrap gap-2">{DESIGNS.filter(d => kind === 'class' || d.id !== 'grid').map(d => <button key={d.id} type="button" className={chip(design === d.id)} onClick={() => setDesign(d.id)}>{d.label}</button>)}</div>
+              <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden [&>button]:shrink-0 [&>button]:whitespace-nowrap">{DESIGNS.filter(d => kind === 'class' || d.id !== 'grid').map(d => <button key={d.id} type="button" className={chip(design === d.id)} onClick={() => setDesign(d.id)}>{d.label}</button>)}</div>
               <p className="mt-2 text-[12px] text-muted">{DESIGNS.find(d => d.id === design)?.note}</p>
             </div>
-          )}
+          ) : (
+            <div className="flex flex-col gap-3">
           <Field label="Title"><input className={inputCls} value={text.title} maxLength={40} onChange={e => setText({ ...text, title: e.target.value })} /></Field>
           <Field label="Subtitle"><input className={inputCls} value={text.subtitle} maxLength={50} onChange={e => setText({ ...text, subtitle: e.target.value })} /></Field>
           <Field label="Footer line"><input className={inputCls} value={text.footer} maxLength={70} onChange={e => setText({ ...text, footer: e.target.value })} /></Field>
+            </div>
+          )}
         </div>
         <div className="flex flex-col gap-3">
           <div className="flex min-h-[200px] items-center justify-center overflow-hidden rounded-2xl border-[1.5px] border-line bg-brand-soft p-2">
