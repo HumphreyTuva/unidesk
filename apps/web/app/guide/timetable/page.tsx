@@ -139,9 +139,12 @@ export default function Timetable() {
   const add = (c: string) => { if (units.length >= 30 && !units.includes(c)) { toast.error('You can add up to 30 units.'); return; } if (!units.includes(c)) toast.ok(`Added ${c}`); setUnits(u => (u.includes(c) || u.length >= 30 ? u : [...u, c])); setQ(''); setSugg([]); setRes(null); };
   const remove = (c: string) => { if (!window.confirm(`Remove ${c} from your units?`)) return; setUnits(u => u.filter(x => x !== c)); setRes(null); toast.ok(`Removed ${c}`); };
 
-  const generate = async (ch = choices) => {
+  const generate = async (ch = choices, scroll = false) => {
     setBusy(true); setError('');
-    try { setRes(await api(`/timetable/${kind}`, 'POST', kind === 'class' ? { codes: units, choices: ch } : { codes: units })); }
+    try {
+      setRes(await api(`/timetable/${kind}`, 'POST', kind === 'class' ? { codes: units, choices: ch } : { codes: units }));
+      if (scroll) setTimeout(() => document.getElementById('tt-results')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
+    }
     catch (e: any) { setError(e.message); } finally { setBusy(false); }
   };
   const pick = (key: string, id: string) => { const ch = { ...choices, [key]: id }; setChoices(ch); generate(ch); };
@@ -307,12 +310,12 @@ export default function Timetable() {
           )}
 
           {error && <p role="alert" className="mt-4 rounded-xl bg-danger-soft px-3.5 py-2.5 text-sm font-medium text-danger">{error}</p>}
-          <button type="button" disabled={!units.length || busy} onClick={() => generate()} className="mt-4 flex h-[54px] w-full items-center justify-center gap-2 rounded-2xl bg-brand text-base font-bold text-white disabled:opacity-50 print:hidden">
+          <button type="button" disabled={!units.length || busy} onClick={() => generate(choices, true)} className="mt-4 flex h-[54px] w-full items-center justify-center gap-2 rounded-2xl bg-brand text-base font-bold text-white disabled:opacity-50 print:hidden">
             {busy && <Loader2 size={20} className="animate-spin" aria-hidden />} Make my {kind === 'class' ? 'class' : 'exam'} timetable
           </button>
 
           {shown && (
-            <section className="print-area mt-6" aria-live="polite">
+            <section id="tt-results" className="print-area mt-6 scroll-mt-4" aria-live="polite">
               {shown.notFound.length > 0 && <p className="mb-3 rounded-xl bg-amber-soft px-3.5 py-2.5 text-sm font-medium text-amber-ink">Not found in this timetable: {shown.notFound.join(', ')}. Check the code.</p>}
 
               {clashCount > 0 && (
@@ -477,8 +480,8 @@ export default function Timetable() {
                   <div className="h-20 md:hidden print:hidden" aria-hidden />
                   <div className={`fixed inset-x-0 bottom-[calc(88px+env(safe-area-inset-bottom)+8px)] z-30 px-4 transition-all duration-200 md:static md:translate-y-0 md:px-0 md:opacity-100 print:hidden ${barOn ? 'translate-y-0 opacity-100' : 'pointer-events-none translate-y-6 opacity-0'}`}>
                     <div className="mx-auto flex max-w-[560px] gap-2 md:max-w-none">
-                      <button type="button" onClick={() => window.print()} className="flex h-12 flex-1 items-center justify-center gap-2 rounded-2xl border-[1.5px] border-edge bg-card text-[14px] font-bold shadow-lg md:shadow-none"><Printer size={18} aria-hidden /> Save PDF</button>
-                      <button type="button" onClick={() => setExporting(true)} className="flex h-12 flex-1 items-center justify-center gap-2 rounded-2xl bg-brand text-[14px] font-bold text-white shadow-lg md:shadow-none"><ImageIcon size={18} aria-hidden /> Save as image</button>
+                      <button type="button" onClick={() => window.print()} className="flex h-12 flex-1 items-center justify-center gap-2 rounded-2xl border-[1.5px] border-edge bg-card text-[14px] font-bold shadow-[0_8px_24px_rgba(0,0,0,0.32),0_0_0_1px_rgba(0,0,0,0.08)] md:shadow-none"><Printer size={18} aria-hidden /> Save PDF</button>
+                      <button type="button" onClick={() => setExporting(true)} className="flex h-12 flex-1 items-center justify-center gap-2 rounded-2xl bg-brand text-[14px] font-bold text-white shadow-[0_8px_24px_rgba(0,0,0,0.32),0_0_0_1px_rgba(0,0,0,0.08)] md:shadow-none"><ImageIcon size={18} aria-hidden /> Save as image</button>
                     </div>
                   </div>
                 </>
