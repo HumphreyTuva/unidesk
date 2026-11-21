@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import { CalendarDays, FileText, LayoutGrid, ChevronRight, Inbox, Link2, MapPin, MessageCircle, Upload, Users, Wallet } from 'lucide-react';
+import { ArrowLeft, CalendarDays, FileText, LayoutGrid, ChevronRight, Inbox, Link2, MapPin, MessageCircle, Upload, Users, Wallet } from 'lucide-react';
 import { useRequireAdmin } from '@/lib/useRequireAdmin';
 import { useAuth } from '@/lib/auth';
 import { useAdminCounts } from '@/lib/useAdminCounts';
@@ -27,8 +27,11 @@ export default function Admin() {
   if (!ok) return null;
 
   return (
-    <main className="wide px-5 pt-[calc(32px+env(safe-area-inset-top))]">
-      <h1 className="text-2xl font-extrabold">Admin</h1>
+    <main className="wide px-5 pt-[calc(32px+env(safe-area-inset-top))] pb-[calc(110px+env(safe-area-inset-bottom))]">
+      <div className="flex items-center justify-between gap-3">
+        <h1 className="text-2xl font-extrabold">Admin</h1>
+        <Link href="/" className="flex h-10 items-center gap-1.5 rounded-full border-[1.5px] border-edge bg-card px-3.5 text-[14px] font-bold"><ArrowLeft size={16} aria-hidden /> Back to the app</Link>
+      </div>
       <p className="mt-1 text-sm text-muted">Signed in as {user?.email || user?.username}</p>
 
       <div className="cols-lg mt-6 flex flex-col gap-2.5">
