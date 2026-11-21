@@ -499,14 +499,14 @@ export default function Timetable() {
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return <label className="block"><span className="mb-1 block text-[13px] font-bold text-muted">{label}</span>{children}</label>;
+  return <label className="block min-w-0"><span className="mb-1 block text-[13px] font-bold text-muted">{label}</span>{children}</label>;
 }
 const inputCls = 'h-12 w-full rounded-xl border-[1.5px] border-edge bg-card px-3 text-[15px]';
 
 function Modal({ title, onClose, children, wide }: { title: string; onClose: () => void; children: React.ReactNode; wide?: boolean }) {
   return (
     <div className="fixed inset-0 z-[60] flex items-end justify-center bg-black/50 sm:items-center print:hidden" role="dialog" aria-modal="true" aria-label={title} onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className={`max-h-[92vh] w-full overflow-y-auto rounded-t-3xl bg-card p-5 pb-[calc(20px+env(safe-area-inset-bottom))] sm:rounded-3xl ${wide ? 'sm:max-w-3xl' : 'sm:max-w-md'}`}>
+      <div className={`max-h-[92vh] w-full min-w-0 overflow-x-hidden overflow-y-auto rounded-t-3xl bg-card p-5 pb-[calc(20px+env(safe-area-inset-bottom))] sm:rounded-3xl ${wide ? 'sm:max-w-3xl' : 'sm:max-w-md'}`}>
         <div className="mb-3 flex items-center justify-between">
           <h2 className="text-lg font-extrabold">{title}</h2>
           <button type="button" onClick={onClose} aria-label="Close" className="flex h-10 w-10 items-center justify-center rounded-full"><X size={20} aria-hidden /></button>
@@ -588,8 +588,8 @@ function ExportDialog({ days, kind, onClose }: { days: ExDay[]; kind: Kind; onCl
 
   return (
     <Modal title="Save as image" onClose={onClose} wide>
-      <div className="grid gap-5 md:grid-cols-[1fr_1fr]">
-        <div className="flex flex-col gap-4">
+      <div className="grid min-w-0 grid-cols-1 gap-5 md:grid-cols-2">
+        <div className="flex min-w-0 flex-col gap-4">
           <div role="tablist" className="grid grid-cols-3 gap-1 rounded-2xl bg-brand-soft p-1">
             {([['size', 'Size'], ['design', 'Design'], ['text', 'Text']] as const).map(([k, label]) => (
               <button key={k} type="button" role="tab" aria-selected={pane === k} onClick={() => setPane(k)} className={`h-11 rounded-xl text-[15px] font-bold ${pane === k ? 'bg-card text-brand-ink shadow-sm' : 'text-muted'}`}>{label}</button>
@@ -601,7 +601,7 @@ function ExportDialog({ days, kind, onClose }: { days: ExDay[]; kind: Kind; onCl
                 {SIZE_PRESETS.map(p => <button key={p.id} type="button" className={chip(preset === p.id)} onClick={() => { setPreset(p.id); setW(String(p.width)); setH(String(p.height)); }}>{p.label}</button>)}
                 <button type="button" className={chip(preset === 'custom')} onClick={() => setPreset('custom')}>Custom</button>
               </div>
-              <div className="mt-3 grid grid-cols-2 gap-3">
+              <div className="mt-3 grid min-w-0 grid-cols-2 gap-3">
                 <Field label="Width (px)"><input className={inputCls} inputMode="numeric" value={w} onChange={e => { setW(e.target.value.replace(/\D/g, '')); setPreset('custom'); }} /></Field>
                 <Field label="Height (px)"><input className={inputCls} inputMode="numeric" value={h} onChange={e => { setH(e.target.value.replace(/\D/g, '')); setPreset('custom'); }} /></Field>
               </div>
@@ -620,9 +620,9 @@ function ExportDialog({ days, kind, onClose }: { days: ExDay[]; kind: Kind; onCl
             </div>
           )}
         </div>
-        <div className="flex flex-col gap-3">
-          <div className="flex min-h-[200px] items-center justify-center overflow-hidden rounded-2xl border-[1.5px] border-line bg-brand-soft p-2">
-            {url ? <img src={url} alt="Preview of your timetable image" className="max-h-[60vh] w-auto max-w-full rounded-lg" /> : <Loader2 className="animate-spin text-muted" aria-hidden />}
+        <div className="flex min-w-0 flex-col gap-3">
+          <div className="flex min-h-[200px] min-w-0 items-center justify-center overflow-hidden rounded-2xl border-[1.5px] border-line bg-brand-soft p-2">
+            {url ? <img src={url} alt="Preview of your timetable image" className="h-auto max-h-[60vh] w-auto max-w-full rounded-lg object-contain" /> : <Loader2 className="animate-spin text-muted" aria-hidden />}
           </div>
           {err && <p role="alert" className="rounded-xl bg-danger-soft px-3.5 py-2.5 text-sm font-medium text-danger">{err}</p>}
           <button type="button" onClick={download} disabled={busy || !url} className="flex h-[54px] items-center justify-center gap-2 rounded-2xl bg-brand text-base font-bold text-white disabled:opacity-50"><Download size={18} aria-hidden /> Download PNG</button>
