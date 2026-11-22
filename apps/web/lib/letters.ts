@@ -1,6 +1,6 @@
 // Letters students must send to the Registrar. Each one is built from a few answers, in the layout the Registrar expects
 // (the same layout as the call-off letter). Used by components/LetterForm.tsx.
-export type LetterKind = 'resume' | 'missed' | 'id' | 'late' | 'latefee' | 'extra' | 'remark';
+export type LetterKind = 'resume' | 'missed' | 'id' | 'late' | 'latefee' | 'grace' | 'extra' | 'remark';
 
 export type FieldDef = {
   id: string;
@@ -152,6 +152,58 @@ export const LETTERS: Record<LetterKind, LetterSpec> = {
       ];
     },
     submit: 'Sign the printed letter (attach your fee receipt if you have already paid) and take it to the Old Administration Block, Room 12. A response is normally issued within 5 working days.',
+  },
+  grace: {
+    intro: 'Fill this in and we will write your letter to the DVC (Academic Affairs) asking for a grace period to clear your fees.',
+    fields: [
+      ...PERSON,
+      { id: 'dept', label: 'Department', type: 'text', placeholder: 'e.g. Mathematics' },
+      { id: 'amount', label: 'Balance (Ksh)', type: 'text', placeholder: 'e.g. 25,000', half: true },
+      { id: 'by', label: 'You will pay by', type: 'text', placeholder: 'e.g. Friday, 5 December 2026', half: true },
+      { id: 'source', label: 'How will you pay?', type: 'select', options: [['Government funding', 'Government funding'], ['HELB', 'HELB'], ['Family payment', 'Family payment']] },
+    ],
+    lines: (v, date) => [
+      'From:',
+      t(v.name),
+      `Registration No: ${t(v.adm).toUpperCase()}`,
+      `School of ${t(v.school)}`,
+      `Department of ${t(v.dept)}`,
+      'P.O. Box 43844-00100, Nairobi',
+      `Tel: ${t(v.phone)}`,
+      ...(t(v.email) ? [`Email: ${t(v.email)}`] : []),
+      '',
+      `Date: ${date}`,
+      '',
+      'To:',
+      'The DVC (Academic Affairs)',
+      'Kenyatta University',
+      'P.O. Box 43844-00100',
+      'Nairobi',
+      '',
+      'RE: REQUEST FOR GRACE PERIOD TO CLEAR OUTSTANDING SCHOOL FEES',
+      '',
+      'Dear Sir/Madam,',
+      '',
+      'I write to request a grace period to clear my outstanding school fees for the current semester, as guided by the Administration.',
+      '',
+      `I am a student in the School of ${t(v.school)}, pursuing ${t(v.course)}, Registration Number ${t(v.adm).toUpperCase()}. I am registered for the units of this semester. I have attended lectures and completed my coursework, including CATs and assignments.`,
+      '',
+      `I expect my fees to be cleared by ${noDot(v.by)}, through ${t(v.source)}. Because of delays in the funds, I have not been able to clear the balance of Ksh. ${noDot(v.amount)} on time.`,
+      '',
+      'I humbly request a grace period until the date above to pay the balance in full. I also ask to be allowed to continue attending lectures, use University services and sit the coming examinations while I finish payment.',
+      '',
+      'I promise to clear the balance within the time stated.',
+      '',
+      'I will be grateful for your kind consideration.',
+      '',
+      'Yours faithfully,',
+      '',
+      '____________',
+      t(v.name),
+      `Registration No: ${t(v.adm).toUpperCase()}`,
+      ...(t(v.email) ? [`Email: ${t(v.email)}`] : []),
+    ],
+    submit: 'Sign the printed letter and submit it at Central Administration, Room 112.',
   },
   extra: {
     intro: 'Fill this in and we will write your letter to the Registrar asking to register extra units or retakes.',

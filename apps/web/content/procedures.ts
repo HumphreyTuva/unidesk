@@ -10,7 +10,7 @@ export type Procedure = {
   summary: string; // the answer in one or two sentences
   steps: ProcStep[];
   notes?: string[];
-  letterKind?: 'resume' | 'missed' | 'id' | 'late' | 'latefee' | 'extra' | 'remark'; // procedures that need a letter get a "My letter" tab (see lib/letters.ts)
+  letterKind?: 'resume' | 'missed' | 'id' | 'late' | 'latefee' | 'grace' | 'extra' | 'remark'; // procedures that need a letter get a "My letter" tab (see lib/letters.ts)
   link?: { href: string; label: string };
   keywords: string[];
 };
@@ -161,6 +161,23 @@ export const PROCEDURES: Procedure[] = [
     notes: ['If your appeal is rejected, you may be asked to call off the semester. Your fee balance stays in your student account: the money is not lost, and it remains available when you resume, whether in the second semester or the next academic year.'],
     letterKind: 'latefee',
     keywords: ['late fees', 'late fee payment', 'fee deadline', 'registration hold', 'fees after deadline', 'appeal letter'],
+  },
+  {
+    id: 'fee-grace-period',
+    title: 'Grace period to clear fees',
+    sub: 'Letter to the DVC (Academic Affairs)',
+    question: 'How do I ask for a grace period to clear my school fees at Kenyatta University?',
+    summary: 'Write to the DVC (Academic Affairs) asking for a grace period to clear your outstanding fees. Say when you expect to pay, how (Government funding, HELB or family) and the balance. Submit the signed letter at Central Administration, Room 112.',
+    steps: [
+      { title: 'Write the letter', body: 'Address it to the DVC (Academic Affairs), Kenyatta University, P.O. Box 43844-00100, Nairobi. The subject is: REQUEST FOR GRACE PERIOD TO CLEAR OUTSTANDING SCHOOL FEES.' },
+      { title: 'Give the facts', body: 'Say you are registered for the semester units and have attended lectures and done your CATs and assignments. State the balance, the date you expect to clear it and how (Government funding, HELB or family payment).' },
+      { title: 'Ask clearly', body: 'Ask for a grace period until that date, and to keep attending lectures, using University services and sitting the coming examinations while you finish paying.' },
+      { title: 'Include your details', body: 'Your full name, registration number, school, department, phone, email and your signature.' },
+      { title: 'Submit it', body: 'Print, sign and take the letter to Central Administration, Room 112.' },
+    ],
+    notes: ['This guidance came from a sample letter shared with students of the School of Pure and Applied Sciences. Confirm with your School or the office if your case differs.'],
+    letterKind: 'grace',
+    keywords: ['grace period', 'clear fees', 'fee balance', 'outstanding fees', 'school fees', 'HELB delay', 'DVC letter'],
   },
   {
     id: 'extra-units',
