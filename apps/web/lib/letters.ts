@@ -256,3 +256,20 @@ export const LETTERS: Record<LetterKind, LetterSpec> = {
     submit: 'Sign the printed letter. Next you need the Finance receipt or ledger and the stamps from Student Affairs and Security. See the Steps tab for the order.',
   },
 };
+
+export const LETTER_TITLES: Record<LetterKind | 'calloff', string> = {
+  resume: 'Request to resume studies', missed: 'Request for special exam or incomplete results', id: 'Request for replacement student ID',
+  late: 'Request for late unit registration', latefee: 'Request for late fee payment', grace: 'Request for grace period to clear fees',
+  extra: 'Request to register extra units', remark: 'Application for remarking', calloff: 'Request to call off semester',
+};
+
+// Browsers name a saved PDF after the page title, so the title is set to the letter's name while the print dialog is open.
+export function printLetter(kind: LetterKind | 'calloff', name: string) {
+  const old = document.title;
+  const who = name.trim().replace(/[\\/:*?"<>|]+/g, '').replace(/\s+/g, ' ');
+  document.title = `${LETTER_TITLES[kind]}${who ? ` - ${who}` : ''}`;
+  const restore = () => { document.title = old; window.removeEventListener('afterprint', restore); };
+  window.addEventListener('afterprint', restore);
+  window.print();
+  setTimeout(restore, 60000);
+}

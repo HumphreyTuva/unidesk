@@ -5,7 +5,7 @@ import { useToast } from '@/lib/toast';
 import { useSavedProfile } from '@/lib/useSavedProfile';
 import { rememberSchool } from '@/lib/schools';
 import SchoolDatalist, { SCHOOL_LIST_ID } from '@/components/SchoolDatalist';
-import { LETTERS, formatYear, today, type FieldDef, type LetterKind } from '@/lib/letters';
+import { LETTERS, formatYear, printLetter, today, type FieldDef, type LetterKind } from '@/lib/letters';
 
 const field = 'h-[50px] w-full rounded-2xl border-[1.5px] border-edge bg-field px-4 text-[15px] text-ink placeholder:text-faint';
 
@@ -76,7 +76,7 @@ export default function LetterForm({ kind }: { kind: LetterKind }) {
             <button type="button" onClick={copy} className="flex h-[50px] items-center justify-center gap-2 rounded-2xl border-[1.5px] border-edge bg-card font-bold">
               {copied ? <Check size={18} aria-hidden /> : <Copy size={18} aria-hidden />} {copied ? 'Copied' : 'Copy'}
             </button>
-            <button type="button" onClick={() => window.print()} className="flex h-[50px] items-center justify-center gap-2 rounded-2xl bg-brand font-bold text-white">
+            <button type="button" onClick={() => printLetter(kind, v.name ?? '')} className="flex h-[50px] items-center justify-center gap-2 rounded-2xl bg-brand font-bold text-white">
               <Printer size={18} aria-hidden /> Print or save PDF
             </button>
           </div>
