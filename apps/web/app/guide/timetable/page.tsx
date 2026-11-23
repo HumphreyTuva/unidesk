@@ -137,7 +137,8 @@ export default function Timetable() {
   }, [q, kind, units]);
 
   const add = (c: string) => { if (units.length >= 30 && !units.includes(c)) { toast.error('You can add up to 30 units.'); return; } if (!units.includes(c)) toast.ok(`Added ${c}`); setUnits(u => (u.includes(c) || u.length >= 30 ? u : [...u, c])); setQ(''); setSugg([]); setRes(null); };
-  const remove = (c: string) => { if (!window.confirm(`Remove ${c} from your units?`)) return; setUnits(u => u.filter(x => x !== c)); setRes(null); toast.ok(`Removed ${c}`); };
+  const [ask, setAsk] = useState<{ title: string; body: string; label: string; run: () => void } | null>(null);
+  const remove = (c: string) => setAsk({ title: `Remove ${c}?`, body: 'It will be taken out of your units. Your timetable will need to be made again.', label: 'Remove', run: () => { setUnits(u => u.filter(x => x !== c)); setRes(null); toast.ok(`${c} removed from your units`); } });
 
   const generate = async (ch = choices, scroll = false) => {
     setBusy(true); setError('');
@@ -171,12 +172,12 @@ export default function Timetable() {
     else if (r) setDraft({ ...base, id: r.id, code: r.code, date: r.date, slot: r.slot, venue: r.venues.join(', ') });
     else setDraft(base);
   };
-  const del = (id: string) => {
-    toast.ok('Removed. Tap “Undo my changes” to bring it back.');
+  const del = (id: string, code = '') => {
+    toast.ok(`${code ? `${code} removed` : 'Removed'}. Tap “Undo my changes” to bring it back.`);
     if (kind === 'class') setCEdits(e => e.add.some(a => a.id === id) ? { ...e, add: e.add.filter(a => a.id !== id) } : { ...e, del: [...e.del, id] });
     else setEEdits(e => e.add.some(a => a.id === id) ? { ...e, add: e.add.filter(a => a.id !== id) } : { ...e, del: [...e.del, id] });
   };
-  const resetEdits = () => { if (!window.confirm('Undo all your changes and go back to the original timetable?')) return; if (kind === 'class') setCEdits(noEdits()); else setEEdits(noEdits()); toast.ok('Back to the original'); };
+  const resetEdits = () => setAsk({ title: 'Undo all your changes?', body: 'This puts the original timetable back and removes everything you added, changed or deleted.', label: 'Undo changes', run: () => { if (kind === 'class') setCEdits(noEdits()); else setEEdits(noEdits()); toast.ok('Back to the original timetable'); } });
   const saveDraft = () => {
     if (!draft) return;
     const code = draft.code.replace(/\s+/g, '').toUpperCase();
@@ -193,7 +194,7 @@ export default function Timetable() {
       setEEdits(ed => draft.isNew ? { ...ed, add: [...ed.add, row] } : ed.add.some(a => a.id === row.id) ? { ...ed, add: ed.add.map(a => (a.id === row.id ? row : a)) } : { ...ed, mod: { ...ed.mod, [row.id]: row } });
     }
     setError(''); setDraft(null);
-    toast.ok(draft.isNew ? 'Added' : 'Changes saved');
+    toast.ok(draft.isNew ? `${code} added to your timetable` : `Changes to ${code} saved`);
   };
 
   // What the picture is drawn from.
@@ -212,7 +213,7 @@ export default function Timetable() {
   const rowButtons = (id: string, r: ClassRow | ExamRow) => (
     <span className="flex shrink-0 print:hidden">
       <button type="button" onClick={() => openEdit(r)} aria-label={`Edit ${r.code}`} className="flex h-10 w-10 items-center justify-center rounded-full text-muted"><Pencil size={17} aria-hidden /></button>
-      <button type="button" onClick={() => { if (window.confirm(`Remove ${r.code} from your timetable?`)) del(id); }} aria-label={`Remove ${r.code}`} className="flex h-10 w-10 items-center justify-center rounded-full text-danger"><Trash2 size={17} aria-hidden /></button>
+      <button type="button" onClick={() => setAsk({ title: `Remove ${r.code}?`, body: kind === 'class' ? `${r.code} will be taken off your timetable. You can bring it back with “Undo my changes”.` : `${r.code} will be taken off your exam list. You can bring it back with “Undo my changes”.`, label: 'Remove', run: () => del(id, r.code) })} aria-label={`Remove ${r.code}`} className="flex h-10 w-10 items-center justify-center rounded-full text-danger"><Trash2 size={17} aria-hidden /></button>
     </span>
   );
 
@@ -244,10 +245,15 @@ export default function Timetable() {
     catch (e: any) { toast.error(e?.message || 'Could not send a test.'); }
   };
   // Keep the server's copy in step with edits, notes and the reminder time (only while reminders are on and a timetable is showing).
+  const lastSync = useRef<string | null>(null);
   const syncKey = JSON.stringify([classes.map(r => [r.code, r.day, r.startHour, r.endHour, r.venue, r.elearning, notes[noteKeyOf(r)] ?? '']), remind.mins, remind.weeks]);
   useEffect(() => {
     if (!push.on || !cls || classes.length === 0) return;
-    const t = setTimeout(() => { api('/reminders/schedule', 'PUT', schedulePayload(true)).catch(() => {}); }, 1500);
+    const t = setTimeout(() => {
+      api('/reminders/schedule', 'PUT', schedulePayload(true))
+        .then(() => { if (lastSync.current !== null && lastSync.current !== syncKey) toast.ok('Reminders updated'); lastSync.current = syncKey; })
+        .catch(() => toast.error('Could not save your reminder changes. Check your connection.'));
+    }, 1500);
     return () => clearTimeout(t);
   }, [syncKey, push.on]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -492,6 +498,15 @@ export default function Timetable() {
         </>
       )}
 
+      {ask && (
+        <Modal title={ask.title} onClose={() => setAsk(null)}>
+          <p className="text-[15px] text-muted">{ask.body}</p>
+          <div className="mt-5 grid grid-cols-2 gap-3">
+            <button type="button" onClick={() => setAsk(null)} className="h-12 rounded-2xl border-[1.5px] border-edge bg-card text-[15px] font-bold">Keep it</button>
+            <button type="button" onClick={() => { const run = ask.run; setAsk(null); run(); }} className="h-12 rounded-2xl bg-danger text-[15px] font-bold text-white">{ask.label}</button>
+          </div>
+        </Modal>
+      )}
       {draft && <EditDialog kind={kind} draft={draft} setDraft={setDraft} onSave={saveDraft} />}
       {exporting && <ExportDialog days={exportDays} kind={kind} onClose={() => setExporting(false)} />}
     </main>

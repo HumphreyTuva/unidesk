@@ -7,7 +7,7 @@ type Api = { ok: (text: string) => void; error: (text: string) => void };
 const Ctx = createContext<Api>({ ok: () => {}, error: () => {} });
 export const useToast = () => useContext(Ctx);
 
-// Small confirmation that appears above the bottom bar and fades after a few seconds, so every action visibly "did something".
+// Small confirmation that appears at the top of the screen, above dialogs and bars, and fades after a few seconds, so every action visibly "did something".
 export function ToastProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<Toast[]>([]);
   const n = useRef(0);
@@ -21,7 +21,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   return (
     <Ctx.Provider value={api}>
       {children}
-      <div className="pointer-events-none fixed inset-x-0 bottom-[calc(88px+env(safe-area-inset-bottom))] z-50 mx-auto flex max-w-[480px] flex-col items-center gap-2 px-4 md:max-w-[640px] lg:bottom-6 lg:max-w-none lg:pl-[276px]" role="status" aria-live="polite">
+      <div className="pointer-events-none fixed inset-x-0 top-[calc(12px+env(safe-area-inset-top))] z-[90] mx-auto flex max-w-[480px] flex-col items-center gap-2 px-4 md:max-w-[640px] lg:max-w-none lg:pl-[276px]" role="status" aria-live="polite">
         {items.map(t => (
           <div key={t.id} className={`pointer-events-auto flex max-w-full animate-[toastIn_.2s_ease-out] items-center gap-2 rounded-2xl px-4 py-3 text-[14px] font-semibold text-white shadow-lg ${t.kind === 'ok' ? 'bg-[#116B35]' : 'bg-[#9B1C1C]'}`}>
             {t.kind === 'ok' ? <CheckCircle2 size={18} aria-hidden /> : <XCircle size={18} aria-hidden />}{t.text}
