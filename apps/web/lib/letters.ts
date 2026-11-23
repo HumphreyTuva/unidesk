@@ -28,6 +28,7 @@ export function formatYear(raw: string, before: string) {
 
 const t = (s: string | undefined) => (s ?? '').trim();
 const noDot = (s: string | undefined) => t(s).replace(/[.\s]+$/, '');
+const cap = (s: string | undefined) => { const x = noDot(s); return x.charAt(0).toUpperCase() + x.slice(1); };
 const SEMESTERS: [string, string][] = [['ONE', 'One'], ['TWO', 'Two'], ['THREE', 'Three']];
 
 const PERSON: FieldDef[] = [
@@ -56,7 +57,7 @@ const head = (v: Record<string, string>, date: string, through: string[][] = [])
   '',
 ];
 const intro = (v: Record<string, string>) => `I, ${t(v.name)}, of Admission Number ${t(v.adm).toUpperCase()}, a student in the School of ${t(v.school)}, taking ${t(v.course)} course`;
-const sign = (v: Record<string, string>) => ['', 'Yours faithfully,', '', 'Signature: ____________________', `Name: ${t(v.name)}`, `Phone: ${t(v.phone)}`];
+const sign = (v: Record<string, string>) => ['', 'Yours faithfully,', '', 'Signature: ____________________', `Name: ${t(v.name)}`];
 
 export const LETTERS: Record<LetterKind, LetterSpec> = {
   resume: {
@@ -86,7 +87,7 @@ export const LETTERS: Record<LetterKind, LetterSpec> = {
       { id: 'sem', label: 'Semester', type: 'select', options: SEMESTERS, half: true },
       { id: 'year', label: 'Academic year', type: 'year', half: true },
       { id: 'units', label: 'Units you missed', type: 'text', optional: true, hint: 'optional', placeholder: 'e.g. SMA 101, SMA 202' },
-      { id: 'reason', label: 'Why you missed them', type: 'textarea', placeholder: 'Explain clearly, in your own words' },
+      { id: 'reason', label: 'Why you missed them', type: 'textarea', placeholder: 'Write it as a sentence, e.g. I was admitted to hospital' },
       { id: 'evidence', label: 'Evidence you are attaching', type: 'text', placeholder: 'e.g. hospital discharge summary' },
       { id: 'eligible', label: 'I have completed all my CATs, assignments and required practicals', type: 'check' },
     ],
@@ -98,11 +99,11 @@ export const LETTERS: Record<LetterKind, LetterSpec> = {
         '',
         `${intro(v)}, hereby request for ${special ? 'a special examination' : 'consideration for incomplete results'} for semester ${t(v.sem).toLowerCase()} of academic year ${t(v.year)}.`,
         '',
-        `I was unable to ${special ? 'sit for my examinations' : 'complete all my examinations'} because ${noDot(v.reason)}.${t(v.units) ? ` The units I missed are ${noDot(v.units)}.` : ''}`,
+        `I was unable to ${special ? 'sit for my examinations' : 'complete all my examinations'} for the following reason: ${cap(v.reason)}.${t(v.units) ? ` The units I missed are ${noDot(v.units)}.` : ''}`,
         '',
         'I have completed all my Continuous Assessment Tests (CATs), submitted all my assignments and completed all the required practicals.',
         '',
-        `I have attached ${noDot(v.evidence)} as evidence in support of my request.`,
+        `I have attached the following as evidence in support of my request: ${noDot(v.evidence)}.`,
         ...sign(v),
       ];
     },
@@ -110,16 +111,12 @@ export const LETTERS: Record<LetterKind, LetterSpec> = {
   },
   late: {
     intro: 'Fill this in and we will write your letter to the Registrar asking to register your units late.',
-    fields: [...BASIC, { id: 'reason', label: 'Why you could not register in time', type: 'textarea', placeholder: 'Explain clearly, in your own words' }],
+    fields: [...BASIC, { id: 'reason', label: 'Why you could not register in time', type: 'textarea', placeholder: 'Write it as a sentence, e.g. I was admitted to hospital' }],
     lines: (v, date) => [
       ...head(v, date),
       'RE: REQUEST FOR LATE UNIT REGISTRATION',
       '',
-      `I kindly request approval for late unit registration for the current semester. I was unable to register my units within the stipulated period due to ${noDot(v.reason)}. I therefore request your consideration and approval to enable me to complete my registration.`,
-      '',
-      `Registration Number: ${t(v.adm).toUpperCase()}`,
-      `Mobile Number: ${t(v.phone)}`,
-      ...(t(v.email) ? [`Email Address: ${t(v.email)}`] : []),
+      `I kindly request approval for late unit registration for the current semester. I was unable to register my units within the stipulated period for the following reason: ${cap(v.reason)}. I therefore request your consideration and approval to enable me to complete my registration.`,
       '',
       'Thank you for your consideration.',
       ...sign(v),
@@ -131,7 +128,7 @@ export const LETTERS: Record<LetterKind, LetterSpec> = {
     fields: [
       ...BASIC,
       { id: 'paid', label: 'Have you already paid?', type: 'select', options: [['no', 'No, I need approval to pay late'], ['yes', 'Yes, I paid after the deadline (appeal)']] },
-      { id: 'reason', label: 'Why the fees were late', type: 'textarea', placeholder: 'Explain clearly, in your own words' },
+      { id: 'reason', label: 'Why the fees were late', type: 'textarea', placeholder: 'Write it as a sentence, e.g. I was admitted to hospital' },
     ],
     lines: (v, date) => {
       const paid = v.paid === 'yes';
@@ -140,12 +137,8 @@ export const LETTERS: Record<LetterKind, LetterSpec> = {
         paid ? 'RE: APPEAL FOR LATE FEE PAYMENT AND LIFTING OF REGISTRATION HOLD' : 'RE: REQUEST FOR LATE FEE PAYMENT',
         '',
         paid
-          ? `I paid my fees for the current semester after the stipulated deadline due to ${noDot(v.reason)}. I have attached my fee payment receipt as proof of payment. I therefore request your consideration and approval to lift the registration hold, to enable me to proceed with my registration.`
-          : `I kindly request approval to make my fee payment after the stipulated deadline for the current semester. I was unable to pay within the required period due to ${noDot(v.reason)}. I therefore request your consideration and approval to enable me to proceed with my academic activities.`,
-        '',
-        `Registration Number: ${t(v.adm).toUpperCase()}`,
-        `Mobile Number: ${t(v.phone)}`,
-        ...(t(v.email) ? [`Email Address: ${t(v.email)}`] : []),
+          ? `I paid my fees for the current semester after the stipulated deadline for the following reason: ${cap(v.reason)}. I have attached my fee payment receipt as proof of payment. I therefore request your consideration and approval to lift the registration hold, to enable me to proceed with my registration.`
+          : `I kindly request approval to make my fee payment after the stipulated deadline for the current semester. I was unable to pay within the required period for the following reason: ${cap(v.reason)}. I therefore request your consideration and approval to enable me to proceed with my academic activities.`,
         '',
         'Thank you for your consideration.',
         ...sign(v),
@@ -201,7 +194,6 @@ export const LETTERS: Record<LetterKind, LetterSpec> = {
       '____________',
       t(v.name),
       `Registration No: ${t(v.adm).toUpperCase()}`,
-      ...(t(v.email) ? [`Email: ${t(v.email)}`] : []),
     ],
     submit: 'Sign the printed letter and submit it at Central Administration, Room 112.',
   },
@@ -220,10 +212,6 @@ export const LETTERS: Record<LetterKind, LetterSpec> = {
       `I kindly request approval to register the following extra unit(s) this semester: ${noDot(v.units)}.`,
       '',
       `${noDot(v.reason)}. My GPA is 60 and above.`,
-      '',
-      `Registration Number: ${t(v.adm).toUpperCase()}`,
-      `Mobile Number: ${t(v.phone)}`,
-      ...(t(v.email) ? [`Email Address: ${t(v.email)}`] : []),
       '',
       'Thank you for your consideration.',
       ...sign(v),
@@ -246,10 +234,6 @@ export const LETTERS: Record<LetterKind, LetterSpec> = {
       `I am not satisfied with the marks awarded to me in the following unit(s) for semester ${t(v.sem).toLowerCase()} of academic year ${t(v.year)}: ${noDot(v.units)}.`,
       '',
       'I therefore kindly apply for remarking of the unit(s) above, and I will pay the required remarking fee.',
-      '',
-      `Registration Number: ${t(v.adm).toUpperCase()}`,
-      `Mobile Number: ${t(v.phone)}`,
-      ...(t(v.email) ? [`Email Address: ${t(v.email)}`] : []),
       '',
       'Thank you for your consideration.',
       ...sign(v),
