@@ -8,8 +8,9 @@ import { useRequireAdmin } from '@/lib/useRequireAdmin';
 
 type Role = 'STUDENT' | 'SUPPORT' | 'ADMIN';
 type Summary = { total: number; today: number; last7: number; last30: number; blocked: number; staff: number; google: number; password: number; byDay: { date: string; count: number }[] };
-type Row = { id: string; name: string | null; email: string | null; username: string | null; role: Role; joined: string; blocked: boolean; via: string; requests: number; downloads: number; payments: number; chats: number };
-type Filter = 'all' | 'staff' | 'blocked';
+type Row = { id: string; name: string | null; email: string | null; username: string | null; role: Role; joined: string; blocked: boolean; via: string; requests: number; downloads: number; payments: number; paidAmount: number; chats: number };
+type Filter = 'all' | 'paid' | 'staff' | 'blocked';
+type Sort = 'new' | 'downloads' | 'requests' | 'paid';
 
 const PAGE = 30;
 const fmt = (d: string) => new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Africa/Nairobi' });
@@ -22,6 +23,7 @@ export default function Users() {
   const [total, setTotal] = useState(0);
   const [q, setQ] = useState('');
   const [filter, setFilter] = useState<Filter>('all');
+  const [sort, setSort] = useState<Sort>('new');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const seq = useRef(0);
@@ -30,11 +32,11 @@ export default function Users() {
     const n = ++seq.current;
     setBusy(true); setError('');
     try {
-      const r = await api<{ total: number; items: Row[] }>(`/admin/users?take=${PAGE}&skip=${skip}&filter=${filter}${q.trim() ? `&q=${encodeURIComponent(q.trim())}` : ''}`);
+      const r = await api<{ total: number; items: Row[] }>(`/admin/users?take=${PAGE}&skip=${skip}&filter=${filter}&sort=${sort}${q.trim() ? `&q=${encodeURIComponent(q.trim())}` : ''}`);
       if (n !== seq.current) return;
       setTotal(r.total); setRows(prev => (replace ? r.items : [...prev, ...r.items]));
     } catch (e: any) { if (n === seq.current) setError(e.message); } finally { if (n === seq.current) setBusy(false); }
-  }, [q, filter]);
+  }, [q, filter, sort]);
 
   useEffect(() => { if (ok) api<Summary>('/admin/users/summary').then(setSum).catch(e => setError(e.message)); }, [ok]);
   useEffect(() => { if (!ok) return; const t = setTimeout(() => load(0, true), 250); return () => clearTimeout(t); }, [ok, load]);
@@ -93,8 +95,15 @@ export default function Users() {
         <input value={q} onChange={e => setQ(e.target.value)} placeholder="Search name, email or username" className="h-[52px] w-full rounded-2xl border-[1.5px] border-edge bg-card pl-11 pr-4 text-[15px]" />
       </label>
       <div className="mt-3 flex gap-2">
-        {(['all', 'staff', 'blocked'] as Filter[]).map(f => <button key={f} type="button" className={chip(filter === f)} onClick={() => setFilter(f)}>{f === 'all' ? 'All' : f === 'staff' ? 'Staff' : 'Blocked'}</button>)}
+        {(['all', 'paid', 'staff', 'blocked'] as Filter[]).map(f => <button key={f} type="button" className={chip(filter === f)} onClick={() => setFilter(f)}>{f === 'all' ? 'All' : f === 'paid' ? 'Paid' : f === 'staff' ? 'Staff' : 'Blocked'}</button>)}
       </div>
+      <label className="mt-3 flex items-center gap-3">
+        <span className="shrink-0 text-[13px] font-bold text-muted">Sort by</span>
+        <select value={sort} onChange={e => setSort(e.target.value as Sort)} className="h-11 min-w-0 flex-1 rounded-xl border-[1.5px] border-edge bg-card px-3 text-[15px] font-semibold">
+          <option value="new">Newest</option><option value="downloads">Most downloads</option><option value="requests">Most requests</option><option value="paid">Highest amount paid</option>
+        </select>
+      </label>
+      {sort === 'paid' && <p className="mt-1.5 text-[12px] text-muted">This order lists only students who have paid.</p>}
 
       {error && <p role="alert" className="mt-4 rounded-xl bg-danger-soft px-3.5 py-2.5 text-sm font-medium text-danger">{error}</p>}
       <p className="mt-4 text-[13px] text-muted">{total} {total === 1 ? 'account' : 'accounts'}</p>
@@ -117,7 +126,7 @@ export default function Users() {
                 )}
               </div>
               <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-[13px]">
-                <span><b>{r.requests}</b> requests</span><span><b>{r.downloads}</b> downloads</span><span><b>{r.payments}</b> payments</span><span><b>{r.chats}</b> chats</span>
+                <span><b>{r.requests}</b> requests</span><span><b>{r.downloads}</b> downloads</span><span><b>{r.payments}</b> paid{r.paidAmount > 0 && <> · Ksh {r.paidAmount.toLocaleString('en-KE')}</>}</span><span><b>{r.chats}</b> chats</span>
                 <label className="ml-auto flex items-center gap-2"><span className="text-muted">Role</span>
                   <select value={r.role} disabled={self} onChange={e => setRole(r, e.target.value as Role)} className="h-10 rounded-xl border-[1.5px] border-edge bg-card px-2 text-[14px] font-semibold disabled:opacity-50">
                     <option value="STUDENT">Student</option><option value="SUPPORT">Support</option><option value="ADMIN">Admin</option>

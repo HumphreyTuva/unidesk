@@ -9,7 +9,8 @@ class ListQuery {
   @IsOptional() @IsString() @MaxLength(80) q?: string;
   @IsOptional() @IsString() take?: string;
   @IsOptional() @IsString() skip?: string;
-  @IsOptional() @IsIn(['all', 'blocked', 'staff']) filter?: 'all' | 'blocked' | 'staff';
+  @IsOptional() @IsIn(['all', 'blocked', 'staff', 'paid']) filter?: 'all' | 'blocked' | 'staff' | 'paid';
+  @IsOptional() @IsIn(['new', 'downloads', 'requests', 'paid']) sort?: 'new' | 'downloads' | 'requests' | 'paid';
 }
 
 const DAY = 86_400_000;
@@ -58,20 +59,44 @@ export class AdminUsersController {
     ];
     if (q.filter === 'blocked') where.deletedAt = { not: null };
     if (q.filter === 'staff') where.role = { in: ['ADMIN', 'SUPPORT'] };
-    const [total, rows] = await Promise.all([
-      this.db.user.count({ where }),
-      this.db.user.findMany({
-        where, orderBy: { createdAt: 'desc' }, take, skip,
-        select: {
-          id: true, name: true, email: true, username: true, usernameDisplay: true, role: true, createdAt: true, deletedAt: true, googleId: true, passwordHash: true,
-          _count: { select: { paperRequests: true, paperAccess: true, payments: true, threads: true } },
-        },
-      }),
-    ]);
+    if (q.filter === 'paid') where.payments = { some: { status: 'SUCCESS' } };
+    const select = {
+      id: true, name: true, email: true, username: true, usernameDisplay: true, role: true, createdAt: true, deletedAt: true, googleId: true, passwordHash: true,
+      _count: { select: { paperRequests: true, paperAccess: true, payments: { where: { status: 'SUCCESS' as const } }, threads: true } },
+    };
+
+    let total: number;
+    let rows: any[];
+    if (q.sort === 'paid') {
+      // Highest total paid first. Only students with a successful payment can appear in this order.
+      const payWhere = { status: 'SUCCESS' as const, user: where };
+      const [all, page] = await Promise.all([
+        this.db.payment.groupBy({ by: ['userId'], where: payWhere }),
+        (this.db.payment as any).groupBy({ by: ['userId'], where: payWhere, _sum: { amount: true }, orderBy: { _sum: { amount: 'desc' } }, take, skip }),
+      ]);
+      total = all.length;
+      const ids: string[] = page.map((g: any) => g.userId);
+      const found = await this.db.user.findMany({ where: { id: { in: ids } }, select });
+      rows = ids.map(id => found.find(u => u.id === id)).filter(Boolean);
+    } else {
+      const orderBy: any = q.sort === 'downloads' ? [{ paperAccess: { _count: 'desc' } }, { createdAt: 'desc' }]
+        : q.sort === 'requests' ? [{ paperRequests: { _count: 'desc' } }, { createdAt: 'desc' }]
+        : { createdAt: 'desc' };
+      [total, rows] = await Promise.all([
+        this.db.user.count({ where }),
+        this.db.user.findMany({ where, orderBy, take, skip, select }),
+      ]);
+    }
+
+    // What each listed student has paid in total (successful M-Pesa payments only).
+    const sums = rows.length
+      ? await (this.db.payment as any).groupBy({ by: ['userId'], where: { status: 'SUCCESS', userId: { in: rows.map(u => u.id) } }, _sum: { amount: true } })
+      : [];
+    const paidBy = new Map<string, number>(sums.map((g: any) => [g.userId, g._sum.amount ?? 0]));
     const items = rows.map(u => ({
       id: u.id, name: u.name, email: u.email, username: u.usernameDisplay || u.username, role: u.role, joined: u.createdAt, blocked: !!u.deletedAt,
       via: u.googleId && u.passwordHash ? 'Google + password' : u.googleId ? 'Google' : 'Password',
-      requests: u._count.paperRequests, downloads: u._count.paperAccess, payments: u._count.payments, chats: u._count.threads,
+      requests: u._count.paperRequests, downloads: u._count.paperAccess, payments: u._count.payments, paidAmount: paidBy.get(u.id) ?? 0, chats: u._count.threads,
     }));
     return { total, items };
   }
