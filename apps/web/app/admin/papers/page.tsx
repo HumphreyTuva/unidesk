@@ -1,6 +1,6 @@
 'use client';
 import SchoolDatalist, { SCHOOL_LIST_ID } from '@/components/SchoolDatalist';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Check, FileUp, Loader2 } from 'lucide-react';
 import { api } from '@/lib/api';
@@ -21,6 +21,14 @@ export default function UploadPaper() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [done, setDone] = useState('');
+
+  // Arriving from a paper request: fill in the unit and the school the students gave.
+  useEffect(() => {
+    const sp = new URLSearchParams(window.location.search);
+    const u = sp.get('unit'), sc = sp.get('school');
+    if (u) setUnitCode(u.slice(0, 20).toUpperCase());
+    if (sc) setSchool(sc.slice(0, 80));
+  }, []);
 
   if (!ok) return null;
 

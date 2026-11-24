@@ -9,6 +9,16 @@ type Who = { name: string; contact: string; school: string | null; at: string; n
 type Group = { unitCode: string; count: number; latest: string; notes: string[]; who: Who[] };
 const when = (d: string) => new Date(d).toLocaleString('en-KE', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit', timeZone: 'Africa/Nairobi' });
 
+// The upload form opens with this unit and the school most of the requesters gave.
+function uploadHref(g: Group) {
+  const count: Record<string, number> = {};
+  for (const w of g.who) if (w.school?.trim()) count[w.school.trim()] = (count[w.school.trim()] || 0) + 1;
+  const school = Object.entries(count).sort((x, y) => y[1] - x[1])[0]?.[0];
+  const qs = new URLSearchParams({ unit: g.unitCode });
+  if (school) qs.set('school', school);
+  return `/admin/papers?${qs}`;
+}
+
 export default function Requests() {
   const ok = useRequireAdmin(['ADMIN', 'SUPPORT']);
   const [groups, setGroups] = useState<Group[] | null>(null);
@@ -46,7 +56,7 @@ export default function Requests() {
                 <p className="text-[13px] text-muted">{g.count} {g.count === 1 ? 'student' : 'students'} · latest {when(g.latest)}</p>
               </div>
               <div className="flex gap-2">
-                <Link href="/admin/papers" className="flex h-11 items-center gap-1.5 rounded-xl bg-brand px-4 text-sm font-bold text-white"><Upload size={16} aria-hidden /> Upload</Link>
+                <Link href={uploadHref(g)} className="flex h-11 items-center gap-1.5 rounded-xl bg-brand px-4 text-sm font-bold text-white"><Upload size={16} aria-hidden /> Upload</Link>
                 <button type="button" onClick={() => dismiss(g.unitCode)} aria-label={`Dismiss requests for ${g.unitCode}`} className="flex h-11 w-11 items-center justify-center rounded-xl border-[1.5px] border-edge text-muted"><X size={18} aria-hidden /></button>
               </div>
             </div>
