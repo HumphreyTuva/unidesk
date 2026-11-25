@@ -277,11 +277,12 @@ export class PapersService {
     });
     // Group by unit so the admin sees which papers are wanted most.
     type Who = { name: string; contact: string; school: string | null; at: Date; note: string | null };
-    type Group = { unitCode: string; count: number; latest: Date; notes: string[]; who: Who[] };
+    type Group = { unitCode: string; count: number; latest: Date; earliest: Date; notes: string[]; who: Who[] };
     const byUnit = new Map<string, Group>();
     for (const r of rows) {
-      const g: Group = byUnit.get(r.unitCode) ?? { unitCode: r.unitCode, count: 0, latest: r.createdAt, notes: [], who: [] };
+      const g: Group = byUnit.get(r.unitCode) ?? { unitCode: r.unitCode, count: 0, latest: r.createdAt, earliest: r.createdAt, notes: [], who: [] };
       g.count++;
+      if (r.createdAt < g.earliest) g.earliest = r.createdAt;
       if (r.note && g.notes.length < 3) g.notes.push(r.note);
       // Who asked, newest first (rows are already newest first). Capped so a popular unit does not make a huge response.
       if (g.who.length < 25) g.who.push({ name: r.user.name || r.user.usernameDisplay || r.user.username || 'Student', contact: r.user.email || r.user.usernameDisplay || r.user.username || '', school: r.school || r.user.school || null, at: r.createdAt, note: r.note });
