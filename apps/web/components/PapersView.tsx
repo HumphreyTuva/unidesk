@@ -11,13 +11,17 @@ import { SCHOOL_KEY, rememberSchool } from '@/lib/schools';
 type Paper = { id: string; unitCode: string; title: string; year: number; sitting: string | null; school: string | null; hasPreview: boolean };
 type Page = { items: Paper[]; nextCursor: string | null };
 
-function PaperRow({ p, mine, school }: { p: Paper; mine?: boolean; school?: boolean }) {
+const RECENT_KEY = 'unidesk_recent_papers';
+const SEARCHES_KEY = 'unidesk_recent_searches';
+const readList = <T,>(key: string): T[] => { try { const v = JSON.parse(localStorage.getItem(key) || '[]'); return Array.isArray(v) ? v : []; } catch { return []; } };
+
+function PaperRow({ p, mine, school, recent, onOpen }: { p: Paper; mine?: boolean; school?: boolean; recent?: boolean; onOpen?: (p: Paper) => void }) {
   return (
           <li>
-            <Link href={`/papers/${p.id}`} className="flex min-h-[68px] items-center gap-3.5 rounded-[18px] border-[1.5px] border-line bg-card px-4 py-3">
+            <Link href={`/papers/${p.id}`} onClick={() => onOpen?.(p)} className="flex min-h-[68px] items-center gap-3.5 rounded-[18px] border-[1.5px] border-line bg-card px-4 py-3">
               <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-soft text-brand-ink"><FileText size={22} aria-hidden /></span>
               <span className="min-w-0 flex-1">
-                <span className="block text-[15px] font-bold">{p.unitCode} <span className="font-medium text-muted">· {p.year}</span>{mine && <span className="ml-2 rounded-full bg-brand-soft px-2 py-0.5 text-[11px] font-bold text-brand-ink">Your unit</span>}{!mine && school && <span className="ml-2 rounded-full bg-brand-soft px-2 py-0.5 text-[11px] font-bold text-brand-ink">Your school</span>}</span>
+                <span className="block text-[15px] font-bold">{p.unitCode} <span className="font-medium text-muted">· {p.year}</span>{recent && <span className="ml-2 rounded-full bg-brand-soft px-2 py-0.5 text-[11px] font-bold text-brand-ink">Recent</span>}{!recent && mine && <span className="ml-2 rounded-full bg-brand-soft px-2 py-0.5 text-[11px] font-bold text-brand-ink">Your unit</span>}{!recent && !mine && school && <span className="ml-2 rounded-full bg-brand-soft px-2 py-0.5 text-[11px] font-bold text-brand-ink">Your school</span>}</span>
                 <span className="block truncate text-[13px] text-muted">{p.title}{p.sitting ? ` · ${p.sitting}` : ''}</span>
               </span>
               <ChevronRight size={20} className="shrink-0 text-muted" aria-hidden />
@@ -38,6 +42,16 @@ export default function PapersView({ initial }: { initial: Page | null }) {
   const [error, setError] = useState('');
   const [sheet, setSheet] = useState(false);
   const seq = useRef(0);
+  // What this student opened or searched lately, kept on this phone: those papers go to the very top.
+  const [opened, setOpened] = useState<Paper[]>([]);
+  const [searched, setSearched] = useState<Paper[]>([]);
+  useEffect(() => {
+    setOpened(readList<Paper>(RECENT_KEY).filter(p => p && typeof p.id === 'string').slice(0, 6));
+    const codes = readList<string>(SEARCHES_KEY).filter(c => typeof c === 'string').slice(0, 3);
+    Promise.all(codes.map(c => api<Page>(`/papers?q=${encodeURIComponent(c)}`).then(r => r.items).catch(() => [] as Paper[])))
+      .then(lists => setSearched(lists.flat()));
+  }, []);
+  const rememberOpened = (p: Paper) => { try { localStorage.setItem(RECENT_KEY, JSON.stringify([p, ...readList<Paper>(RECENT_KEY).filter(x => x?.id !== p.id)].slice(0, 6))); } catch {} };
   // School first: papers of the chosen school are listed ahead of the rest. Nothing is hidden.
   const [school, setSchool] = useState('');
   const [schoolItems, setSchoolItems] = useState<Paper[]>([]);
@@ -104,6 +118,13 @@ export default function PapersView({ initial }: { initial: Page | null }) {
     api<{ items: Paper[] }>(`/papers/mine?codes=${encodeURIComponent(codes.join(','))}`).then(r => setMine(r.items)).catch(() => setMine([]));
   }, [user]);
 
+  // A search for a unit code that finds papers is remembered.
+  useEffect(() => {
+    const code = q.trim().toUpperCase().replace(/\s+/g, '');
+    if (loading || !/^[A-Z]{2,6}\d{2,5}[A-Z]?$/.test(code) || !items.some(p => p.unitCode.replace(/\s+/g, '').toUpperCase() === code)) return;
+    try { localStorage.setItem(SEARCHES_KEY, JSON.stringify([code, ...readList<string>(SEARCHES_KEY).filter(c => c !== code)].slice(0, 3))); } catch {}
+  }, [items, loading]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // The Home "Request" shortcut opens the sheet straight away.
   useEffect(() => {
     const sp = new URLSearchParams(window.location.search);
@@ -113,11 +134,16 @@ export default function PapersView({ initial }: { initial: Page | null }) {
   }, []);
 
   // One list: the student's own units first (when not searching), then everything else.
-  const lead = q.trim() ? [] : mine;
-  const mineIds = new Set(lead.map(p => p.id));
-  const schoolIds = new Set(schoolItems.filter(p => !mineIds.has(p.id)).map(p => p.id));
-  const schoolFirst = schoolItems.filter(p => schoolIds.has(p.id));
-  const shown = [...lead, ...schoolFirst, ...items.filter(p => !mineIds.has(p.id) && !schoolIds.has(p.id))];
+  const searching = !!q.trim();
+  const seen = new Set<string>();
+  const uniq = (l: Paper[]) => l.filter(p => (seen.has(p.id) ? false : (seen.add(p.id), true)));
+  const recentList = searching ? [] : uniq([...opened, ...searched]);
+  const mineList = searching ? [] : uniq(mine);
+  const recentIds = new Set(recentList.map(p => p.id));
+  const mineIds = new Set(mineList.map(p => p.id));
+  const schoolFirst = uniq(schoolItems);
+  const schoolIds = new Set(schoolFirst.map(p => p.id));
+  const shown = [...recentList, ...mineList, ...schoolFirst, ...items.filter(p => !seen.has(p.id))];
 
   return (
     <main className="wide px-5 pt-[calc(24px+env(safe-area-inset-top))]">
@@ -141,7 +167,7 @@ export default function PapersView({ initial }: { initial: Page | null }) {
 
       <ul className="cols-lg mt-4 flex flex-col gap-2.5">
         {shown.map(p => (
-          <PaperRow key={p.id} p={p} mine={mineIds.has(p.id)} school={schoolIds.has(p.id)} />
+          <PaperRow key={p.id} p={p} recent={recentIds.has(p.id)} mine={mineIds.has(p.id)} school={schoolIds.has(p.id)} onOpen={rememberOpened} />
         ))}
       </ul>
 
