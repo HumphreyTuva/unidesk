@@ -31,6 +31,16 @@ export class AuthService {
     return uni.id;
   }
 
+  // A new account remembers who invited it (see referrals). Never blocks signing up, and nobody can be their own inviter.
+  private async attachInviter(userId: string, ref?: string) {
+    const code = (ref ?? '').trim().toLowerCase();
+    if (!code) return;
+    try {
+      const inviter = await this.db.user.findUnique({ where: { refCode: code }, select: { id: true } });
+      if (inviter && inviter.id !== userId) await this.db.user.update({ where: { id: userId }, data: { referredById: inviter.id } });
+    } catch { /* an invite that cannot be matched is simply ignored */ }
+  }
+
   async register(dto: RegisterDto) {
     const email = dto.email ? normalizeEmail(dto.email) : undefined;
     const username = dto.username ? normalizeUsername(dto.username) : undefined;
@@ -55,6 +65,7 @@ export class AuthService {
         emailVerified: false,
       },
     });
+    await this.attachInviter(user.id, dto.ref);
     return this.session(user);
   }
 
@@ -71,7 +82,7 @@ export class AuthService {
 
   // Google sign-in: the browser sends a signed ID token. Google confirms it, we check it was issued for OUR app
   // and that the email is verified, then find or create the account by email.
-  async googleSignIn(credential: string) {
+  async googleSignIn(credential: string, ref?: string) {
     const clientId = process.env.GOOGLE_CLIENT_ID;
     if (!clientId) throw new BadRequestException('Google sign-in is not set up yet');
     const fail = new BadRequestException('Google sign-in failed. Please try again.');
@@ -102,6 +113,7 @@ export class AuthService {
           role: isAdmin ? 'ADMIN' : 'STUDENT',
         },
       });
+      await this.attachInviter(user.id, ref);
       return this.session(user);
     }
     if (existing.deletedAt) throw fail;

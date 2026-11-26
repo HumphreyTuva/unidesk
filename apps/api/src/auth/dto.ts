@@ -11,6 +11,9 @@ export class RegisterDto {
   username?: string;
 
   @IsString() @MinLength(8, { message: 'Password must be at least 8 characters' }) @MaxLength(100) password: string;
+
+  // The invite code from a friend's link, if the student arrived through one.
+  @IsOptional() @Matches(/^[a-z0-9]{4,16}$/i) ref?: string;
 }
 
 export class LoginDto {
@@ -21,6 +24,7 @@ export class LoginDto {
 
 export class GoogleDto {
   @IsString() @MinLength(20) credential: string;
+  @IsOptional() @Matches(/^[a-z0-9]{4,16}$/i) ref?: string;
 }
 
 export class ForgotDto {

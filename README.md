@@ -212,3 +212,8 @@ Every school input offers the same suggestion list (`components/SchoolDatalist.t
 
 ### Papers: school first
 The Papers page has no school picker. The school is learned automatically (request form, letters, or the unit searched). That school's papers are listed right after the student's own units, then everything else, so nothing is hidden. It defaults to the student's saved school and is remembered on the phone.
+
+### Invite a friend (extra free downloads)
+Every signed-in student has a personal link (unidesk.co.ke/?ref=CODE) in Your account and on the "free downloads used" sheet, with a WhatsApp button.
+A friend who joins through it and opens a paper adds 2 free downloads for the inviter, up to 10 (`apps/api/src/referrals/constants.ts`). The bonus is worked out on the fly, so nothing can drift.
+The `20261126120000_referrals` migration adds `refCode` and `referredById` to User and runs on deploy. Admin > Users shows how many friends each student invited and can sort by it.

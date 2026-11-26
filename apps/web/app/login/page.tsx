@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
+import { getRef, clearRef } from '@/lib/referral';
 import { api } from '@/lib/api';
 import { User, useAuth } from '@/lib/auth';
 import GoogleButton from '@/components/GoogleButton';
@@ -46,7 +47,9 @@ export default function Login() {
               email: email || undefined,
               username: username || undefined,
               password,
+              ref: getRef(),
             });
+      if (mode !== 'signin') clearRef();
       done(r.user);
     } catch (err: any) {
       setError(err.message);
@@ -59,7 +62,8 @@ export default function Login() {
     setError('');
     setBusy(true);
     try {
-      done((await api<{ user: User }>('/auth/google', 'POST', { credential })).user);
+      done((await api<{ user: User }>('/auth/google', 'POST', { credential, ref: getRef() })).user);
+      clearRef();
     } catch (err: any) {
       setError(err.message);
     } finally {

@@ -89,6 +89,10 @@ model User {
   createdAt     DateTime   @default(now())
   deletedAt     DateTime?
   school        String? // set the first time they request a paper; used to pre-fill forms
+  refCode       String?    @unique // their personal invite code
+  referredById  String? // who invited them
+  referredBy    User?      @relation("Referral", fields: [referredById], references: [id])
+  referrals     User[]     @relation("Referral")
 
   paperRequests PaperRequest[]
   paperAccess   PaperAccess[]
@@ -99,6 +103,8 @@ model User {
   listings      Listing[]
   pushSubscriptions PushSubscription[]
   classReminder ClassReminder?
+
+  @@index([referredById])
 }
 
 // Admin-controlled settings: payments_enabled ("true"/"false"), paper_price (KES), listing_fee (KES), listing_days.

@@ -4,6 +4,7 @@ import { Plus_Jakarta_Sans } from 'next/font/google';
 import { AuthProvider } from '@/lib/auth';
 import AppShell from '@/components/AppShell';
 import PwaRegister from '@/components/PwaRegister';
+import RefCapture from '@/components/RefCapture';
 import OfflineBanner from '@/components/OfflineBanner';
 import { ToastProvider } from '@/lib/toast';
 import JsonLd from '@/components/JsonLd';
@@ -71,6 +72,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="font-sans antialiased">
         <JsonLd data={SITE_JSON_LD} />
         <PwaRegister />
+        <RefCapture />
         <AuthProvider>
           <ToastProvider>
             <OfflineBanner />

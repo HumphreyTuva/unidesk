@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
 import ThemeSwitch from '@/components/ThemeSwitch';
+import InviteCard from '@/components/InviteCard';
 
 export default function Account() {
   const { user, ready, logout } = useAuth();
@@ -22,6 +23,7 @@ export default function Account() {
         {user.username && <p className="mt-1 text-sm text-muted">Username: {user.username}</p>}
         {user.email && <p className="mt-1 text-sm text-muted">{user.email}</p>}
       </div>
+      <div className="mt-4"><InviteCard /></div>
       <ThemeSwitch />
       <button
         type="button"

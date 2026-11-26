@@ -34,7 +34,7 @@ export class AuthController {
 
   @Post('google') @HttpCode(200) @Throttle({ default: { limit: 20, ttl: 60_000 } })
   async google(@Body() dto: GoogleDto, @Res({ passthrough: true }) res: Response) {
-    return this.send(res, await this.auth.googleSignIn(dto.credential));
+    return this.send(res, await this.auth.googleSignIn(dto.credential, dto.ref));
   }
 
   @Post('forgot-password') @HttpCode(200) @Throttle({ default: { limit: 5, ttl: 600_000 } })

@@ -10,7 +10,7 @@ class ListQuery {
   @IsOptional() @IsString() take?: string;
   @IsOptional() @IsString() skip?: string;
   @IsOptional() @IsIn(['all', 'blocked', 'staff', 'paid']) filter?: 'all' | 'blocked' | 'staff' | 'paid';
-  @IsOptional() @IsIn(['new', 'downloads', 'requests', 'paid']) sort?: 'new' | 'downloads' | 'requests' | 'paid';
+  @IsOptional() @IsIn(['new', 'downloads', 'requests', 'paid', 'invites']) sort?: 'new' | 'downloads' | 'requests' | 'paid' | 'invites';
 }
 
 const DAY = 86_400_000;
@@ -62,7 +62,7 @@ export class AdminUsersController {
     if (q.filter === 'paid') where.payments = { some: { status: 'SUCCESS' } };
     const select = {
       id: true, name: true, email: true, username: true, usernameDisplay: true, role: true, createdAt: true, deletedAt: true, googleId: true, passwordHash: true,
-      _count: { select: { paperRequests: true, paperAccess: true, payments: { where: { status: 'SUCCESS' as const } }, threads: true } },
+      _count: { select: { paperRequests: true, paperAccess: true, referrals: true, payments: { where: { status: 'SUCCESS' as const } }, threads: true } },
     };
 
     let total: number;
@@ -80,6 +80,7 @@ export class AdminUsersController {
       rows = ids.map(id => found.find(u => u.id === id)).filter(Boolean);
     } else {
       const orderBy: any = q.sort === 'downloads' ? [{ paperAccess: { _count: 'desc' } }, { createdAt: 'desc' }]
+        : q.sort === 'invites' ? [{ referrals: { _count: 'desc' } }, { createdAt: 'desc' }]
         : q.sort === 'requests' ? [{ paperRequests: { _count: 'desc' } }, { createdAt: 'desc' }]
         : { createdAt: 'desc' };
       [total, rows] = await Promise.all([
@@ -96,7 +97,7 @@ export class AdminUsersController {
     const items = rows.map(u => ({
       id: u.id, name: u.name, email: u.email, username: u.usernameDisplay || u.username, role: u.role, joined: u.createdAt, blocked: !!u.deletedAt,
       via: u.googleId && u.passwordHash ? 'Google + password' : u.googleId ? 'Google' : 'Password',
-      requests: u._count.paperRequests, downloads: u._count.paperAccess, payments: u._count.payments, paidAmount: paidBy.get(u.id) ?? 0, chats: u._count.threads,
+      requests: u._count.paperRequests, downloads: u._count.paperAccess, payments: u._count.payments, paidAmount: paidBy.get(u.id) ?? 0, chats: u._count.threads, invited: u._count.referrals,
     }));
     return { total, items };
   }

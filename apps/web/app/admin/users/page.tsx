@@ -8,9 +8,9 @@ import { useRequireAdmin } from '@/lib/useRequireAdmin';
 
 type Role = 'STUDENT' | 'SUPPORT' | 'ADMIN';
 type Summary = { total: number; today: number; last7: number; last30: number; blocked: number; staff: number; google: number; password: number; byDay: { date: string; count: number }[] };
-type Row = { id: string; name: string | null; email: string | null; username: string | null; role: Role; joined: string; blocked: boolean; via: string; requests: number; downloads: number; payments: number; paidAmount: number; chats: number };
+type Row = { id: string; name: string | null; email: string | null; username: string | null; role: Role; joined: string; blocked: boolean; via: string; requests: number; downloads: number; payments: number; paidAmount: number; chats: number; invited: number };
 type Filter = 'all' | 'paid' | 'staff' | 'blocked';
-type Sort = 'new' | 'downloads' | 'requests' | 'paid';
+type Sort = 'new' | 'downloads' | 'requests' | 'paid' | 'invites';
 
 const PAGE = 30;
 const fmt = (d: string) => new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Africa/Nairobi' });
@@ -100,7 +100,7 @@ export default function Users() {
       <label className="mt-3 flex items-center gap-3">
         <span className="shrink-0 text-[13px] font-bold text-muted">Sort by</span>
         <select value={sort} onChange={e => setSort(e.target.value as Sort)} className="h-11 min-w-0 flex-1 rounded-xl border-[1.5px] border-edge bg-card px-3 text-[15px] font-semibold">
-          <option value="new">Newest</option><option value="downloads">Most downloads</option><option value="requests">Most requests</option><option value="paid">Highest amount paid</option>
+          <option value="new">Newest</option><option value="downloads">Most downloads</option><option value="requests">Most requests</option><option value="paid">Highest amount paid</option><option value="invites">Most friends invited</option>
         </select>
       </label>
       {sort === 'paid' && <p className="mt-1.5 text-[12px] text-muted">This order lists only students who have paid.</p>}
@@ -126,7 +126,7 @@ export default function Users() {
                 )}
               </div>
               <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-[13px]">
-                <span><b>{r.requests}</b> requests</span><span><b>{r.downloads}</b> downloads</span><span><b>{r.payments}</b> paid{r.paidAmount > 0 && <> · Ksh {r.paidAmount.toLocaleString('en-KE')}</>}</span><span><b>{r.chats}</b> chats</span>
+                <span><b>{r.requests}</b> requests</span><span><b>{r.downloads}</b> downloads</span><span><b>{r.payments}</b> paid{r.paidAmount > 0 && <> · Ksh {r.paidAmount.toLocaleString('en-KE')}</>}</span><span><b>{r.chats}</b> chats</span><span><b>{r.invited}</b> invited</span>
                 <label className="ml-auto flex items-center gap-2"><span className="text-muted">Role</span>
                   <select value={r.role} disabled={self} onChange={e => setRole(r, e.target.value as Role)} className="h-10 rounded-xl border-[1.5px] border-edge bg-card px-2 text-[14px] font-semibold disabled:opacity-50">
                     <option value="STUDENT">Student</option><option value="SUPPORT">Support</option><option value="ADMIN">Admin</option>

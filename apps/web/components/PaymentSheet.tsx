@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Check, Download, Loader2, Smartphone, X } from 'lucide-react';
 import { api } from '@/lib/api';
+import InviteCard from '@/components/InviteCard';
 
 type Phase = 'form' | 'waiting' | 'success' | 'failed' | 'timeout';
 type Status = { status: 'PENDING' | 'SUCCESS' | 'FAILED'; reason?: string };
@@ -85,6 +86,7 @@ export default function PaymentSheet({ open, paperId, label, amount, note, onClo
             {phase === 'form' && (
               <form onSubmit={pay} className="mt-2 flex flex-col gap-3.5">
                 {note && <p className="rounded-xl bg-amber-soft px-3.5 py-3 text-[14px] font-medium leading-relaxed text-amber-ink">{note}</p>}
+                {note && <InviteCard compact />}
                 <div className="flex items-baseline justify-between rounded-2xl bg-brand-soft px-4 py-3">
                   <span className="text-[13px] font-bold text-brand-ink">Price</span>
                   <span className="text-2xl font-extrabold text-brand-ink">KSh {amount}</span>

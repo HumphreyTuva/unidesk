@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
+import { REFERRAL_CAP, REFERRAL_PER_FRIEND } from '../referrals/constants';
 
 // Settings the admin controls. These are the only keys that exist, so nobody can write arbitrary rows.
 export const SETTING_KEYS = ['payments_enabled', 'paper_price', 'listing_fee', 'listing_days', 'reading_mode', 'free_pages', 'free_downloads'] as const;
@@ -32,14 +33,21 @@ export class SettingsService {
   // Has this student used up their free downloads? Counts papers they hold that they did not pay for.
   // Only applies when real M-Pesa is connected (or outside production), so students are never asked to pay through a test setup.
   async limitStatus(userId: string): Promise<{ reached: boolean; limit: number }> {
-    const limit = await this.freeDownloads();
-    if (limit === 0) return { reached: false, limit };
+    const base = await this.freeDownloads();
+    if (base === 0) return { reached: false, limit: base };
+    const limit = base + (await this.referralBonus(userId)).bonus;
     if (process.env.NODE_ENV === 'production' && process.env.MPESA_MODE !== 'live') return { reached: false, limit };
     const [held, paid] = await Promise.all([
       this.db.paperAccess.count({ where: { userId } }),
       this.db.payment.findMany({ where: { userId, purpose: 'PAPER_DOWNLOAD', status: 'SUCCESS', paperId: { not: null } }, distinct: ['paperId'], select: { paperId: true } }),
     ]);
     return { reached: held - paid.length >= limit, limit };
+  }
+
+  // Extra free downloads earned by inviting friends. A friend counts once they have joined with the student's link and opened a paper.
+  async referralBonus(userId: string): Promise<{ counted: number; bonus: number }> {
+    const counted = await this.db.user.count({ where: { referredById: userId, deletedAt: null, paperAccess: { some: {} } } });
+    return { counted, bonus: Math.min(REFERRAL_CAP, counted * REFERRAL_PER_FRIEND) };
   }
 
   // How much of a paper students can read in the app: 'full' (every page), 'first' (the first few pages) or 'preview' (page 1 only).
