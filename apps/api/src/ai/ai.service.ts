@@ -1,4 +1,4 @@
-import { BadRequestException, HttpException, Injectable, Logger, ServiceUnavailableException } from '@nestjs/common';
+import { BadRequestException, HttpException, Injectable, NotFoundException, Logger, ServiceUnavailableException } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import { UniversityService } from '../common/university.service';
 import { OFFICES } from './content/offices';
@@ -138,7 +138,7 @@ export class AiService {
     return Array.isArray(data?.content) ? data.content.filter((c: any) => c.type === 'text').map((c: any) => c.text).join('\n').trim() : '';
   }
 
-  async ask(userId: string, raw: unknown) {
+  async ask(userId: string, raw: unknown, conversationId?: string) {
     const provider = this.provider();
     if (!provider) throw new ServiceUnavailableException('The assistant is not switched on yet. Support chat can help meanwhile.');
     const turns = this.parse(raw);
@@ -154,7 +154,68 @@ export class AiService {
       throw new ServiceUnavailableException('The assistant is unavailable right now. Please try again, or use Support chat.');
     }
     if (!reply) throw new ServiceUnavailableException('No answer came back. Please try again.');
-    return { reply };
+    return { reply, conversationId: await this.save(userId, conversationId, turns[turns.length - 1].content, reply) };
+  }
+
+  // Keeps the question and the answer so the student can read them again and the team can see what students ask.
+  // A problem saving never stops the student getting their answer.
+  private async save(userId: string, conversationId: string | undefined, question: string, reply: string): Promise<string | null> {
+    try {
+      let id = conversationId && typeof conversationId === 'string' ? conversationId : '';
+      if (id) {
+        const own = await this.db.aiConversation.findFirst({ where: { id, userId }, select: { id: true } });
+        if (!own) id = '';
+      }
+      if (!id) id = (await this.db.aiConversation.create({ data: { userId, title: question.replace(/\s+/g, ' ').slice(0, 80) }, select: { id: true } })).id;
+      await this.db.aiMessage.createMany({ data: [{ conversationId: id, role: 'user', content: question }, { conversationId: id, role: 'assistant', content: reply }] });
+      await this.db.aiConversation.update({ where: { id }, data: { updatedAt: new Date() } });
+      return id;
+    } catch (e: any) {
+      this.log.error(`Could not save the chat: ${String(e?.message ?? e).slice(0, 200)}`);
+      return null;
+    }
+  }
+
+  // ---- history ----
+  async myConversations(userId: string) {
+    return this.db.aiConversation.findMany({ where: { userId }, orderBy: { updatedAt: 'desc' }, take: 50, select: { id: true, title: true, updatedAt: true } });
+  }
+
+  async myConversation(userId: string, id: string) {
+    const c = await this.db.aiConversation.findFirst({ where: { id, userId }, select: { id: true, title: true, messages: { orderBy: { createdAt: 'asc' }, select: { role: true, content: true, createdAt: true } } } });
+    if (!c) throw new NotFoundException('Chat not found.');
+    return c;
+  }
+
+  async deleteMine(userId: string, id: string) {
+    const r = await this.db.aiConversation.deleteMany({ where: { id, userId } });
+    if (!r.count) throw new NotFoundException('Chat not found.');
+    return { ok: true };
+  }
+
+  // Admin: every student's chats, newest first, so the team can see what is being asked and improve the app.
+  async adminConversations(q: { q?: string; take?: string; skip?: string }) {
+    const take = Math.min(50, Math.max(1, Number(q.take) || 30));
+    const skip = Math.max(0, Number(q.skip) || 0);
+    const term = (q.q ?? '').trim().slice(0, 80);
+    const where: any = term ? { messages: { some: { content: { contains: term, mode: 'insensitive' } } } } : {};
+    const [total, rows] = await Promise.all([
+      this.db.aiConversation.count({ where }),
+      this.db.aiConversation.findMany({
+        where, orderBy: { updatedAt: 'desc' }, take, skip,
+        select: { id: true, title: true, createdAt: true, updatedAt: true, user: { select: { name: true, email: true, username: true, usernameDisplay: true, school: true } }, _count: { select: { messages: true } } },
+      }),
+    ]);
+    return {
+      total,
+      items: rows.map((c: any) => ({ id: c.id, title: c.title, updatedAt: c.updatedAt, messages: c._count.messages, who: c.user.name || c.user.usernameDisplay || c.user.username || c.user.email || 'Student', contact: c.user.email || c.user.usernameDisplay || c.user.username || '', school: c.user.school })),
+    };
+  }
+
+  async adminConversation(id: string) {
+    const c = await this.db.aiConversation.findUnique({ where: { id }, select: { id: true, title: true, user: { select: { name: true, email: true, username: true, usernameDisplay: true, school: true } }, messages: { orderBy: { createdAt: 'asc' }, select: { role: true, content: true, createdAt: true } } } });
+    if (!c) throw new NotFoundException('Chat not found.');
+    return c;
   }
 
   enabled() { return this.provider() !== null; }

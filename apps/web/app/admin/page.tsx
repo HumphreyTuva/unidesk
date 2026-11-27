@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import { ArrowLeft, CalendarDays, FileText, LayoutGrid, ChevronRight, Inbox, Link2, MapPin, MessageCircle, Upload, Users, Wallet } from 'lucide-react';
+import { ArrowLeft, Bot, CalendarDays, FileText, LayoutGrid, ChevronRight, Inbox, Link2, MapPin, MessageCircle, Upload, Users, Wallet } from 'lucide-react';
 import { useRequireAdmin } from '@/lib/useRequireAdmin';
 import { useAuth } from '@/lib/auth';
 import { useAdminCounts } from '@/lib/useAdminCounts';
@@ -13,6 +13,7 @@ const TOOLS = [
   { href: '/admin/papers/manage', title: 'Manage papers', sub: 'Edit, hide, replace or delete past papers', Icon: FileText },
   { href: '/admin/requests', title: 'Paper requests', sub: 'What students are asking for', Icon: Inbox, support: true, badge: 'requests' },
   { href: '/admin/users', title: 'Users', sub: 'Signups, activity, roles and blocking', Icon: Users },
+  { href: '/admin/ai', title: 'AI questions', sub: 'What students ask the assistant', Icon: Bot },
   { href: '/admin/payments', title: 'Payments', sub: 'Switch on or off, set the price, see money in', Icon: Wallet },
   { href: '/admin/timetables', title: 'Timetables', sub: 'Upload and publish class and exam sheets', Icon: CalendarDays },
   { href: '/admin/campus', title: 'Campus', sub: 'Check ads and approve clubs', Icon: LayoutGrid, badge: 'campus' },

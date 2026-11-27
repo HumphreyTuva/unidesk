@@ -217,3 +217,6 @@ The Papers page has no school picker. The school is learned automatically (reque
 Every signed-in student has a personal link (unidesk.co.ke/?ref=CODE) in Your account and on the "free downloads used" sheet, with a WhatsApp button.
 A friend who joins through it and opens a paper adds 2 free downloads for the inviter, up to 10 (`apps/api/src/referrals/constants.ts`). The bonus is worked out on the fly, so nothing can drift.
 The `20261126120000_referrals` migration adds `refCode` and `referredById` to User and runs on deploy. Admin > Users shows how many friends each student invited and can sort by it.
+
+### Assistant chat history
+Each question and answer is saved (`AiConversation`, `AiMessage`, migration `20261127120000_ai_history`). Students see their own chats under History in Help > Ask AI, and can delete them. Admins read all chats in Admin > AI questions. The chat screen tells students their chats are saved and read by the team.

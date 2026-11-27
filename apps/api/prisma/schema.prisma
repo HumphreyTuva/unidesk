@@ -103,6 +103,7 @@ model User {
   listings      Listing[]
   pushSubscriptions PushSubscription[]
   classReminder ClassReminder?
+  aiConversations AiConversation[]
 
   @@index([referredById])
 }
@@ -372,4 +373,29 @@ model ReminderSent {
   sentAt DateTime @default(now())
 
   @@index([sentAt])
+}
+
+// A chat with the assistant. The student can read and delete their own; admins can read them to see what students ask.
+model AiConversation {
+  id        String      @id @default(cuid())
+  userId    String
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  messages  AiMessage[]
+
+  @@index([userId, updatedAt])
+  @@index([updatedAt])
+}
+
+model AiMessage {
+  id             String         @id @default(cuid())
+  conversationId String
+  conversation   AiConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  role           String // 'user' or 'assistant'
+  content        String
+  createdAt      DateTime       @default(now())
+
+  @@index([conversationId, createdAt])
 }

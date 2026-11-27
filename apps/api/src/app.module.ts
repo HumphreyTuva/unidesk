@@ -21,7 +21,7 @@ import { LinksController } from './links/links.controller';
 import { CampusService } from './campus/campus.service';
 import { CampusController, AdminCampusController } from './campus/campus.controller';
 import { AiService } from './ai/ai.service';
-import { AiController } from './ai/ai.controller';
+import { AiController, AdminAiController } from './ai/ai.controller';
 import { ChatService } from './chat/chat.service';
 import { ChatController, AdminChatController } from './chat/chat.controller';
 import { VenuesService } from './venues/venues.service';
@@ -47,7 +47,7 @@ import { TimetableController, AdminTimetableController } from './timetable/timet
     // Default limit for every route; sign-in and sign-up have stricter limits of their own.
     ThrottlerModule.forRoot([{ ttl: 60_000, limit: 120 }]),
   ],
-  controllers: [AuthController, HealthController, PapersController, AdminPapersController, PaymentsController, AdminPaymentsController, LinksController, TimetableController, AdminTimetableController, VenuesController, AdminVenuesController, ChatController, AdminChatController, AiController, CampusController, AdminCampusController, AdminUsersController, AdminOverviewController, RemindersController, ReferralsController],
+  controllers: [AuthController, HealthController, PapersController, AdminPapersController, PaymentsController, AdminPaymentsController, LinksController, TimetableController, AdminTimetableController, VenuesController, AdminVenuesController, ChatController, AdminChatController, AiController, CampusController, AdminCampusController, AdminUsersController, AdminOverviewController, RemindersController, ReferralsController, AdminAiController],
   providers: [
     PrismaService, AuthService, MailService, PapersService, StorageService, SettingsService, UniversityService, MpesaService, PaymentsService, TimetableService, RemindersService, ReferralsService, VenuesService, ChatService, AiService, CampusService, JwtGuard,
     { provide: APP_GUARD, useClass: ThrottlerGuard },
