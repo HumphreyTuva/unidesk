@@ -6,6 +6,7 @@ import AppShell from '@/components/AppShell';
 import PwaRegister from '@/components/PwaRegister';
 import RefCapture from '@/components/RefCapture';
 import OfflineBanner from '@/components/OfflineBanner';
+import ServerDownBanner from '@/components/ServerDownBanner';
 import { ToastProvider } from '@/lib/toast';
 import JsonLd from '@/components/JsonLd';
 import { SITE_NAME, SITE_URL } from '@/lib/seo';
@@ -76,6 +77,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <AuthProvider>
           <ToastProvider>
             <OfflineBanner />
+            <ServerDownBanner />
             <AppShell>{children}</AppShell>
           </ToastProvider>
         </AuthProvider>
