@@ -8,7 +8,7 @@ import MyRequests from '@/components/MyRequests';
 import { useAuth } from '@/lib/auth';
 import { SCHOOL_KEY, rememberSchool } from '@/lib/schools';
 
-type Paper = { id: string; unitCode: string; title: string; year: number; sitting: string | null; school: string | null; hasPreview: boolean };
+type Paper = { id: string; unitCode: string; title: string; year: number; sitting: string | null; school: string | null; hasPreview: boolean; aliases?: string[] };
 type Page = { items: Paper[]; nextCursor: string | null };
 
 const RECENT_KEY = 'unidesk_recent_papers';
@@ -22,7 +22,7 @@ function PaperRow({ p, mine, school, recent, onOpen }: { p: Paper; mine?: boolea
               <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-soft text-brand-ink"><FileText size={22} aria-hidden /></span>
               <span className="min-w-0 flex-1">
                 <span className="block text-[15px] font-bold">{p.unitCode} <span className="font-medium text-muted">· {p.year}</span>{recent && <span className="ml-2 rounded-full bg-brand-soft px-2 py-0.5 text-[11px] font-bold text-brand-ink">Recent</span>}{!recent && mine && <span className="ml-2 rounded-full bg-brand-soft px-2 py-0.5 text-[11px] font-bold text-brand-ink">Your unit</span>}{!recent && !mine && school && <span className="ml-2 rounded-full bg-brand-soft px-2 py-0.5 text-[11px] font-bold text-brand-ink">Your school</span>}</span>
-                <span className="block truncate text-[13px] text-muted">{p.title}{p.sitting ? ` · ${p.sitting}` : ''}</span>
+                <span className="block truncate text-[13px] text-muted">{p.title}{p.sitting ? ` · ${p.sitting}` : ''}{p.aliases?.length ? ` · also ${p.aliases.join(', ')}` : ''}</span>
               </span>
               <ChevronRight size={20} className="shrink-0 text-muted" aria-hidden />
             </Link>

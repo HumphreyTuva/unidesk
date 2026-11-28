@@ -18,6 +18,7 @@ export default function UploadPaper() {
   const [year, setYear] = useState(String(thisYear));
   const [sitting, setSitting] = useState('');
   const [school, setSchool] = useState('');
+  const [aliases, setAliases] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [done, setDone] = useState('');
@@ -59,6 +60,7 @@ export default function UploadPaper() {
       form.append('year', year);
       if (sitting) form.append('sitting', sitting);
       if (school) form.append('school', school);
+      if (aliases.trim()) form.append('aliases', aliases.trim());
       await api('/admin/papers', 'POST', form);
       setDone(`${unitCode.toUpperCase()} ${year} uploaded with ${pages.length} readable page${pages.length === 1 ? '' : 's'}${pages.length ? '' : ' (pages could not be made, so students only see the first-page preview)'}.`);
       // Keep the year, sitting and school for the next upload; clear the rest.
@@ -105,6 +107,11 @@ export default function UploadPaper() {
             <label htmlFor="sitting" className="text-[13px] font-bold">Sitting <span className="font-medium text-muted">(optional)</span></label>
             <input id="sitting" value={sitting} onChange={e => setSitting(e.target.value)} placeholder="End of semester" className={field} />
           </div>
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="aliases" className="text-[13px] font-bold">Same unit under other codes <span className="font-medium text-muted">(optional)</span></label>
+          <input id="aliases" value={aliases} onChange={e => setAliases(e.target.value)} placeholder="e.g. SMA310, SMA320" className={field} />
+          <p className="text-[12px] text-muted">Other schools use different codes for the same unit. Students searching or asking for these codes will find this paper.</p>
         </div>
         <div className="flex flex-col gap-1.5">
           <label htmlFor="school" className="text-[13px] font-bold">School <span className="font-medium text-muted">(optional)</span></label>

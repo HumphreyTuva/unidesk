@@ -8,7 +8,7 @@ import { useToast } from '@/lib/toast';
 import { useRequireAdmin } from '@/lib/useRequireAdmin';
 import { makePages, makePreview } from '@/lib/pdfPreview';
 
-type Row = { id: string; unitCode: string; title: string; year: number; sitting: string | null; school: string | null; published: boolean; pageCount: number; downloads: number; hasPreview: boolean };
+type Row = { id: string; unitCode: string; aliases?: string[]; title: string; year: number; sitting: string | null; school: string | null; published: boolean; pageCount: number; downloads: number; hasPreview: boolean };
 
 const field = 'h-12 w-full rounded-2xl border-[1.5px] border-edge bg-field px-3.5 text-[15px] text-ink placeholder:text-faint';
 const btn = 'inline-flex h-10 items-center justify-center gap-1.5 rounded-xl border-[1.5px] border-edge bg-card px-3 text-[13px] font-bold text-ink disabled:opacity-50';
@@ -21,7 +21,7 @@ export default function ManagePapers() {
   const [editing, setEditing] = useState<string | null>(null);
   const [confirming, setConfirming] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
-  const [form, setForm] = useState({ unitCode: '', title: '', year: '', sitting: '', school: '' });
+  const [form, setForm] = useState({ unitCode: '', title: '', year: '', sitting: '', school: '', aliases: '' });
   const pickFor = useRef<string | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);
 
@@ -35,13 +35,13 @@ export default function ManagePapers() {
   const startEdit = (r: Row) => {
     setConfirming(null);
     setEditing(r.id);
-    setForm({ unitCode: r.unitCode, title: r.title, year: String(r.year), sitting: r.sitting ?? '', school: r.school ?? '' });
+    setForm({ unitCode: r.unitCode, title: r.title, year: String(r.year), sitting: r.sitting ?? '', school: r.school ?? '', aliases: (r.aliases ?? []).join(', ') });
   };
 
   const save = async (id: string) => {
     setBusy(id);
     try {
-      await api(`/admin/papers/${id}`, 'PUT', { unitCode: form.unitCode, title: form.title, year: Number(form.year), sitting: form.sitting, school: form.school });
+      await api(`/admin/papers/${id}`, 'PUT', { unitCode: form.unitCode, title: form.title, year: Number(form.year), sitting: form.sitting, school: form.school, aliases: form.aliases });
       toast.ok('Saved');
       setEditing(null);
       load();
@@ -119,6 +119,7 @@ export default function ManagePapers() {
                     <input value={form.sitting} onChange={e => setForm({ ...form, sitting: e.target.value })} placeholder="Sitting" aria-label="Sitting" className={field} />
                   </div>
                   <input list={SCHOOL_LIST_ID} value={form.school} onChange={e => setForm({ ...form, school: e.target.value })} placeholder="School" aria-label="School" className={field} />
+                  <input value={form.aliases} onChange={e => setForm({ ...form, aliases: e.target.value })} placeholder="Other codes, e.g. SMA310, SMA320" aria-label="Other codes for the same unit" className={field} />
                   <SchoolDatalist />
                   <div className="flex gap-2">
                     <button type="button" onClick={() => save(r.id)} disabled={busy === r.id} className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-brand text-[14px] font-bold text-white disabled:opacity-60">{busy === r.id && <Loader2 size={16} className="animate-spin" aria-hidden />} Save</button>
@@ -131,7 +132,7 @@ export default function ManagePapers() {
                     <div className="min-w-0">
                       <p className="text-[16px] font-extrabold">{r.unitCode} <span className="font-medium text-muted">· {r.year}</span></p>
                       <p className="truncate text-[14px] text-muted">{r.title}</p>
-                      <p className="mt-0.5 text-[12px] text-muted">{[r.sitting, r.school].filter(Boolean).join(' · ') || 'No sitting or school'}</p>
+                      <p className="mt-0.5 text-[12px] text-muted">{[r.sitting, r.school, r.aliases?.length ? `also ${r.aliases.join(', ')}` : ''].filter(Boolean).join(' · ') || 'No sitting or school'}</p>
                     </div>
                     <div className="flex shrink-0 flex-col items-end gap-1">
                       {!r.published && <span className="rounded-full bg-amber-soft px-2.5 py-0.5 text-[11px] font-bold text-amber-ink">Hidden</span>}

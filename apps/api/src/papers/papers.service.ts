@@ -24,8 +24,8 @@ export class PapersService {
   ) {}
 
   // What students see. Nothing here ever mentions price or payment.
-  private card(p: { id: string; unitCode: string; title: string; year: number; sitting: string | null; school: string | null; previewKey: string | null; pageCount: number; createdAt?: Date }) {
-    return { id: p.id, unitCode: p.unitCode, title: p.title, year: p.year, sitting: p.sitting, school: p.school, hasPreview: !!p.previewKey, pageCount: p.pageCount, addedAt: p.createdAt };
+  private card(p: { id: string; unitCode: string; title: string; year: number; sitting: string | null; school: string | null; previewKey: string | null; pageCount: number; createdAt?: Date; aliases?: string[] }) {
+    return { id: p.id, unitCode: p.unitCode, aliases: p.aliases ?? [], title: p.title, year: p.year, sitting: p.sitting, school: p.school, hasPreview: !!p.previewKey, pageCount: p.pageCount, addedAt: p.createdAt };
   }
 
   async list(q: ListPapersQuery) {
@@ -34,7 +34,7 @@ export class PapersService {
     const where: any = { universityId: await this.uni.defaultId(), published: true };
     if (q.year) where.year = q.year;
     if (q.school) where.school = q.school;
-    if (term) where.OR = [{ unitCode: { contains: normalizeUnitCode(term) } }, { title: { contains: term, mode: 'insensitive' } }];
+    if (term) where.OR = [{ unitCode: { contains: normalizeUnitCode(term) } }, { aliases: { has: normalizeUnitCode(term) } }, { title: { contains: term, mode: 'insensitive' } }];
 
     const rows = await this.db.paper.findMany({
       where,
@@ -51,11 +51,16 @@ export class PapersService {
     const codes = [...new Set(raw.map(normalizeUnitCode).filter(c => UNIT_CODE_RE.test(c)))];
     if (!codes.length) return { items: [] };
     const rows = await this.db.paper.findMany({
-      where: { universityId: await this.uni.defaultId(), published: true, unitCode: { in: codes } },
+      where: { universityId: await this.uni.defaultId(), published: true, OR: [{ unitCode: { in: codes } }, { aliases: { hasSome: codes } }] },
       orderBy: [{ unitCode: 'asc' }, { year: 'desc' }, { id: 'asc' }],
       take: 120,
     });
     return { items: rows.map(p => this.card(p)) };
+  }
+
+  // "SMA310, sma 320" becomes ['SMA310', 'SMA320']. Codes that are not valid, or are the paper's own code, are dropped.
+  private parseAliases(raw: string | undefined, own: string): string[] {
+    return [...new Set((raw ?? '').split(/[,;\s]+/).map(normalizeUnitCode).filter(c => UNIT_CODE_RE.test(c) && c !== own))].slice(0, 6);
   }
 
   private async published(id: string) {
@@ -168,12 +173,13 @@ export class PapersService {
 
     const universityId = await this.uni.defaultId();
     const paper = await this.db.paper.create({
-      data: { id, universityId, unitCode, title: dto.title.trim(), year: dto.year, sitting: dto.sitting?.trim() || null, school: dto.school?.trim() || null, fileKey, previewKey, pageCount: pages.length },
+      data: { id, universityId, unitCode, title: dto.title.trim(), year: dto.year, sitting: dto.sitting?.trim() || null, school: dto.school?.trim() || null, fileKey, previewKey, pageCount: pages.length, aliases: this.parseAliases(dto.aliases, unitCode) },
     });
 
-    // Anyone who asked for this unit gets their request marked as fulfilled, and an email if mail is set up.
-    const waiting = await this.db.paperRequest.findMany({ where: { universityId, unitCode, status: 'OPEN' }, select: { user: { select: { email: true, name: true, deletedAt: true } } } });
-    await this.db.paperRequest.updateMany({ where: { universityId, unitCode, status: 'OPEN' }, data: { status: 'FULFILLED', paperId: paper.id } });
+    // Anyone who asked for this unit (under any of its codes) gets their request marked as fulfilled, and an email if mail is set up.
+    const codes = [unitCode, ...paper.aliases];
+    const waiting = await this.db.paperRequest.findMany({ where: { universityId, unitCode: { in: codes }, status: 'OPEN' }, select: { user: { select: { email: true, name: true, deletedAt: true } } } });
+    await this.db.paperRequest.updateMany({ where: { universityId, unitCode: { in: codes }, status: 'OPEN' }, data: { status: 'FULFILLED', paperId: paper.id } });
     void this.notifyReady(paper, waiting.map(w => w.user));
     return this.card(paper);
   }
@@ -201,9 +207,9 @@ export class PapersService {
   async adminList(q?: string) {
     const term = q?.trim();
     const where: any = { universityId: await this.uni.defaultId() };
-    if (term) where.OR = [{ unitCode: { contains: normalizeUnitCode(term) } }, { title: { contains: term, mode: 'insensitive' } }];
+    if (term) where.OR = [{ unitCode: { contains: normalizeUnitCode(term) } }, { aliases: { has: normalizeUnitCode(term) } }, { title: { contains: term, mode: 'insensitive' } }];
     const rows = await this.db.paper.findMany({ where, orderBy: [{ createdAt: 'desc' }], take: 200 });
-    return rows.map(p => ({ id: p.id, unitCode: p.unitCode, title: p.title, year: p.year, sitting: p.sitting, school: p.school, published: p.published, pageCount: p.pageCount, downloads: p.downloads, hasPreview: !!p.previewKey, createdAt: p.createdAt }));
+    return rows.map(p => ({ id: p.id, unitCode: p.unitCode, aliases: p.aliases, title: p.title, year: p.year, sitting: p.sitting, school: p.school, published: p.published, pageCount: p.pageCount, downloads: p.downloads, hasPreview: !!p.previewKey, createdAt: p.createdAt }));
   }
 
   async adminUpdate(id: string, dto: UpdatePaperDto) {
@@ -220,8 +226,20 @@ export class PapersService {
     if (dto.sitting !== undefined) data.sitting = dto.sitting.trim() || null;
     if (dto.school !== undefined) data.school = dto.school.trim() || null;
     if (dto.published !== undefined) data.published = dto.published;
+    if (dto.aliases !== undefined || data.unitCode) data.aliases = this.parseAliases(dto.aliases ?? p.aliases.join(','), data.unitCode ?? p.unitCode);
     const updated = await this.db.paper.update({ where: { id }, data });
-    return { id: updated.id, unitCode: updated.unitCode, title: updated.title, year: updated.year, sitting: updated.sitting, school: updated.school, published: updated.published };
+
+    // A code just added to this paper: students who were waiting for that code get their request closed and an email.
+    const added: string[] = ((data.aliases as string[] | undefined) ?? []).filter(c => !p.aliases.includes(c));
+    if (added.length && updated.published) {
+      const where = { universityId: updated.universityId, unitCode: { in: added }, status: 'OPEN' as const };
+      const waiting = await this.db.paperRequest.findMany({ where, select: { user: { select: { email: true, name: true, deletedAt: true } } } });
+      if (waiting.length) {
+        await this.db.paperRequest.updateMany({ where, data: { status: 'FULFILLED', paperId: updated.id } });
+        void this.notifyReady(updated, waiting.map(w => w.user));
+      }
+    }
+    return { aliases: updated.aliases, id: updated.id, unitCode: updated.unitCode, title: updated.title, year: updated.year, sitting: updated.sitting, school: updated.school, published: updated.published };
   }
 
   // Swap in a corrected PDF, and/or fresh page images (for example after the reader was improved). Anything not sent is kept.

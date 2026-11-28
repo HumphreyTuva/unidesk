@@ -220,3 +220,9 @@ The `20261126120000_referrals` migration adds `refCode` and `referredById` to Us
 
 ### Assistant chat history
 Each question and answer is saved (`AiConversation`, `AiMessage`, migration `20261127120000_ai_history`). Students see their own chats under History in Help > Ask AI, and can delete them. Admins read all chats in Admin > AI questions. The chat screen tells students their chats are saved and read by the team.
+
+### Same unit, different codes
+Different schools code the same unit differently (SMA300 and SMA310). A paper can list other codes it answers to (Admin > Upload a paper, or Manage papers > Edit). Searching, the timetable's "your units" papers and paper requests all match those codes. When a code is added to a paper, students who requested that code get their request closed and the "paper is ready" email. Migration: `20261128120000_paper_aliases`.
+
+### Free database hours (Neon)
+Neon's free plan gives 100 compute hours a month and the database sleeps after a few minutes with no queries. The reminder check used to query it every minute, which kept it awake all day and used the hours up. It now keeps schedules in memory, reloads them at most once an hour (or after a change), and does nothing between 22:00 and 05:00. The health check never touches the database. Keep UptimeRobot on `/api/v1/health` only.

@@ -16,6 +16,9 @@ export class RemindersService implements OnModuleInit, OnModuleDestroy {
   private wp: any = null;
   private pub = '';
   private running = false;
+  // The schedules are kept in memory and reloaded at most once an hour (or after a change), so the minute check does not touch the
+  // database. That lets the free Neon database go to sleep between students' visits instead of being kept awake all day.
+  private cache: { at: number; rows: any[] } | null = null;
 
   constructor(private db: PrismaService) {}
 
@@ -43,6 +46,7 @@ export class RemindersService implements OnModuleInit, OnModuleDestroy {
   // ---- what students call -------------------------------------------------
 
   async subscribe(userId: string, b: SubInput, userAgent?: string) {
+    this.cache = null; // reload the schedules at the next check
     if (!this.wp) throw new BadRequestException('Reminders are not available right now.');
     const endpoint = str(b?.endpoint, 1000), p256dh = str(b?.keys?.p256dh, 200), auth = str(b?.keys?.auth, 100);
     if (!/^https:\/\//.test(endpoint) || !p256dh || !auth) throw new BadRequestException('That notification setup is not valid. Please try again.');
@@ -59,12 +63,14 @@ export class RemindersService implements OnModuleInit, OnModuleDestroy {
   }
 
   async unsubscribe(userId: string, endpoint: unknown) {
+    this.cache = null; // reload the schedules at the next check
     const e = str(endpoint, 1000);
     if (e) await this.db.pushSubscription.deleteMany({ where: { userId, endpoint: e } });
     return { ok: true };
   }
 
   async setSchedule(userId: string, b: ScheduleInput) {
+    this.cache = null; // reload the schedules at the next check
     const enabled = b?.enabled !== false;
     const minsBefore = Math.round(Number(b?.minsBefore));
     const weeks = Math.round(Number(b?.weeks));
@@ -118,20 +124,30 @@ export class RemindersService implements OnModuleInit, OnModuleDestroy {
     if (!this.wp || this.running) return;
     this.running = true;
     try {
-      const today = new Date(`${eatDateKey(now)}T00:00:00Z`);
-      const rows = await this.db.classReminder.findMany({
-        where: { enabled: true, endsOn: { gte: today }, user: { deletedAt: null, pushSubscriptions: { some: {} } } },
-        select: { userId: true, minsBefore: true, classes: true, user: { select: { pushSubscriptions: { select: { id: true, endpoint: true, p256dh: true, auth: true } } } } },
-      });
+      // Classes run in the daytime: nothing is due between 22:00 and 05:00 Nairobi time, so the night does no work at all.
+      const hour = toEat(now).getUTCHours();
+      if (hour < 5 || hour >= 22) return;
+      const rows = await this.loadRows(now);
       for (const r of rows) {
         const classes = Array.isArray(r.classes) ? (r.classes as unknown as ReminderClass[]) : [];
         for (const d of dueNow(classes, r.minsBefore, now)) await this.deliver(r.userId, r.user.pushSubscriptions, d);
       }
-      // Tidy the "already sent" log about once an hour.
-      if (toEat(now).getUTCMinutes() === 0) await this.db.reminderSent.deleteMany({ where: { sentAt: { lt: new Date(now.getTime() - 2 * 86_400_000) } } });
     } finally {
       this.running = false;
     }
+  }
+
+  private async loadRows(now: Date) {
+    if (this.cache && now.getTime() - this.cache.at < 3_600_000) return this.cache.rows;
+    const today = new Date(`${eatDateKey(now)}T00:00:00Z`);
+    const rows = await this.db.classReminder.findMany({
+      where: { enabled: true, endsOn: { gte: today }, user: { deletedAt: null, pushSubscriptions: { some: {} } } },
+      select: { userId: true, minsBefore: true, classes: true, user: { select: { pushSubscriptions: { select: { id: true, endpoint: true, p256dh: true, auth: true } } } } },
+    });
+    this.cache = { at: now.getTime(), rows };
+    // The database is awake anyway: tidy the "already sent" log.
+    await this.db.reminderSent.deleteMany({ where: { sentAt: { lt: new Date(now.getTime() - 2 * 86_400_000) } } }).catch(() => {});
+    return rows;
   }
 
   private async deliver(userId: string, subs: { id: string; endpoint: string; p256dh: string; auth: string }[], d: Due) {

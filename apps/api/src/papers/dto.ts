@@ -16,6 +16,8 @@ export class UploadPaperDto {
   @IsOptional() @IsString() @MaxLength(60) sitting?: string;
   @IsOptional() @IsString() @MaxLength(80) school?: string;
   @IsOptional() @IsString() @MaxLength(40) requestId?: string;
+  // Other codes the same unit goes by, separated by commas or spaces.
+  @IsOptional() @IsString() @MaxLength(120) aliases?: string;
 }
 
 export class UpdatePaperDto {
@@ -25,6 +27,7 @@ export class UpdatePaperDto {
   @IsOptional() @IsString() @MaxLength(60) sitting?: string;
   @IsOptional() @IsString() @MaxLength(80) school?: string;
   @IsOptional() @IsBoolean() published?: boolean;
+  @IsOptional() @IsString() @MaxLength(120) aliases?: string;
 }
 
 export class AdminListQuery {
